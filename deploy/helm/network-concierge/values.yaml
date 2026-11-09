@@ -13,6 +13,9 @@ ingress:
   host: network.example.com
   tls: []
 existingSecret: network-concierge-secrets
+# Non-secret API environment, e.g. behind a Cloudflare tunnel:
+#   extraEnv: [{ name: CLIENT_IP_HEADER, value: cf-connecting-ip }]
+extraEnv: []
 imagePullSecrets: []
 worker:
   enabled: true
