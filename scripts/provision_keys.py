@@ -15,7 +15,7 @@ If the cluster refuses derived keys from an API key, create the same keys in Kib
     python -m scripts.provision_keys                 # print descriptors
     python -m scripts.provision_keys --apply         # create keys, write .env.api / .env.worker
     python -m scripts.provision_keys --from-env      # keys already made in Kibana: read NETWORK_API_KEY,
-                                                     # NETWORK_WORKER_KEY, NETWORK_AGENT_KEY from the environment
+                                                     # NETWORK_WORKER_KEY, NETWORK_AGENT_KEY from the environment or .env
 """
 import argparse
 import json
@@ -44,7 +44,7 @@ def descriptors(settings) -> dict[str, dict]:
         "network-worker": {"network_worker": {"cluster": [], "indices": [data]}},
         "network-agent": {"network_agent": {
             "cluster": ["monitor_inference"], "indices": [public],
-            "applications": [{"application": "kibana-.kibana", "privileges": ["feature_agentBuilder.all", "feature_actions.read"],
+            "applications": [{"application": "kibana-.kibana", "privileges": ["feature_agentBuilder.read", "feature_actions.read"],
                               "resources": ["*"]}]}},
     }
 
@@ -102,7 +102,7 @@ def main():
     keys: dict[str, str] = {}
     if args.from_env:
         for name, variable in (("network-api", "NETWORK_API_KEY"), ("network-worker", "NETWORK_WORKER_KEY"), ("network-agent", "NETWORK_AGENT_KEY")):
-            keys[name] = os.environ.get(variable) or sys.exit(f"Set {variable}")
+            keys[name] = os.environ.get(variable) or dict(env_lines(Path(".env"))).get(variable, "").strip() or sys.exit(f"Set {variable} in .env")
     else:
         admin = {"Authorization": f"ApiKey {settings.elasticsearch_api_key}"}
         for name, roles in plan.items():
@@ -110,8 +110,9 @@ def main():
                 "name": name, "expiration": args.expiration, "role_descriptors": roles,
                 "metadata": {"application": "network-concierge", "event": settings.demo_event_id, "component": name}})
             if response.status_code != 200:
-                raise SystemExit(f"Elasticsearch refused to create {name} ({response.status_code}). Create it in Kibana with the "
-                                 "descriptors from a dry run, then use --from-env.")
+                reason = (response.json().get("error") or {}).get("reason", "") if response.headers.get("content-type", "").startswith("application/json") else ""
+                raise SystemExit(f"Elasticsearch refused to create {name} ({response.status_code}: {reason[:300]}). Create it in Kibana "
+                                 "with the descriptors from a dry run, then use --from-env.")
             keys[name] = response.json()["encoded"]
             print(f"created {name} (id {response.json()['id']}, expires in {args.expiration})")
     for key in keys.values():
