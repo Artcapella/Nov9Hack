@@ -83,6 +83,9 @@ class NetworkStore:
         return item[0] if item else None
 
     async def get_versioned(self, collection: str, key: str) -> tuple[dict, dict] | None:
+        # A session without a card has no profile id; that is a miss (403 upstream), not a 500.
+        if not key:
+            return None
         if self.client:
             try:
                 response = await self.client.get(index=self.settings.index(collection), id=key)

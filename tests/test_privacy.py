@@ -111,3 +111,16 @@ def test_public_health_and_event_qr_reveal_no_contacts(client):
     assert client.get("/api/event-qr.png").headers["content-type"] == "image/png"
     assert "no-store" in client.get("/api/event-qr.png").headers["cache-control"]
 
+
+def test_cardless_session_is_forbidden_not_an_elasticsearch_error():
+    """Regression: an empty profile id must not reach Elasticsearch GET (ValueError -> HTTP 500)."""
+    from unittest.mock import AsyncMock
+
+    from app.config import Settings
+    from app.store import NetworkStore
+
+    store = NetworkStore(Settings(_env_file=None, elasticsearch_url=None, elasticsearch_api_key=None))
+    store.client = AsyncMock()
+    store.client.get.side_effect = ValueError("Empty value passed for parameter 'id'")
+    assert run(store.public_document("")) is None
+    store.client.get.assert_not_called()
