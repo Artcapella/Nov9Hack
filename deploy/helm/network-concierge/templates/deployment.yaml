@@ -39,6 +39,7 @@ spec:
             readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
             capabilities: { drop: ["ALL"] }
           resources: {{- toYaml .Values.resources | nindent 12 }}
-          readinessProbe: { httpGet: { path: /readyz, port: http }, initialDelaySeconds: 5, periodSeconds: 10 }
-          livenessProbe: { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 15, periodSeconds: 20 }
+          # /readyz makes two Elastic Serverless round trips (0.7-2.5 s); the 1 s default timeout flapped readiness.
+          readinessProbe: { httpGet: { path: /readyz, port: http }, initialDelaySeconds: 5, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 3 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 15, periodSeconds: 20, timeoutSeconds: 5, failureThreshold: 6 }
       volumes: [{ name: tmp, emptyDir: { sizeLimit: 64Mi } }]
