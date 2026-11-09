@@ -4,6 +4,7 @@ import json
 import math
 import secrets
 import time
+from concurrent.futures import ThreadPoolExecutor
 from contextlib import asynccontextmanager
 from typing import Literal
 from urllib.parse import urlsplit
@@ -28,6 +29,7 @@ from app.telemetry import (accepted_counter, configure_telemetry, connection_cou
                            shutdown_telemetry, tracer)
 
 COOKIE = "network_session"
+PARSE_DEADLINE_SECONDS = 20
 
 
 def create_app(settings: Settings | None = None, telemetry: bool = True) -> FastAPI:
@@ -42,6 +44,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
             await store.start()
             yield
         finally:
+            app.state.parse_pool.shutdown(wait=False, cancel_futures=True)
             await store.close()
             if telemetry:
                 shutdown_telemetry()
@@ -183,7 +186,23 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def legacy_resume(session: dict = Depends(require_session)):
         raise HTTPException(409, "Preview the resume, review the editable card, then POST /api/profiles with draft_id")
 
-    parse_slots = asyncio.Semaphore(2)
+    # Resume parsing is CPU-bound and cannot be interrupted once a thread starts. A dedicated two-thread pool keeps
+    # it off the shared executor, and a slot is released only when its thread really finishes, so timed-out parses
+    # still count against the limit. When both slots are busy the request is refused instead of queued.
+    parse_pool = ThreadPoolExecutor(max_workers=2, thread_name_prefix="resume-parse")
+    app.state.parse_slots = asyncio.Semaphore(2)
+    app.state.parse_pool = parse_pool
+
+    async def parse_resume(filename: str, content: bytes):
+        slots = app.state.parse_slots
+        if slots.locked():
+            raise HTTPException(503, "Resume reading is busy. Try again in a moment or enter your card manually.",
+                                headers={"Retry-After": "10"})
+        await slots.acquire()
+        future = asyncio.get_running_loop().run_in_executor(parse_pool, lambda: heuristic_parse(extract_text(filename, content)))
+        future.add_done_callback(lambda _: slots.release())
+        # shield: a timeout stops waiting, never the slot accounting tied to the running thread.
+        return await asyncio.wait_for(asyncio.shield(future), PARSE_DEADLINE_SECONDS)
 
     @app.post("/api/resumes/preview")
     async def preview_resume(resume: UploadFile = File(...), consent_to_resume_parsing: bool = Form(False),
@@ -198,9 +217,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
             raise HTTPException(413, "Resume must be 6 MB or smaller")
         try:
             with tracer().start_as_current_span("network.resume.parse", record_exception=False, set_status_on_exception=False):
-                # PDF/DOCX parsing is CPU-bound: run it off the event loop, a few at a time, with a deadline.
-                async with parse_slots:
-                    parsed = await asyncio.wait_for(asyncio.to_thread(lambda: heuristic_parse(extract_text(resume.filename, content))), 20)
+                parsed = await parse_resume(resume.filename, content)
         except TimeoutError:
             raise HTTPException(400, "This file took too long to read. Try another format or enter your card manually.") from None
         except ValueError as exc:

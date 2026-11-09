@@ -85,3 +85,37 @@ def test_worker_role_runs_without_the_contact_key():
     settings = Settings(_env_file=None, network_role="worker", environment="production", elasticsearch_url="https://es.example.com",
                         elasticsearch_api_key="k", public_base_url="https://network.example.com", cors_origins="https://network.example.com")
     assert settings.contact_encryption_key is None and settings.network_role == "worker"
+
+
+def test_timed_out_resume_parses_keep_their_slot_until_the_thread_finishes(application, monkeypatch):
+    import threading
+    import time
+
+    import app.main as main
+    release = threading.Event()
+    real_extract = main.extract_text
+
+    def slow_extract(filename, content):
+        release.wait(10)
+        return real_extract(filename, content)
+
+    monkeypatch.setattr(main, "extract_text", slow_extract)
+    monkeypatch.setattr(main, "PARSE_DEADLINE_SECONDS", 0.2)
+    # One long-lived client keeps one event loop, as uvicorn does, so slot-release callbacks can run.
+    with TestClient(application, headers={"X-NETwork-Request": "1"}) as client:
+        client.post("/api/session")
+
+        def upload():
+            return client.post("/api/resumes/preview", data={"consent_to_resume_parsing": "true"},
+                               files={"resume": ("cv.txt", b"Python engineer. Skills: Python, SQL", "text/plain")})
+        try:
+            assert [upload().status_code for _ in range(2)] == [400, 400]  # deadline passed, threads still running
+            busy = upload()
+            assert busy.status_code == 503 and busy.headers["Retry-After"]
+        finally:
+            release.set()
+        for _ in range(50):  # the threads finish and give their slots back
+            if not application.state.parse_slots.locked():
+                break
+            time.sleep(0.05)
+        assert upload().status_code == 200
