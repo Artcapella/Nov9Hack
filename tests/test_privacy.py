@@ -62,6 +62,10 @@ def test_cookie_origin_csrf_and_unforgeable_profile_identity(client):
     assert "HttpOnly" in cookie and "SameSite=strict" in cookie
     assert client.post("/api/session", headers={"Origin": "https://untrusted.invalid"}).status_code == 403
     assert client.post("/api/session", headers={"X-NETwork-Request": ""}).status_code == 403
+    # Served from a LAN IP or tunnel rather than PUBLIC_BASE_URL: same-origin to the host that served it.
+    assert client.post("/api/session", headers={"Origin": "http://192.168.1.20:8000", "Host": "192.168.1.20:8000"}).status_code == 200
+    assert client.post("/api/session", headers={"Origin": "https://abc.ngrok.app", "X-Forwarded-Host": "abc.ngrok.app"}).status_code == 200
+    assert client.post("/api/session", headers={"Origin": "https://evil.example", "Host": "192.168.1.20:8000"}).status_code == 403
     denied = client.post("/api/profiles", json={"display_name": "Demo Attendee", "consent_to_discover": False})
     assert denied.status_code == 400
     assert client.post("/api/search", json={"question": "Python"}).status_code == 403

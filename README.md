@@ -12,6 +12,15 @@ This implementation delivers the plan's next foundation stage: secure contact/co
 
 ## Run locally
 
+### Networking additions (November 9)
+
+- **People → Meet someone unexpected** samples real, discoverable attendees across the Elasticsearch index with a fresh random seed. Consent, expiry, event, role, format and sponsor-intent filters apply. It ignores search text and shows no invented similarity percentage. Synthetic cards are always excluded from this mode; other views now default to hiding them for new browsers.
+- **People → My networking break** stores one attendee-entered time window and public meeting area per owned card in `network_networking_breaks_v3`. Open another real attendee's card and choose **Find a shared break** to calculate an overlap of at least five minutes. Both attendees must share availability. Matching area names are exact (case-insensitive), not geographic proximity. This is a suggestion, not a booking or an inferred panel schedule. Breaks are removed on withdrawal and swept after expiry by the worker.
+
+Before running the updated API/worker on another environment, run `.venv-next\Scripts\python -m scripts.enable_networking --apply` with its configured Elastic credentials. This creates only the new index/alias and verifies the random query; it never seeds attendees. Runtime keys need read/write/delete access to that index and the worker needs its retention-cleanup privileges. The existing memory mode remains available for isolated tests.
+
+Live verification on November 9 succeeded: break mapping and random query verified, zero eligible real candidates, zero stored breaks, zero attendee records created. Two-person live overlap verification requires actual opted-in attendees to share their own availability. Local tests cover overlap, isolation, expiry, withdrawal, validation and random-query filters. The UI was checked against the live-connected local API; Kubernetes image rollout is separate.
+
 Python 3.12 or 3.13 is supported. In this workspace, `.venv-next` is the working environment; the original `.venv` points to a missing interpreter.
 
 ```powershell

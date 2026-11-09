@@ -64,7 +64,7 @@ INTERESTS = ["bouldering", "jazz", "chess", "trail running", "sourdough", "film 
 AVAILABILITY = ["now", "after-lunch", "later"]
 
 
-def card(rng: random.Random, index: int) -> dict:
+def card(rng: random.Random) -> dict:
     primary = rng.choice(list(ARCHETYPES))
     blend = rng.choice([a for a in ARCHETYPES if a != primary]) if rng.random() < 0.35 else None
     a, b = ARCHETYPES[primary], ARCHETYPES[blend] if blend else None
@@ -102,7 +102,7 @@ def card(rng: random.Random, index: int) -> dict:
 
 def generate(count: int, seed: int = 2026) -> list[dict]:
     rng = random.Random(seed)
-    return [card(rng, index) for index in range(count)]
+    return [card(rng) for _ in range(count)]
 
 
 if __name__ == "__main__":

@@ -4,6 +4,7 @@ import secrets
 import time
 from contextlib import asynccontextmanager
 from typing import Literal
+from urllib.parse import urlsplit
 
 import qrcode
 from fastapi import Depends, FastAPI, File, Form, HTTPException, Request, Response, UploadFile
@@ -12,13 +13,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import interactions, live
+from app import interactions, live, meetings
 from app.config import Settings, get_settings
 from app.ingestion import source_record
 from app.rag import answer_with_evidence
 from app.resume_parser import extract_text, heuristic_parse
 from app.people import people_search
-from app.schemas import AskRequest, ConnectionRequestCreate, InteractionCreate, PeopleSearchRequest, ProfileCreate, SearchRequest
+from app.schemas import AskRequest, ConnectionRequestCreate, InteractionCreate, NetworkingBreak, PeopleSearchRequest, ProfileCreate, SearchRequest
 from app.store import NetworkStore
 from app.telemetry import accepted_counter, configure_telemetry, connection_counter, instrument_app, shutdown_telemetry, tracer
 
@@ -51,10 +52,24 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     if telemetry:
         instrument_app(app)
 
+    def forwarded(request: Request, name: str) -> str | None:
+        value = request.headers.get(f"x-forwarded-{name}")
+        return value.split(",")[0].strip() if value else None
+
+    def same_origin(request: Request) -> bool:
+        # Accept the configured origins plus whatever host actually served the page (LAN IP, tunnel, 127.0.0.1).
+        # The custom X-NETwork-Request header is the real CSRF guard: cross-site pages cannot send it without a
+        # CORS preflight, which CORSMiddleware refuses for unlisted origins.
+        origin = request.headers.get("origin")
+        if not origin or origin in origins:
+            return True
+        served_host = forwarded(request, "host") or request.headers.get("host")
+        return bool(served_host) and urlsplit(origin).netloc == served_host
+
     @app.middleware("http")
     async def protect_browser_requests(request: Request, call_next):
         if request.url.path.startswith("/api/") and request.method in {"POST", "PUT", "PATCH", "DELETE"}:
-            if request.headers.get("X-NETwork-Request") != "1" or (request.headers.get("origin") and request.headers["origin"] not in origins):
+            if request.headers.get("X-NETwork-Request") != "1" or not same_origin(request):
                 return JSONResponse({"detail": "Same-origin application request required"}, status_code=403)
         started = time.perf_counter()
         response = await call_next(request)
@@ -101,7 +116,9 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         session = await store.session(request.cookies.get(COOKIE))
         if not session:
             token, session = await store.new_session()
-            response.set_cookie(COOKIE, token, httponly=True, secure=settings.public_base_url.startswith("https://"),
+            # Secure follows the scheme this browser actually used, so the session cookie also sticks on plain-HTTP LAN hosts.
+            https = (forwarded(request, "proto") or request.url.scheme) == "https"
+            response.set_cookie(COOKIE, token, httponly=True, secure=https,
                                 samesite="strict", max_age=settings.session_hours * 3600, path="/")
         return {"event_id": session["event_id"], "profile_id": session["profile_id"],
                 "mode": "elastic" if settings.elastic_enabled else "memory_demo"}
@@ -158,6 +175,24 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
             raise HTTPException(400, str(exc)) from None
         source = source_record(content, source_type=source_type, basis="attendee_authorized_upload", owner_id=session["owner_id"])
         return await store.save_draft(session["owner_id"], parsed, source)
+
+    @app.get("/api/me/break")
+    async def get_break(attendee: dict = Depends(require_attendee)):
+        return {"break": await meetings.current_break(store, attendee)}
+
+    @app.post("/api/me/break")
+    async def set_break(request: NetworkingBreak, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.break.save", record_exception=False, set_status_on_exception=False):
+            return {"break": await meetings.save_break(store, attendee, request)}
+
+    @app.delete("/api/me/break", status_code=204)
+    async def clear_break(attendee: dict = Depends(require_attendee)):
+        await store.delete("networking_breaks", attendee["id"])
+
+    @app.get("/api/people/{profile_id}/overlap")
+    async def meeting_overlap(profile_id: str, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.break.overlap", record_exception=False, set_status_on_exception=False):
+            return await meetings.overlap(store, attendee, profile_id)
 
     @app.post("/api/search")
     async def search(request: SearchRequest, attendee: dict = Depends(require_attendee)):

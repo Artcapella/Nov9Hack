@@ -17,6 +17,7 @@ failure, falls back to keyword affinity, and the response labels which one was u
 import logging
 import math
 import re
+import secrets
 from collections import Counter
 
 from fastapi import HTTPException
@@ -253,6 +254,8 @@ async def semantic_people(store, text: str, field: str, filters: list[dict], siz
 
 
 async def people_search(store, request: PeopleSearchRequest, viewer: dict) -> dict:
+    if request.mode == "shuffle":
+        return await shuffled_people(store, request, viewer)
     mode, event_id = request.mode, store.settings.demo_event_id
     if mode == "hire":
         request = request.model_copy(update={"roles": ["recruiter", "sponsor"], "sponsor_intent": True})
@@ -306,3 +309,34 @@ async def people_search(store, request: PeopleSearchRequest, viewer: dict) -> di
     result["colour_source"] = colour_source
     search_counter.add(1, {"engine": engine, "mode": f"people_{mode}"})
     return result
+
+
+async def shuffled_people(store, request, viewer):
+    """Sample across the eligible index, without a similarity shortlist."""
+    request = request.model_copy(update={"include_synthetic": False})
+    filters = search_filters(request, store.settings.demo_event_id, viewer["id"])
+    if store.client:
+        try:
+            response = await store.client.search(
+                index=store.settings.index("user_vectors"), size=request.size,
+                source=list(PublicProfile.model_fields) + ["event_id", "consent_to_discover", "state"],
+                query={"function_score": {"query": {"bool": {"filter": filters}},
+                       "random_score": {"seed": secrets.randbelow(2**31), "field": "id"}, "boost_mode": "replace"}})
+            docs = [hit["_source"] for hit in response["hits"]["hits"]]
+        except Exception:
+            raise HTTPException(503, "Discovery is temporarily unavailable") from None
+    else:
+        docs = [doc for doc in store.memory_profiles.values()
+                if eligible(doc, request, store.settings.demo_event_id, viewer["id"])]
+        secrets.SystemRandom().shuffle(docs)
+    docs = [doc for doc in docs if eligible(doc, request, store.settings.demo_event_id, viewer["id"])][:request.size]
+    affinities, colour_source = await store.space.affinities({position_text(doc) for doc in docs} | {position_text(viewer)})
+    hits = [{**store.public_profile(doc), **project(affinities.get(position_text(doc), NEUTRAL)),
+             "percent": None, "similarity": None, "tags": [], "novelty": None,
+             "reasons": ["Random discovery · your filters still apply"],
+             "explanation": {"policy_gates": describe_filters(filters), "fields_searched": []}} for doc in docs]
+    search_counter.add(1, {"engine": "elasticsearch" if store.client else "memory_demo", "mode": "people_shuffle"})
+    return {"mode": "shuffle", "engine": "elasticsearch" if store.client else "memory_demo", "basis": "random",
+            "hits": hits, "colour_source": colour_source, "you": project(affinities.get(position_text(viewer), NEUTRAL)),
+            "note": f"{len(hits)} real attendees sampled at random. Your filters apply; search text is ignored. Shuffle again to explore.",
+            "similarity": "Random selection; no similarity score"}

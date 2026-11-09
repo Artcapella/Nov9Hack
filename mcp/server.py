@@ -35,9 +35,8 @@ async def find_conference_expert(question: str, limit: int = 5) -> list[dict]:
 @app.tool()
 async def find_sponsors(question: str, limit: int = 5) -> list[dict]:
     """Explicitly include approved sponsor/recruiter cards for this event."""
-    results = await request_api("/api/search", {"question": question, "size": max(1, min(limit, 10)),
-                                               "roles": ["sponsor", "recruiter"], "sponsor_intent": True})
-    return results
+    return await request_api("/api/search", {"question": question, "size": max(1, min(limit, 10)),
+                                            "roles": ["sponsor", "recruiter"], "sponsor_intent": True})
 
 
 if __name__ == "__main__":

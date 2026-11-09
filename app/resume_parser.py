@@ -1,6 +1,5 @@
 """Opt-in resume parsing: source files are processed in memory and never retained."""
 import io
-import json
 import re
 from dataclasses import dataclass
 
@@ -15,6 +14,7 @@ SKILL_TERMS = [
     "pytorch", "pandas", "hugging face", "node.js", "flask", "html", "css", "tableau", "nlp", "llm", "rag",
     "computer vision", "spark", "dbt", "figma", "tensorflow", "scikit-learn", "supabase", "mysql", "git",
 ]
+PARSER_VERSION = "local_heuristic_v3"
 
 
 @dataclass
@@ -59,7 +59,7 @@ def normalize(text: str) -> str:
     text = re.sub(r"[ \t]{2,}", " ", text)
     text = re.sub(r" +([,.;:)])", r"\1", text)
     # All-caps headings (EXPERIENCE, TECHNICAL SKILLS) start their own line even when the PDF glued them to content.
-    text = re.sub(rf"[ \t]*\b({HEADINGS.upper().replace('(?:', '(?:')})\b[ \t]*(?=\S)", lambda m: f"\n{m.group(1)}\n", text)
+    text = re.sub(rf"[ \t]*\b({HEADINGS.upper()})\b[ \t]*(?=\S)", lambda m: f"\n{m.group(1)}\n", text)
     return text
 
 
@@ -112,7 +112,7 @@ def heuristic_parse(text: str) -> ParsedResume:
             "project_highlights": projects,
             "experience_highlights": experience,
             "headline": _headline(experience),
-            "parser": "local_heuristic_v3",
+            "parser": PARSER_VERSION,
         },
         contact_hints={
             "email": email.group(0) if email else None,
@@ -143,8 +143,3 @@ def build_vector_text(profile: dict, structured: dict | None = None) -> str:
     ]
     # Parser suggestions are restricted until explicitly copied into reviewed fields.
     return "\n".join(chunk for chunk in chunks if chunk.strip())[:6000]
-
-
-def structured_json(parsed: ParsedResume) -> str:
-    """Intentionally omits extracted contact hints from the structured resume record."""
-    return json.dumps(parsed.structured)

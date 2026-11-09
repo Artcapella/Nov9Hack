@@ -4,8 +4,8 @@ const selected = (name, root = document) => [...root.querySelectorAll(`input[nam
 let draftId = null, previewGeneration = 0, myProfile = null, myState = null, refreshTimer = null;
 // SynthDemo: the administratively seeded synthetic cohort. Viewers can hide it everywhere; introductions to it are disabled.
 const SYNTH = 'SynthDemo';
-let showSynth = true;
-try { showSynth = localStorage.getItem('network.showSynth') !== '0'; } catch { /* storage unavailable: default to shown */ }
+let showSynth = false;
+try { showSynth = localStorage.getItem('network.showSynth') === '1'; } catch { /* storage unavailable: real attendees only */ }
 const isSynthetic = (hit) => hit?.dataset === SYNTH || (hit?.display_name || '').startsWith('DEMO · ');
 const cleanName = (name) => (name || '').replace(/^DEMO · /, '');
 
@@ -756,6 +756,7 @@ const PEOPLE_MODES = {
   hire: {placeholder: 'Role or skills you want to be hired for (optional)', card: 'hiring for what your card offers'},
   interests: {placeholder: 'Climbing, jazz, chess… (optional)', card: 'who share your interests outside work'},
   discover: {placeholder: 'Optional: a direction to explore', card: 'furthest from your cluster'},
+  shuffle: {placeholder: 'Random discovery ignores search text', card: 'sampled at random'},
 };
 const people = {mode: 'query', seq: 0, loaded: false};
 const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
@@ -773,7 +774,7 @@ async function runPeople() {
   const seq = ++people.seq, list = $('#people-results'), basis = $('#people-basis');
   people.loaded = true;
   list.setAttribute('aria-busy', 'true'); list.classList.add('loading');
-  basis.textContent = 'Ranking people by vector similarity…';
+  basis.textContent = people.mode === 'shuffle' ? 'Finding someone unexpected…' : 'Ranking people by vector similarity…';
   const question = $('#people-q').value.trim();
   try {
     const data = await post('/api/people/search', {mode:people.mode, question, size:12, include_synthetic:showSynth, ...peopleFilters()});
@@ -824,9 +825,9 @@ function renderPerson(hit, index) {
     <div class="person-main">
       <header class="person-top">
         <h3 class="openable" title="Open card">${escapeHtml(name)}${demo ? '<span class="demo-flag mono">SynthDemo</span>' : ''}</h3>
-        <span class="pct" aria-label="${hit.percent}% similar"><b>${hit.percent}</b><small>%</small></span>
+        ${hit.percent == null ? '<span class="mono">Discovery</span>' : `<span class="pct" aria-label="${hit.percent}% similar"><b>${hit.percent}</b><small>%</small></span>`}
       </header>
-      <div class="meter" aria-hidden="true"><i></i></div>
+      ${hit.percent == null ? '' : '<div class="meter" aria-hidden="true"><i></i></div>'}
       <p class="person-headline">${escapeHtml(hit.headline || hit.availability)}${hit.discipline ? ` <span class="discipline mono">${escapeHtml(hit.discipline)}</span>` : ''}</p>
       <div class="tags"></div>
       ${hit.reasons.length ? `<p class="person-reason mono">${escapeHtml(hit.reasons[0])}</p>` : ''}
@@ -1027,7 +1028,9 @@ function openSheet(p) {
       <button type="button" class="qa intro" ${synthetic || mine ? 'disabled' : ''}>${mine ? 'This is your card' : synthetic ? 'Synthetic card · no intros' : 'Request intro'}</button>
       <button type="button" class="qa similar">Find similar people</button>
       <button type="button" class="qa in3d">Show in 3D</button>
+      ${!synthetic && !mine ? '<button type="button" class="qa overlap">Find a shared break</button>' : ''}
     </div>
+    <p class="overlap-status small" aria-live="polite"></p>
     ${mine ? '' : `<div class="interact" role="group" aria-label="Log how you interacted">
       <span class="eyebrow">Log an interaction <span class="hint">builds your link · weakest to strongest</span></span>
       <div class="interact-row">
@@ -1051,9 +1054,50 @@ function openSheet(p) {
     switchTab('people'); if (people.mode !== 'query') setPeopleMode('query'); else runPeople();
   });
   $('#sheet-body .in3d').addEventListener('click', () => { switchTab('network3d'); g3.focusId(p.id); });
+  $('#sheet-body .overlap')?.addEventListener('click', async (event) => {
+    const button = event.currentTarget, status = $('#sheet-body .overlap-status');
+    button.disabled = true; status.textContent = 'Checking shared availability…';
+    try {
+      const data = await api(`/api/people/${encodeURIComponent(p.id)}/overlap`);
+      status.textContent = data.status === 'suggested'
+        ? `${new Date(data.starts_at).toLocaleString()} – ${new Date(data.ends_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})}. ${data.same_area ? `Both at ${data.your_area}.` : `You: ${data.your_area}. Them: ${data.their_area}.`} ${data.message}`
+        : data.message;
+    } catch (error) { status.textContent = error.message; }
+    finally { button.disabled = false; }
+  });
   sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open'));
 }
 const viewedThisSession = new Set();
+const breakForm = $('#break-form'), breakStatus = $('#break-status');
+$('#break-details').addEventListener('toggle', async (event) => {
+  if (!event.target.open) return;
+  try {
+    const data = await api('/api/me/break');
+    breakForm.reset();
+    if (data.break) {
+      for (const name of ['starts_at', 'ends_at']) {
+        const date = new Date(data.break[name]);
+        breakForm.elements[name].value = new Date(date - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+      }
+      breakForm.elements.area.value = data.break.area;
+    }
+    breakStatus.textContent = data.break ? 'Your break is shared. You can update or remove it.' : 'No active break shared.';
+  } catch (error) { breakStatus.textContent = error.message; }
+});
+breakForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+  const button = breakForm.querySelector('[type="submit"]'); button.disabled = true;
+  try {
+    await post('/api/me/break', {starts_at:new Date(breakForm.elements.starts_at.value).toISOString(),
+      ends_at:new Date(breakForm.elements.ends_at.value).toISOString(), area:breakForm.elements.area.value});
+    breakStatus.textContent = 'Break saved. Open someone’s card to find a shared break.';
+  } catch (error) { breakStatus.textContent = error.message; }
+  finally { button.disabled = false; }
+});
+$('#break-clear').addEventListener('click', async () => {
+  try { await api('/api/me/break', {method:'DELETE'}); breakForm.reset(); breakStatus.textContent = 'Break removed.'; }
+  catch (error) { breakStatus.textContent = error.message; }
+});
 async function logInteraction(id, kind, button) {
   if (kind === 'view') { if (viewedThisSession.has(id)) return; viewedThisSession.add(id); }
   const status = $('#sheet-body .ix-status');

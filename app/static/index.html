@@ -142,6 +142,7 @@
               <button type="button" class="chip-btn" role="radio" data-mode="hire" aria-checked="false" tabindex="-1">Hiring</button>
               <button type="button" class="chip-btn" role="radio" data-mode="interests" aria-checked="false" tabindex="-1">Outside work</button>
               <button type="button" class="chip-btn" role="radio" data-mode="discover" aria-checked="false" tabindex="-1">Find new people</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="shuffle" aria-checked="false" tabindex="-1">Meet someone unexpected</button>
               <button type="button" class="chip-btn filters-btn" id="people-filters-toggle" aria-expanded="false" aria-controls="people-filters">Filters<span class="n" id="people-filter-count"></span></button>
             </div>
             <form id="people-filters" class="filter-sheet" hidden>
@@ -165,6 +166,17 @@
               </div>
             </form>
             <p id="people-basis" class="people-basis mono" aria-live="polite"></p>
+            <details id="break-details" class="why">
+              <summary>My networking break</summary>
+              <p class="subtle small">Share one free window and a public meeting area with other attendees. Times use your device’s timezone. This does not book a meeting.</p>
+              <form id="break-form">
+                <label>From <input name="starts_at" type="datetime-local" required /></label>
+                <label>Until <input name="ends_at" type="datetime-local" required /></label>
+                <label>Meeting area <input name="area" maxlength="120" placeholder="Room or public meeting point" required /></label>
+                <div class="row-actions"><button class="secondary compact-btn" type="submit">Share break</button><button id="break-clear" type="button" class="ghost">Remove</button></div>
+              </form>
+              <p id="break-status" class="small" aria-live="polite"></p>
+            </details>
             <div id="people-intros"></div>
             <ol id="people-results" class="people-list" aria-label="Matching people"></ol>
           </div>
@@ -358,6 +370,6 @@
         </div>
       </article>
     </template>
-    <script src="/app.js?v=0.8.0"></script>
+    <script src="/app.js?v=0.9.0"></script>
   </body>
 </html>

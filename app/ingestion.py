@@ -13,7 +13,7 @@ from html.parser import HTMLParser
 from urllib.parse import urljoin, urlsplit
 
 from app.config import Settings
-from app.resume_parser import ParsedResume, extract_text, heuristic_parse
+from app.resume_parser import PARSER_VERSION, ParsedResume, extract_text, heuristic_parse
 
 _locks: dict[str, threading.Lock] = {}
 _last_fetch: dict[str, float] = {}
@@ -26,7 +26,7 @@ def source_record(content: bytes, source_type: str, basis: str, url: str | None 
     source_id = hashlib.sha256(f"{owner_id}\0{source_type}\0{url or ''}\0{digest}".encode()).hexdigest()
     return {"source_id": source_id, "source_type": source_type, "source_url": url,
             "acquisition_basis": basis, "license": license, "content_hash": digest,
-            "parser_version": "local_heuristic_v2", "acquired_at": datetime.now(UTC).isoformat()}
+            "parser_version": PARSER_VERSION, "acquired_at": datetime.now(UTC).isoformat()}
 
 
 def resolve_public(url: str, allowed_hosts: list[str]) -> tuple[object, str]:

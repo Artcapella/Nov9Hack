@@ -55,7 +55,7 @@ async def publish_job(store: NetworkStore, job: dict) -> str:
     if not await store.publish_guarded("user_vectors", profile_id, {**vector, "state": "indexed"}):
         return "revoked"
     if not await store.put("approvals", profile_id, {**approval, "state": "indexed"}, approval_cas):
-        # Revocation raced with restricted vector indexing: remove any late restricted write.
+        # Revocation raced with publication; its tombstones already make publish_guarded reject late writes.
         latest = await store.get("approvals", profile_id)
         if latest and latest["state"] == "revoked":
             return "revoked"

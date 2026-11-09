@@ -82,7 +82,7 @@ def test_discover_orders_by_distance_from_your_cluster(application):
 
 def test_filters_reuse_the_shared_policy(application):
     viewer, _ = participant(application, "Demo Viewer", can_help_with=["Python"])
-    _, async_only = participant(application, "Demo Async", can_help_with=["Python"], formats=["async"])
+    participant(application, "Demo Async", can_help_with=["Python"], formats=["async"])
     _, one = participant(application, "Demo One", can_help_with=["Python"], formats=["one_to_one"], availability="now")
     hits = search(viewer, mode="query", question="python", formats=["one_to_one"], available_now=True)["hits"]
     assert [hit["id"] for hit in hits] == [one["id"]]

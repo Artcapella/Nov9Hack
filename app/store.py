@@ -342,7 +342,7 @@ class NetworkStore:
             if await self.put("resume_vectors", profile_id, {"resume_id": profile_id, "profile_id": profile_id,
                                "state": "revoked", "approval_version": approval["approval_version"]}, current[1] if current else None, create=not current):
                 break
-        for collection in ("private_contacts", "resume_structured"):
+        for collection in ("private_contacts", "resume_structured", "networking_breaks"):
             await self.delete(collection, profile_id)
         await self.finish_job(f"profile-{profile_id}-{approval['approval_version']}", "revoked")
 
@@ -414,13 +414,13 @@ class NetworkStore:
 
     async def purge_expired(self) -> None:
         """Bounded retention sweeps; expired evidence is already excluded by queries."""
-        for collection in ("drafts", "sessions"):
+        for collection, expiry_field in (("drafts", "expires_at"), ("sessions", "expires_at"), ("networking_breaks", "ends_at")):
             if self.client:
                 await self.client.delete_by_query(index=self.settings.index(collection),
-                    query={"range": {"expires_at": {"lte": "now"}}}, conflicts="proceed", refresh=True)
+                    query={"range": {expiry_field: {"lte": "now"}}}, conflicts="proceed", refresh=True)
             else:
                 for key, record in list(self.memory[collection].items()):
-                    if datetime.fromisoformat(record["expires_at"]) <= now():
+                    if datetime.fromisoformat(record[expiry_field]) <= now():
                         await self.delete(collection, key)
         if self.client:
             response = await self.client.search(index=self.settings.index("user_vectors"), size=20,

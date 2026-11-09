@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, EmailStr, Field, field_validator
+from pydantic import AwareDatetime, BaseModel, EmailStr, Field, field_validator, model_validator
 
 
 ConnectionFormat = Literal["async", "one_to_one", "small_group"]
@@ -73,7 +73,7 @@ class SearchRequest(BaseModel):
 
 class PeopleSearchRequest(BaseModel):
     """General similarity view. Attribute names match SearchRequest so the shared policy filters apply."""
-    mode: Literal["query", "problem", "hire", "interests", "discover"] = "query"
+    mode: Literal["query", "problem", "hire", "interests", "discover", "shuffle"] = "query"
     question: str = Field(default="", max_length=700)
     formats: list[ConnectionFormat] = Field(default_factory=list)
     roles: list[Role] = Field(default_factory=list)
@@ -87,6 +87,26 @@ class SearchHit(PublicProfile):
     score: float | None = None
     match_reasons: list[str] = Field(default_factory=list)
     explanation: dict = Field(default_factory=dict)
+
+
+class NetworkingBreak(BaseModel):
+    starts_at: AwareDatetime
+    ends_at: AwareDatetime
+    area: str = Field(min_length=1, max_length=120)
+
+    @field_validator("area")
+    @classmethod
+    def clean_area(cls, value):
+        value = value.strip()
+        if not value:
+            raise ValueError("Enter a meeting area")
+        return value
+
+    @model_validator(mode="after")
+    def ordered(self):
+        if not 300 <= (self.ends_at - self.starts_at).total_seconds() <= 14400:
+            raise ValueError("Choose a break between 5 minutes and 4 hours")
+        return self
 
 
 class AskRequest(BaseModel):

@@ -20,6 +20,8 @@ def mappings(settings: Settings) -> dict[str, dict]:
         "interests_semantic": semantic, "model_id": keyword, "dataset": keyword,
     }
     definitions = {
+        "networking_breaks": {"profile_id": keyword, "event_id": keyword, "starts_at": date,
+                              "ends_at": date, "area": keyword},
         "user_vectors": public,
         "approvals": {"profile_id": keyword, "event_id": keyword, "owner_id": keyword,
                       "approval_version": integer, "state": keyword, "public": obj, "source_id": keyword},

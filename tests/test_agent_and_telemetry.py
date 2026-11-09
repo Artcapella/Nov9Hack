@@ -39,6 +39,23 @@ def test_converse_normalizes_response_verifies_tools_and_limits_capabilities(app
     assert calls[-1].headers["kbn-xsrf"] == "true"
 
 
+def test_hidden_synthdemo_withholds_people_search_tools_from_the_agent(application, monkeypatch):
+    participant(application)
+    settings = agent_settings()
+    calls = []
+    def handler(request):
+        calls.append(request)
+        if request.method == "GET":
+            return httpx.Response(200, json=next(tool for tool in definitions(settings) if request.url.path.endswith(tool["id"])))
+        return httpx.Response(200, json={"response": {"message": "Answer from evidence [1]."}, "steps": []})
+    original = httpx.AsyncClient
+    monkeypatch.setattr("app.rag.httpx.AsyncClient", lambda **kw: original(transport=httpx.MockTransport(handler), **kw))
+    run(answer_with_evidence("Python", application.state.store, settings, sponsor_intent=True, include_synthetic=False))
+    body = json.loads(calls[-1].content)
+    assert body["configuration_overrides"]["tools"] == [{"tool_ids": ["network.conference_skill_summary"]}]
+    assert not any(request.url.path.endswith(("network.find_people", "network.find_sponsors")) for request in calls)
+
+
 def test_misconfigured_agent_scope_fails_closed_to_retrieval(application, monkeypatch, caplog):
     participant(application)
     def handler(request):
