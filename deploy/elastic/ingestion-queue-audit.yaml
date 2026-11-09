@@ -19,7 +19,8 @@ steps:
         bool:
           filter:
             - term: { event_id: cnh-2026 }
-            - terms: { state: [queued, leased, failed] }
+            # Same states as NetworkStore.pending_jobs() plus terminal failures.
+            - terms: { state: [queued, processing, retry, failed] }
   - name: count_discoverable_cards
     type: elasticsearch.search
     with:

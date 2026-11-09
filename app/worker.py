@@ -68,9 +68,15 @@ async def index_experience(store: NetworkStore, record: dict):
                         "model_id": store.settings.elastic_inference_id, "state": "indexed", "approval_version": record["approval_version"]})
 
 
-async def process_pending(store: NetworkStore) -> int:
+def touch_heartbeat() -> None:
+    Path(tempfile.gettempdir(), "network-worker-heartbeat").touch()
+
+
+async def process_pending(store: NetworkStore, heartbeat=lambda: None) -> int:
     completed = 0
     for pending in await store.pending_jobs():
+        # Refresh liveness per job so a slow inference batch is not killed mid-lease.
+        heartbeat()
         job = await store.claim_job(pending["job_id"])
         if not job:
             continue
@@ -107,12 +113,12 @@ async def main():
     last_sweep = 0
     try:
         while not stop.is_set():
-            Path(tempfile.gettempdir(), "network-worker-heartbeat").touch()
+            touch_heartbeat()
             try:
                 if time.monotonic() - last_sweep > 60:
                     await store.purge_expired()
                     last_sweep = time.monotonic()
-                await process_pending(store)
+                await process_pending(store, heartbeat=touch_heartbeat)
             except Exception:
                 logger.warning("Queue unavailable; worker will reconnect")
             try:

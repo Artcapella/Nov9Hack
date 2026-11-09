@@ -28,6 +28,11 @@ for secret in network-concierge-secrets network-worker-secrets; do
   kubectl create secret generic "$secret" -n "$NS" --from-env-file="$env_file" --dry-run=client -o yaml | kubectl apply -f -
 done
 
+# Docker Desktop's kind-mode node does not share the Docker image store; import the local image.
+if [ "$PULL_POLICY" = "Never" ] && docker inspect desktop-control-plane >/dev/null 2>&1; then
+  docker save "$IMAGE_REPO:$IMAGE_TAG" | docker exec -i desktop-control-plane ctr -n k8s.io images import - >/dev/null
+fi
+
 # 2. Application chart.
 "$HELM" upgrade --install network deploy/helm/network-concierge -n "$NS" \
   --set image.repository="$IMAGE_REPO" --set image.tag="$IMAGE_TAG" --set image.pullPolicy="$PULL_POLICY" \
@@ -51,8 +56,12 @@ if [ -n "${RADAR_TOKEN:-}" ]; then
     --set cloud.clusterName="${RADAR_CLUSTER:?Set RADAR_CLUSTER}" \
     --set cloud.existingSecret=radar-cloud-config \
     --set auth.mode=proxy \
-    --set rbac.helm=true --set rbac.secrets=true --set rbac.podExec=true \
-    --set rbac.portForward=true --set rbac.metrics=true --set rbac.selfUpgrade=true
+    --set rbac.helm=true --set rbac.metrics=true --set rbac.selfUpgrade=true \
+    --set rbac.secrets=false --set rbac.podExec=false --set rbac.portForward=false
+  # Least privilege: no pod exec or port-forward into pods holding CONTACT_ENCRYPTION_KEY and API keys.
+  # In cloud mode the chart always keeps a Secret *cache* grant on the agent ServiceAccount, but every
+  # Secret read is re-checked against the requesting Radar user's own RBAC (owner->admin, member->edit,
+  # viewer->view). Invite judges/guests as Radar *viewers* only; health, events and metrics stay visible.
   kubectl -n radar get pods
 else
   echo "RADAR_TOKEN not set; skipped Radar agent install"

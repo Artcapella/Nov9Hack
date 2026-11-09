@@ -155,3 +155,39 @@ def test_stale_worker_cannot_regress_successfully_published_card():
         assert await store.publish_guarded("user_vectors", card["id"], {**current, "state": "processing"})
         assert await store.public_document(card["id"])
     run(scenario())
+
+
+def test_heartbeat_refreshes_before_each_claimed_job():
+    """Gitar review: a slow batch must keep the liveness heartbeat fresh per job."""
+    from conftest import run
+    from app.config import Settings
+    from app.store import NetworkStore
+    from app.worker import process_pending
+
+    store = NetworkStore(Settings(_env_file=None, elasticsearch_url=None, elasticsearch_api_key=None))
+    beats = []
+
+    async def pending_jobs():
+        return [{"job_id": "a"}, {"job_id": "b"}]
+
+    async def claim_job(job_id):
+        beats.append(("claim", job_id))
+        return None
+
+    store.pending_jobs, store.claim_job = pending_jobs, claim_job
+    run(process_pending(store, heartbeat=lambda: beats.append(("beat", None))))
+    assert beats == [("beat", None), ("claim", "a"), ("beat", None), ("claim", "b")]
+
+
+def test_audit_workflow_uses_real_queue_states():
+    import yaml
+    steps = yaml.safe_load(open("deploy/elastic/ingestion-queue-audit.yaml", encoding="utf-8"))["steps"]
+    states = steps[0]["with"]["query"]["bool"]["filter"][1]["terms"]["state"]
+    assert set(states) == {"queued", "processing", "retry", "failed"}
+
+
+def test_radar_agent_cannot_read_secrets_or_exec():
+    script = open("scripts/deploy_k8s.sh", encoding="utf-8").read()
+    for flag in ("rbac.secrets=false", "rbac.podExec=false", "rbac.portForward=false"):
+        assert flag in script
+    assert "rbac.secrets=true" not in script
