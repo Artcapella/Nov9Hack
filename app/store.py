@@ -19,11 +19,15 @@ from opentelemetry.propagate import inject
 from app.config import Settings
 from app.elastic_schema import mappings
 from app.insights import explain, memory_scores, rrf, topic_summary
-from app.policy import branch_queries, describe_filters, eligible, hybrid_body, search_filters, visibility_filters, visible
+from app.people import VectorSpace
+from app.policy import SYNTHETIC, branch_queries, describe_filters, eligible, hybrid_body, search_filters, visibility_filters, visible
 from app.schemas import ConnectionRequestCreate, ProfileCreate, PublicProfile, SearchRequest
 from app.telemetry import fallback_counter, search_counter, search_latency, tracer
 
 logger = logging.getLogger(__name__)
+
+# Collections that are queried by search (not only by id): writes must be visible to the next search.
+SEARCHED = {"user_vectors", "knowledge", "ingestion_jobs", "approvals", "connections"}
 
 
 def now() -> datetime:
@@ -43,6 +47,9 @@ class NetworkStore:
         self.cipher = Fernet(settings.contact_encryption_key.encode()) if settings.contact_encryption_key else None
         self.memory_profiles = self.memory["user_vectors"]
         self.memory_knowledge = self.memory["knowledge"]
+        self.space = VectorSpace(self)
+        from app.graph import GraphModel
+        self.graph = GraphModel(self)
 
     async def start(self) -> None:
         if self.settings.elastic_enabled:
@@ -68,15 +75,21 @@ class NetworkStore:
                 await self.client.indices.create(index=f"{alias}-000001", mappings=mapping,
                                                  aliases={alias: {"is_write_index": True}})
             else:
+                if not await self.client.indices.exists_alias(name=alias):
+                    raise RuntimeError(f"{alias} is a concrete legacy index; choose a new ELASTIC_SCHEMA_VERSION")
                 existing = await self.client.indices.get_mapping(index=alias)
+                missing = {}
                 for definition in existing.values():
                     fields = definition["mappings"].get("properties", {})
                     for field, expected in mapping["properties"].items():
-                        actual = fields.get(field, {})
-                        if any(actual.get(key) != value for key, value in expected.items()):
+                        actual = fields.get(field)
+                        if actual is None:
+                            missing[field] = expected
+                        elif any(actual.get(key) != value for key, value in expected.items()):
                             raise RuntimeError(f"Incompatible schema for {alias}.{field}; choose a new ELASTIC_SCHEMA_VERSION and reindex approved cards")
-                if not await self.client.indices.exists_alias(name=alias):
-                    raise RuntimeError(f"{alias} is a concrete legacy index; choose a new ELASTIC_SCHEMA_VERSION")
+                if missing:
+                    # Purely additive: new optional fields only. Existing documents simply lack them.
+                    await self.client.indices.put_mapping(index=alias, properties=missing)
 
     async def get(self, collection: str, key: str) -> dict | None:
         item = await self.get_versioned(collection, key)
@@ -101,8 +114,10 @@ class NetworkStore:
                 semantic = collection in {"user_vectors", "resume_vectors", "knowledge"} and any(field.endswith("_semantic") for field in value)
                 span = tracer().start_as_current_span("network.jina.index", record_exception=False, set_status_on_exception=False) if semantic else nullcontext()
                 with span:
+                    # Only searched collections wait for a refresh (~5 s on Serverless); the rest are read back by id, which is real-time.
                     await self.client.index(index=self.settings.index(collection), id=key, document=value,
-                                            refresh="wait_for", **(version or {}), **({"op_type": "create"} if create else {}))
+                                            refresh="wait_for" if collection in SEARCHED else False,
+                                            **(version or {}), **({"op_type": "create"} if create else {}))
             except ConflictError:
                 return False
         else:
@@ -116,7 +131,7 @@ class NetworkStore:
     async def delete(self, collection: str, key: str) -> None:
         if self.client:
             try:
-                await self.client.delete(index=self.settings.index(collection), id=key, refresh="wait_for")
+                await self.client.delete(index=self.settings.index(collection), id=key, refresh="wait_for" if collection in SEARCHED else False)
             except NotFoundError:
                 pass
         else:
@@ -146,7 +161,8 @@ class NetworkStore:
         return {"draft_id": draft_id, "expires_at": expires_at, "suggestions": parsed.structured,
                 "contact_hints": parsed.contact_hints}
 
-    async def create_profile(self, profile: ProfileCreate, owner: dict | None = None, seed_id: str | None = None) -> dict:
+    async def create_profile(self, profile: ProfileCreate, owner: dict | None = None, seed_id: str | None = None,
+                             dataset: str | None = None) -> dict:
         if not profile.consent_to_discover:
             raise HTTPException(400, "Discovery consent is required")
         owner_id = owner["owner_id"] if owner else "seed"
@@ -173,6 +189,8 @@ class NetworkStore:
                   "id": profile_id, "event_id": self.settings.demo_event_id,
                   "created_at": created.isoformat(), "discoverable_until": (created + timedelta(hours=self.settings.profile_expiry_hours)).isoformat(),
                   "state": "queued", "approval_version": 1}
+        if dataset:
+            public["dataset"] = dataset
         approval = {"profile_id": profile_id, "event_id": self.settings.demo_event_id, "owner_id": owner_id,
                     "approval_version": 1, "state": "queued", "public": public, "source_id": draft["source_id"] if draft else None}
         if existing:
@@ -288,10 +306,10 @@ class NetworkStore:
                 "retrieval_mode": hybrid[0]["retrieval_mode"] if hybrid else None,
                 "missed_by_keyword": [hit["id"] for hit in hybrid if hit["id"] not in membership["keyword"]]}
 
-    async def retrieve_knowledge(self, question: str, size: int = 5, sponsor_intent: bool = False) -> list[dict]:
+    async def retrieve_knowledge(self, question: str, size: int = 5, sponsor_intent: bool = False, include_synthetic: bool = True) -> list[dict]:
         size = max(1, min(size, 10))
         if self.client:
-            hits, mode = await self._retrieve("knowledge", question, visibility_filters(self.settings.demo_event_id), "content", "content_semantic", size,
+            hits, mode = await self._retrieve("knowledge", question, visibility_filters(self.settings.demo_event_id), "content", "content_semantic", size * (1 if include_synthetic else 4),
                          ["id", "title", "content", "source_type", "source_id", "profile_id", "event_id", "state", "consent_to_discover", "discoverable_until"])
         else:
             terms = set(question.casefold().split())
@@ -300,7 +318,8 @@ class NetworkStore:
         evidence = []
         for hit in hits:
             profile = await self.public_document(hit.get("profile_id", ""))
-            if visible(hit, self.settings.demo_event_id) and profile and (sponsor_intent or not {"sponsor", "recruiter"}.intersection(profile.get("roles", []))):
+            if (visible(hit, self.settings.demo_event_id) and profile and (sponsor_intent or not {"sponsor", "recruiter"}.intersection(profile.get("roles", [])))
+                    and (include_synthetic or profile.get("dataset") != SYNTHETIC)):
                 evidence.append({**hit, "retrieval_mode": mode})
         return evidence[:size]
 
@@ -454,23 +473,33 @@ class NetworkStore:
             return True
         return await self.put(collection, key, document, current[1] if current else None, create=not current)
 
-    async def seed(self, records: list[dict]) -> int:
+    async def seed(self, records: list[dict], concurrency: int = 6) -> int:
+        """Load synthetic cards tagged dataset=SynthDemo. Idempotent per record position; retires older unlabelled seeds."""
         from app.worker import process_pending
-        count = 0
-        for index, record in enumerate(records):
-            legacy_id = token_hash(f"{self.settings.demo_event_id}:{index}")
+        gate = asyncio.Semaphore(concurrency)
+
+        async def retire(seed_key: str):
+            legacy_id = token_hash(f"{self.settings.demo_event_id}:{seed_key}")
             legacy = await self.get("approvals", legacy_id)
             if legacy and legacy["owner_id"] == "seed" and legacy["state"] != "revoked":
                 await self.revoke_profile(legacy_id, "seed")
-            labeled = {**record, "display_name": "DEMO · " + record["display_name"],
-                       "public_summary": "Synthetic demo data. " + record.get("public_summary", ""), "consent_to_discover": True}
-            try:
-                await self.create_profile(ProfileCreate(**labeled), seed_id=f"demo-{index}")
-                count += 1
-            except HTTPException as exc:
-                if exc.status_code != 409:
-                    raise
-        await process_pending(self)
+
+        async def one(index: int, record: dict) -> int:
+            async with gate:
+                for seed_key in (str(index), f"demo-{index}"):  # earlier seed generations, without the dataset tag
+                    await retire(seed_key)
+                labeled = {**record, "public_summary": "Synthetic demo data. " + record.get("public_summary", "").removeprefix("Synthetic demo data. "),
+                           "consent_to_discover": True}
+                try:
+                    await self.create_profile(ProfileCreate(**labeled), seed_id=f"synth-{index}", dataset=SYNTHETIC)
+                    return 1
+                except HTTPException as exc:
+                    if exc.status_code != 409:
+                        raise
+                    return 0
+        count = sum(await asyncio.gather(*(one(index, record) for index, record in enumerate(records))))
+        while await process_pending(self, concurrency=concurrency):
+            pass
         return count
 
     # ---- Read models for the demo surfaces: derived from stored records, never simulated ----

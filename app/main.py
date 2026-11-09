@@ -15,7 +15,8 @@ from app.config import Settings, get_settings
 from app.ingestion import source_record
 from app.rag import answer_with_evidence
 from app.resume_parser import extract_text, heuristic_parse
-from app.schemas import AskRequest, ConnectionRequestCreate, ProfileCreate, SearchRequest
+from app.people import people_search
+from app.schemas import AskRequest, ConnectionRequestCreate, PeopleSearchRequest, ProfileCreate, SearchRequest
 from app.store import NetworkStore
 from app.telemetry import accepted_counter, configure_telemetry, connection_counter, shutdown_telemetry, tracer
 
@@ -160,6 +161,21 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         with tracer().start_as_current_span("network.search_compare", record_exception=False, set_status_on_exception=False):
             return await store.compare_profiles(request, exclude_id=attendee["id"], viewer=attendee)
 
+    @app.post("/api/people/search")
+    async def search_people(request: PeopleSearchRequest, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.people_search", record_exception=False, set_status_on_exception=False):
+            return await people_search(store, request, attendee)
+
+    @app.get("/api/graph")
+    async def network_graph(include_synthetic: bool = True, include_sponsors: bool = False, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.graph", record_exception=False, set_status_on_exception=False):
+            try:
+                return await store.graph.build(attendee, include_synthetic, include_sponsors)
+            except HTTPException:
+                raise
+            except Exception:
+                raise HTTPException(503, "The network graph is temporarily unavailable") from None
+
     @app.get("/api/ops/summary")
     async def ops_summary(request: Request):
         supplied = request.headers.get("X-NETwork-Ops-Token", "")
@@ -178,7 +194,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     @app.post("/api/ask")
     async def ask(request: AskRequest, attendee: dict = Depends(require_attendee)):
         with tracer().start_as_current_span("network.rag_answer", record_exception=False, set_status_on_exception=False):
-            return await answer_with_evidence(request.question, store, settings, request.sponsor_intent)
+            return await answer_with_evidence(request.question, store, settings, request.sponsor_intent, request.include_synthetic)
 
     @app.post("/api/connection-requests", status_code=201)
     async def create_connection(request: ConnectionRequestCreate, attendee: dict = Depends(require_attendee)):

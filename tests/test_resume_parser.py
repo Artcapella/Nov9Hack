@@ -9,7 +9,7 @@ from app.resume_parser import build_vector_text, extract_text, heuristic_parse
 
 def test_parser_extracts_skills_and_excludes_contacts_from_structured_record():
     parsed = heuristic_parse("Jane Doe\njane@example.com\nhttps://linkedin.com/in/janedoe\nSkills: Python, Elasticsearch, Kubernetes\nProjects\nBuilt a RAG assistant")
-    assert {"python", "elasticsearch", "kubernetes"}.issubset(parsed.structured["skills"])
+    assert {"python", "elasticsearch", "kubernetes"}.issubset({skill.casefold() for skill in parsed.structured["skills"]})
     assert "jane@example.com" not in str(parsed.structured)
     assert parsed.contact_hints["email"] == "jane@example.com"
 
@@ -58,3 +58,15 @@ def test_pdf_text_extraction_preserves_headings():
     page[NameObject("/Contents")] = writer._add_object(stream)
     content = io.BytesIO(); writer.write(content)
     assert heuristic_parse(extract_text("resume.pdf", content.getvalue())).structured["experience_highlights"] == ["Built a Python service for users"]
+
+
+def test_glued_pdf_text_yields_headline_skills_and_linkedin_handle():
+    text = ("Pat Example\nCity | pat@example.com | LinkedIn (pat-example)\nTECHNICAL SKILLS Languages: Python, SQL Tools: Git, Supabase\n"
+            "EXPERIENCE Acme Labs — Research Assistant, City Apr 2025 – Present • Built an evaluation pipeline\nfor models\n"
+            "PROJECTS NetVis | React, Vite • Built an interactive topology explorer")
+    parsed = heuristic_parse(text)
+    assert parsed.structured["headline"] == "Research Assistant · Acme Labs"
+    assert {"Python", "SQL", "Git", "Supabase"}.issubset(parsed.structured["skills"])
+    assert parsed.contact_hints["linkedin_url"] == "https://www.linkedin.com/in/pat-example"
+    assert "Built an evaluation pipeline for models" in parsed.structured["experience_highlights"]
+    assert any("topology explorer" in item for item in parsed.structured["project_highlights"])

@@ -24,7 +24,7 @@ CONCEPTS: dict[str, tuple[str, ...]] = {
 _PATTERNS = {name: [re.compile(rf"(?<![a-z0-9]){re.escape(word)}(?![a-z0-9])") for word in words] for name, words in CONCEPTS.items()}
 STOPWORDS = {"about", "with", "that", "this", "from", "have", "want", "need", "people", "someone", "anyone", "find",
              "meet", "should", "could", "would", "their", "them", "they", "what", "when", "where", "which", "who",
-             "help", "into", "just", "only", "like", "some", "after", "before", "three", "work", "working"}
+             "help", "into", "just", "only", "like", "some", "after", "before", "three", "work", "working", "looking"}
 PUBLIC_FIELDS = ["headline", "public_summary", "approved_experience", "can_help_with", "looking_for"]
 
 

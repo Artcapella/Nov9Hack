@@ -46,8 +46,9 @@ async def ask_elastic(question: str, evidence: list[dict], settings: Settings, s
     return {"answer": message, "tool_ids": sorted({step["tool_id"] for step in calls}), "trace": trace}
 
 
-async def answer_with_evidence(question: str, store: NetworkStore, settings: Settings, sponsor_intent: bool = False) -> dict:
-    sources = await store.retrieve_knowledge(question, sponsor_intent=sponsor_intent)
+async def answer_with_evidence(question: str, store: NetworkStore, settings: Settings, sponsor_intent: bool = False,
+                              include_synthetic: bool = True) -> dict:
+    sources = await store.retrieve_knowledge(question, sponsor_intent=sponsor_intent, include_synthetic=include_synthetic)
     evidence = [{"evidence_id": item["id"], "title": item["title"], "source_type": item["source_type"],
                  "source_id": item.get("source_id"), "profile_id": item["profile_id"], "excerpt": item["content"][:1200]} for item in sources]
     retrieval_mode = sources[0]["retrieval_mode"] if sources else ("hybrid" if store.client else "memory_demo")

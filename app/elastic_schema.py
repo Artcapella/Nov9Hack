@@ -14,9 +14,10 @@ def mappings(settings: Settings) -> dict[str, dict]:
     public = {
         **visibility, "id": keyword, "display_name": keyword, "headline": text,
         "public_summary": text, "approved_experience": text, "can_help_with": keyword,
-        "looking_for": keyword, "roles": keyword, "formats": keyword, "availability": keyword,
+        "looking_for": keyword, "interests": keyword, "roles": keyword, "formats": keyword, "availability": keyword,
         "created_at": date, "profile_text": text, "profile_semantic": semantic,
-        "experience_semantic": semantic, "seeking_semantic": semantic, "model_id": keyword,
+        "experience_semantic": semantic, "seeking_semantic": semantic, "offers_semantic": semantic,
+        "interests_semantic": semantic, "model_id": keyword, "dataset": keyword,
     }
     definitions = {
         "user_vectors": public,

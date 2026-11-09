@@ -37,9 +37,11 @@ async def publish_job(store: NetworkStore, job: dict) -> str:
     text = build_vector_text(public)
     vector = {**public, "state": "processing", "profile_text": text, "profile_semantic": text,
               "experience_semantic": public["approved_experience"], "seeking_semantic": "\n".join(public["looking_for"]),
+              "offers_semantic": "\n".join(public["can_help_with"]), "interests_semantic": "\n".join(public.get("interests", [])),
               "model_id": store.settings.elastic_inference_id}
     # Empty semantic_text values need not invoke inference.
-    vector = {key: value for key, value in vector.items() if key not in {"experience_semantic", "seeking_semantic"} or value}
+    optional = {"experience_semantic", "seeking_semantic", "offers_semantic", "interests_semantic"}
+    vector = {key: value for key, value in vector.items() if key not in optional or value}
     if not await store.publish_guarded("user_vectors", profile_id, vector):
         return "revoked"
     evidence_id = f"profile-{profile_id}"
@@ -72,28 +74,33 @@ def touch_heartbeat() -> None:
     Path(tempfile.gettempdir(), "network-worker-heartbeat").touch()
 
 
-async def process_pending(store: NetworkStore, heartbeat=lambda: None) -> int:
-    completed = 0
-    for pending in await store.pending_jobs():
-        # Refresh liveness per job so a slow inference batch is not killed mid-lease.
-        heartbeat()
-        job = await store.claim_job(pending["job_id"])
-        if not job:
-            continue
-        started = time.perf_counter()
-        with tracer().start_as_current_span("network.ingestion.publish", context=extract(job.get("trace_context", {})), record_exception=False, set_status_on_exception=False):
-            try:
-                state = await publish_job(store, job)
-                await store.finish_job(job["job_id"], state, job["claim_id"])
-                completed += state == "indexed"
-            except Exception:
-                # Persist an allowlisted code, never the exception text or parser contents.
-                state = "failed" if job["attempts"] >= store.settings.worker_max_attempts else "retry"
-                await store.finish_job(job["job_id"], state, job["claim_id"], "publication_unavailable")
-                ingestion_failures.add(1, {"kind": job["kind"], "outcome": state})
-                logger.warning("Publication unavailable; job retained for retry")
-            operation_latency.record((time.perf_counter() - started) * 1000, {"operation": "publication"})
-    return completed
+async def process_pending(store: NetworkStore, heartbeat=lambda: None, concurrency: int = 1) -> int:
+    gate = asyncio.Semaphore(concurrency)
+
+    async def run(pending: dict) -> int:
+        async with gate:
+            # Refresh liveness per job so a slow inference batch is not killed mid-lease.
+            heartbeat()
+            job = await store.claim_job(pending["job_id"])
+            if not job:
+                return 0
+            started = time.perf_counter()
+            with tracer().start_as_current_span("network.ingestion.publish", context=extract(job.get("trace_context", {})), record_exception=False, set_status_on_exception=False):
+                try:
+                    state = await publish_job(store, job)
+                    await store.finish_job(job["job_id"], state, job["claim_id"])
+                    done = int(state == "indexed")
+                except Exception:
+                    # Persist an allowlisted code, never the exception text or parser contents.
+                    state = "failed" if job["attempts"] >= store.settings.worker_max_attempts else "retry"
+                    await store.finish_job(job["job_id"], state, job["claim_id"], "publication_unavailable")
+                    ingestion_failures.add(1, {"kind": job["kind"], "outcome": state})
+                    logger.warning("Publication unavailable; job retained for retry")
+                    done = 0
+                operation_latency.record((time.perf_counter() - started) * 1000, {"operation": "publication"})
+            return done
+
+    return sum(await asyncio.gather(*(run(pending) for pending in await store.pending_jobs())))
 
 
 async def main():
@@ -118,7 +125,7 @@ async def main():
                 if time.monotonic() - last_sweep > 60:
                     await store.purge_expired()
                     last_sweep = time.monotonic()
-                await process_pending(store, heartbeat=touch_heartbeat)
+                await process_pending(store, heartbeat=touch_heartbeat, concurrency=4)
             except Exception:
                 logger.warning("Queue unavailable; worker will reconnect")
             try:

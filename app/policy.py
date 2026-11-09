@@ -3,6 +3,8 @@ from datetime import UTC, datetime
 
 from app.schemas import SearchRequest
 
+SYNTHETIC = "SynthDemo"  # dataset tag on administratively seeded synthetic cards
+
 
 def visibility_filters(event_id: str) -> list[dict]:
     return [
@@ -33,6 +35,8 @@ def search_filters(request: SearchRequest, event_id: str, exclude_id: str | None
         filters.append({"term": {"availability": "now"}})
     if not request.sponsor_intent:
         filters.append({"bool": {"must_not": [{"terms": {"roles": ["sponsor", "recruiter"]}}]}})
+    if not getattr(request, "include_synthetic", True):
+        filters.append({"bool": {"must_not": [{"term": {"dataset": SYNTHETIC}}]}})
     if exclude_id:
         filters.append({"bool": {"must_not": [{"term": {"id": exclude_id}}]}})
     return filters
@@ -44,7 +48,8 @@ def eligible(document: dict, request: SearchRequest, event_id: str, exclude_id: 
             and (not request.formats or bool(set(request.formats) & set(document.get("formats", []))))
             and (not request.roles or bool(set(request.roles) & set(document.get("roles", []))))
             and (not request.available_now or document.get("availability") == "now")
-            and (request.sponsor_intent or not {"sponsor", "recruiter"}.intersection(document.get("roles", []))))
+            and (request.sponsor_intent or not {"sponsor", "recruiter"}.intersection(document.get("roles", [])))
+            and (getattr(request, "include_synthetic", True) or document.get("dataset") != SYNTHETIC))
 
 
 def branch_queries(question: str, filters: list[dict], text_field: str, semantic_field: str) -> tuple[dict, dict]:

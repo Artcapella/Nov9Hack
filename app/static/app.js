@@ -1,16 +1,32 @@
 const $ = (selector) => document.querySelector(selector);
 const splitTags = (value) => value.split(',').map((item) => item.trim()).filter(Boolean);
-const selected = (name) => [...document.querySelectorAll(`input[name="${name}"]:checked`)].map((input) => input.value);
-let draftId = null, previewGeneration = 0, myProfile = null, refreshTimer = null;
+const selected = (name, root = document) => [...root.querySelectorAll(`input[name="${name}"]:checked`)].map((input) => input.value);
+let draftId = null, previewGeneration = 0, myProfile = null, myState = null, refreshTimer = null;
+// SynthDemo: the administratively seeded synthetic cohort. Viewers can hide it everywhere; introductions to it are disabled.
+const SYNTH = 'SynthDemo';
+let showSynth = true;
+try { showSynth = localStorage.getItem('network.showSynth') !== '0'; } catch { /* storage unavailable: default to shown */ }
+const isSynthetic = (hit) => hit?.dataset === SYNTH || (hit?.display_name || '').startsWith('DEMO · ');
+const cleanName = (name) => (name || '').replace(/^DEMO · /, '');
 
 async function api(path, options = {}) {
   const started = performance.now();
-  const response = await fetch(path, {...options, headers:{'X-NETwork-Request':'1', ...(options.headers || {})}});
+  let response = await fetch(path, {...options, headers:{'X-NETwork-Request':'1', ...(options.headers || {})}});
+  if (response.status === 401 && path !== '/api/session') {
+    // No session cookie yet (first request raced boot) or it expired: start one and retry once.
+    await sessionReady();
+    response = await fetch(path, {...options, headers:{'X-NETwork-Request':'1', ...(options.headers || {})}});
+  }
   field.telemetry(options.method || 'GET', path, performance.now() - started, response.status);
   if (response.status === 204) return null;
   const data = await response.json();
-  if (!response.ok) throw new Error(typeof data.detail === 'string' ? data.detail : 'The request could not be completed.');
+  if (!response.ok) throw Object.assign(new Error(typeof data.detail === 'string' ? data.detail : 'The request could not be completed.'), {status: response.status});
   return data;
+}
+let sessionPromise = null;
+function sessionReady() {
+  sessionPromise ??= fetch('/api/session', {method:'POST', headers:{'X-NETwork-Request':'1'}}).then((r) => r.json()).finally(() => { setTimeout(() => { sessionPromise = null; }, 1000); });
+  return sessionPromise;
 }
 const post = (path, body) => api(path, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(body)});
 
@@ -18,13 +34,19 @@ function switchTab(name) {
   document.querySelectorAll('.tab,.panel').forEach((el) => el.classList.remove('active'));
   document.querySelector(`.tab[data-panel="${name}"]`)?.classList.add('active');
   $(`#${name}`).classList.add('active');
+  $('.shell').dataset.panel = name;
   field.setVisible(name === 'constellation');
+  g3.setVisible(name === 'network3d');
+  graphFeed.setActive(name === 'constellation' || name === 'network3d');
   ops.setVisible(name === 'ops');
+  if (name === 'people' && !people.loaded) runPeople();
 }
 document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => switchTab(tab.dataset.panel)));
 
 async function refreshMe() {
   const data = await api('/api/me');
+  if (data.state !== myState) people.loaded = false;  // card became searchable (or was withdrawn): re-rank on next visit
+  myState = data.state;
   myProfile = data.profile;
   field.setYou(data.state && data.state !== 'revoked' ? myProfile : null);
   if (data.pipeline) renderPipeline(data.pipeline);
@@ -76,13 +98,18 @@ $('#revoke-card').addEventListener('click', async () => {
 $('#profile-form').addEventListener('submit', async (event) => {
   event.preventDefault();
   const form = event.currentTarget, fd = new FormData(form), result = $('#profile-result');
-  if (fd.get('resume')?.size && !draftId) { result.textContent = 'Preview your resume and review the suggestions before you approve, or remove the file and fill in the card yourself.'; return; }
+  const missing = (message, el) => { result.textContent = message; el?.focus(); };
+  if ((fd.get('display_name') || '').trim().length < 2) return missing('Display name is required (at least 2 characters).', form.elements.display_name);
+  if (!selected('formats', form).length) return missing('Pick at least one connection style.', form.querySelector('input[name="formats"]'));
+  if (fd.get('consent_to_discover') !== 'on') return missing('Tick the discovery consent box to join. It is the only way other attendees can find your card.', form.elements.consent_to_discover);
+  if (form.elements.email.value && !form.elements.email.checkValidity()) { form.querySelector('#contact-details').open = true; return missing('That email address does not look valid.', form.elements.email); }
+  if (fd.get('resume')?.size && !draftId) { result.textContent = 'Autofill from your resume first (step 1), or go back and remove the file.'; return; }
   result.textContent = 'Publishing your card…';
   try {
     const data = await post('/api/profiles', {display_name:fd.get('display_name'), headline:fd.get('headline'),
       public_summary:fd.get('public_summary'), approved_experience:fd.get('approved_experience'),
-      can_help_with:splitTags(fd.get('can_help_with')), looking_for:splitTags(fd.get('looking_for')), roles:['peer'],
-      formats:selected('formats'), availability:fd.get('availability'), email:fd.get('email') || null,
+      can_help_with:splitTags(fd.get('can_help_with')), looking_for:splitTags(fd.get('looking_for')), interests:splitTags(fd.get('interests')), roles:['peer'],
+      formats:selected('formats', form), availability:fd.get('availability'), email:fd.get('email') || null,
       linkedin_url:fd.get('linkedin_url') || null, consent_to_discover:fd.get('consent_to_discover') === 'on',
       consent_to_resume_parsing:fd.get('consent_to_resume_parsing') === 'on', draft_id:draftId});
     result.textContent = data.state === 'indexed' ? 'Other attendees can now find your card. Keep this browser open to accept introductions.' : 'Your card is queued. Other attendees can find it once indexing finishes.';
@@ -91,14 +118,32 @@ $('#profile-form').addEventListener('submit', async (event) => {
 });
 
 const resumeInput = document.querySelector('input[name="resume"]');
-resumeInput.addEventListener('change', () => { draftId = null; previewGeneration++; $('#resume-preview').textContent = 'Preview this file, then review your card above.'; });
+function showCardStep(fromResume) {
+  $('#resume-step').classList.add('hidden'); $('#card-step').classList.remove('hidden');
+  $('#autofill-note').classList.toggle('hidden', !fromResume);
+  const name = $('#profile-form').elements.display_name;
+  (fromResume ? $('#card-step') : name).scrollIntoView({block:'start', behavior: reduceMotion ? 'auto' : 'smooth'});
+  if (!fromResume) name.focus();
+}
+$('#skip-resume').addEventListener('click', () => showCardStep(false));
+$('#back-to-resume').addEventListener('click', () => { $('#card-step').classList.add('hidden'); $('#resume-step').classList.remove('hidden'); });
+resumeInput.addEventListener('change', () => {
+  draftId = null; previewGeneration++;
+  const file = resumeInput.files[0];
+  $('#resume-drop').classList.toggle('has-file', !!file);
+  $('#resume-drop .dropzone-text strong').textContent = file ? file.name : 'Choose or drop a resume';
+  $('#resume-preview').textContent = file ? (resumeInput.form.elements.consent_to_resume_parsing.checked ? '' : 'Tick the parsing consent box, then autofill.') : '';
+  if (file && resumeInput.form.elements.consent_to_resume_parsing.checked) $('#preview-resume').click();
+});
+['dragenter', 'dragover'].forEach((type) => $('#resume-drop').addEventListener(type, () => $('#resume-drop').classList.add('dragging')));
+['dragleave', 'drop'].forEach((type) => $('#resume-drop').addEventListener(type, () => $('#resume-drop').classList.remove('dragging')));
 document.querySelector('select[name="source_type"]').addEventListener('change', () => { draftId = null; previewGeneration++; });
 document.querySelector('input[name="consent_to_resume_parsing"]').addEventListener('change', (event) => {
   if (!event.target.checked) { draftId = null; previewGeneration++; }
 });
 $('#preview-resume').addEventListener('click', async () => {
   const file = resumeInput.files[0], result = $('#resume-preview'), form = $('#profile-form');
-  if (!file) { result.textContent = 'Choose a resume, or fill in your card yourself.'; return; }
+  if (!file) { result.textContent = 'Choose a resume first, or skip and fill in your card yourself.'; return; }
   if (!form.elements.consent_to_resume_parsing.checked) { result.textContent = 'Tick the resume-parsing consent box before previewing.'; return; }
   if (file.size > 6000000) { result.textContent = 'Resume must be 6 MB or smaller.'; return; }
   const generation = ++previewGeneration;
@@ -110,12 +155,16 @@ $('#preview-resume').addEventListener('click', async () => {
     draftId = data.draft_id;
     const hints = data.contact_hints || {}, suggestions = data.suggestions || {};
     const setIfEmpty = (name, value) => { const input = form.elements[name]; if (input && !input.value && value) input.value = value; };
-    setIfEmpty('display_name', hints.suggested_name); setIfEmpty('email', hints.email); setIfEmpty('linkedin_url', hints.linkedin_url);
-    setIfEmpty('can_help_with', (suggestions.skills || []).join(', '));
-    setIfEmpty('public_summary', (suggestions.project_highlights || []).join('\n'));
-    setIfEmpty('approved_experience', (suggestions.experience_highlights || []).join('\n'));
-    result.textContent = `Found ${suggestions.skills?.length || 0} skills. Review your card above before you approve it. This preview expires in 20 minutes.`;
-    form.elements.approved_experience.focus();
+    setIfEmpty('display_name', (hints.suggested_name || '').replace(/\s+/g, ' ').trim()); setIfEmpty('email', hints.email); setIfEmpty('linkedin_url', hints.linkedin_url);
+    setIfEmpty('headline', suggestions.headline);
+    setIfEmpty('can_help_with', (suggestions.skills || []).slice(0, 20).join(', '));
+    setIfEmpty('public_summary', (suggestions.project_highlights || []).join('\n').slice(0, 1600));
+    setIfEmpty('approved_experience', (suggestions.experience_highlights || []).join('\n').slice(0, 2400));
+    if (hints.email || hints.linkedin_url) $('#contact-details').open = true;
+    const filled = ['display_name', 'headline', 'can_help_with', 'public_summary', 'approved_experience', 'email', 'linkedin_url'].filter((n) => form.elements[n].value).length;
+    result.textContent = '';
+    $('#autofill-note').textContent = `Autofilled ${filled} fields and ${suggestions.skills?.length || 0} skills from ${file.name}. Edit anything, add what you're looking for, then approve. The preview expires in 20 minutes.`;
+    showCardStep(true);
   } catch (error) { if (generation === previewGeneration) result.textContent = error.message; }
 });
 
@@ -130,11 +179,11 @@ $('#search-form').addEventListener('submit', async (event) => {
   results.textContent = 'Running keyword, semantic and hybrid retrieval…'; rag.classList.add('hidden'); $('#compare-bar').classList.add('hidden');
   try {
     const sponsor_intent = $('#sponsor-intent').checked;
-    lastCompare = await post('/api/search/compare', {question, sponsor_intent, size:5});
+    lastCompare = await post('/api/search/compare', {question, sponsor_intent, size:5, include_synthetic:showSynth});
     viewMode = 'hybrid';
     field.showQuery(question, lastCompare.modes.hybrid);
     renderMode();
-    renderAnswer(await post('/api/ask', {question, sponsor_intent}), rag);
+    renderAnswer(await post('/api/ask', {question, sponsor_intent, include_synthetic:showSynth}), rag);
   } catch (error) { results.textContent = error.message; }
 });
 document.querySelectorAll('.seg [data-mode]').forEach((button) => button.addEventListener('click', () => { viewMode = button.dataset.mode; renderMode(); }));
@@ -158,9 +207,9 @@ function renderMode() {
 }
 
 function chips(items) { return items.map((item) => `<span class="chip">${escapeHtml(item)}</span>`).join(''); }
-function renderWhy(why) {
+function renderWhy(why, lexicalLabel = 'Exact terms (BM25)') {
   const rows = [
-    ['Exact terms (BM25)', why.lexical_terms, 'No exact word overlap: found by meaning only'],
+    [lexicalLabel, why.lexical_terms, 'No exact word overlap: found by meaning only'],
     ['Shared concepts', why.concepts, 'No mapped concept overlap'],
     ['They offer what you need', why.they_offer_you_need, null],
     ['You offer what they need', why.you_offer_they_need, null],
@@ -185,14 +234,18 @@ function renderHit(hit, conceptualOnly = false) {
   node.querySelector('.connect').addEventListener('click', () => createConnection(hit).catch(showStatusError));
   node.querySelector('.locate').addEventListener('click', () => { switchTab('constellation'); field.focusId(hit.id); });
   if (conceptualOnly) node.querySelector('.match-card').classList.add('conceptual');
-  if (hit.display_name.startsWith('DEMO · ')) {
+  node.querySelector('.name').textContent = cleanName(hit.display_name);
+  if (isSynthetic(hit)) {
+    node.querySelector('.name').insertAdjacentHTML('beforeend', '<span class="demo-flag mono">SynthDemo</span>');
     node.querySelector('.connect').disabled = true;
     node.querySelector('.connect').textContent = 'Synthetic card · introductions need real attendees';
   }
+  node.querySelector('.name').classList.add('openable');
+  node.querySelector('.name').addEventListener('click', () => openSheet(hit));
   return node;
 }
 
-async function createConnection(hit) {
+async function createConnection(hit, container = $('#search-results')) {
   const message = window.prompt(`Short note to ${hit.display_name}:`, 'Want to connect about this project?');
   if (!message) return;
   const item = await post('/api/connection-requests', {requester_name:myProfile?.display_name || 'Attendee', recipient_profile_id:hit.id, message, preferred_channel:'meetup_qr'});
@@ -207,7 +260,7 @@ async function createConnection(hit) {
       result.textContent = data.status === 'accepted' ? `Accepted. Email: ${data.contacts?.email || 'Not shared'} · LinkedIn: ${data.contacts?.linkedin_url || 'Not shared'}` : 'They haven\'t accepted yet.';
     } catch (error) { result.textContent = error.message; }
   });
-  $('#search-results').prepend(node);
+  container.prepend(node);
 }
 
 function renderAnswer(answer, target) {
@@ -308,11 +361,12 @@ function createField() {
 
   legend.innerHTML = CLUSTERS.map((c, i) => `<span data-i="${i}"><b style="color:hsl(${c.hue} 60% 66%)"></b>${c.label}</span>`).join('');
 
-  function makeNode({id, name, kind, tags = [], text = ''}) {
+  function makeNode({id, name, kind, tags = [], text = '', pos = null}) {
     const full = `${tags.join(' , ')} ${text}`.toLowerCase(), emb = embed(full), total = emb.reduce((a, b) => a + b, 0), r = seeded(hashStr(id));
     let x = 0, y = 0;
     if (total) CLUSTERS.forEach((c, i) => { x += c.ax * emb[i] / total; y += c.ay * emb[i] / total; });
     x += (r() - .5) * .18; y += (r() - .5) * .18;
+    if (pos) { x = pos.x; y = pos.y; }  // server-side vector-space position (People view)
     return {id, name, kind, tags:tags.map((t) => t.toLowerCase()), text:full, emb, x, y, cluster: total ? emb.indexOf(Math.max(...emb)) : -1, heat:0, born:performance.now()};
   }
   function addNode(n) { const old = byId.get(n.id); if (old) nodes = nodes.filter((m) => m !== old); nodes.push(n); byId.set(n.id, n); return n; }
@@ -406,6 +460,7 @@ function createField() {
     caption.innerHTML = `<span>${KIND[n.kind]}</span><p><strong>${escapeHtml(n.name)}</strong> · ${escapeHtml(area)}<br><em>${escapeHtml(detail)}</em>${people.length ? `<br>${people.length} linked · ${escapeHtml(people.slice(0, 3).join(', '))}${people.length > 3 ? '…' : ''}` : ''}</p>`;
     legend.querySelectorAll('span').forEach((s) => s.classList.toggle('on', +s.dataset.i === n.cluster));
     setTimeout(() => burst(n, 8, true), reduceMotion ? 0 : 420);
+    if (n.profile) openSheet(n.profile);
   }
   function clearSelection() {
     sel = null; caption.innerHTML = '<span>—</span><p>Click a node to zoom in and see its connections.</p>';
@@ -611,7 +666,11 @@ function createField() {
     },
     showQuery(question, hits) {
       removeNode('query');
-      const live = hits.map((h) => addNode(makeNode({id:`p:${h.id}`, name:h.display_name.replace(/^DEMO · /, ''), kind:'live', tags:h.can_help_with || [], text:`${h.headline} ${h.public_summary}`})));
+      const live = hits.map((h) => {
+        const g = byId.get(`g:${h.id}`), n = makeNode({id:`p:${h.id}`, name:cleanName(h.display_name), kind:'live', tags:h.can_help_with || [], text:`${h.headline} ${h.public_summary}`, pos:h.position || (g && {x:g.x, y:g.y})});
+        if (g) removeNode(g.id);  // the live match takes this person's place on the map
+        n.profile = h; return addNode(n);
+      });
       const q = addNode(makeNode({id:'query', name:question.length > 34 ? `${question.slice(0, 33)}…` : question, kind:'query', text:question}));
       q.hits = live.map((n) => n.id);
       rebuild([q, ...live]);
@@ -639,6 +698,23 @@ function createField() {
       flashes.push({n:peer, t0:performance.now(), strong:true});
       if (visible) fit([you, peer], 900);
     },
+    setPeople(list, youId) {
+      // Real discoverable cards from /api/graph replace the illustrative seed nodes.
+      [...byId.keys()].filter((id) => id.startsWith('s:')).forEach(removeNode);
+      const want = new Set(list.filter((p) => p.id !== youId).map((p) => `g:${p.id}`));
+      [...byId.keys()].filter((id) => id.startsWith('g:') && !want.has(id)).forEach(removeNode);
+      const fresh = [];
+      list.forEach((p) => {
+        if (p.id === youId || byId.has(`p:${p.id}`)) return;
+        const existing = byId.get(`g:${p.id}`);
+        if (existing) { existing.profile = p; return; }
+        const kind = (p.roles || []).some((r) => r === 'sponsor' || r === 'recruiter') ? 'sponsor' : 'person';
+        const n = makeNode({id:`g:${p.id}`, name:cleanName(p.display_name), kind, tags:p.can_help_with || [], text:`${p.headline || ''} ${p.public_summary || ''}`, pos:p.position});
+        n.profile = p; fresh.push(addNode(n));
+      });
+      rebuild(fresh.length ? fresh : null);
+      if (fresh.length && fresh.length < 6) fresh.forEach((n) => burst(n, 4, true));
+    },
     reset,
     isVisible: () => visible,
   };
@@ -651,6 +727,151 @@ const goToNode = () => { if (field.find(nodeSearch.value)) nodeSearch.select(); 
 nodeSearch.addEventListener('change', goToNode);
 nodeSearch.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); goToNode(); } });
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && field.isVisible()) field.reset(); });
+
+/* ======================================================================
+   People: the general similarity view.
+   The server ranks by vector similarity (Jina in Elastic mode) and returns
+   an (x, y) position in the same discipline ring the Field map uses for
+   every person and tag. Colour is tint(x, y): angle = discipline, distance
+   from centre = saturation, so a web tag is yellow and a generalist is grey.
+   ====================================================================== */
+const PEOPLE_MODES = {
+  query: {placeholder: 'Search people by skill, project or idea', card: 'similar to your card'},
+  problem: {placeholder: 'Describe the problem you are stuck on', card: 'who offer what your card is looking for'},
+  hire: {placeholder: 'Role or skills you want to be hired for (optional)', card: 'hiring for what your card offers'},
+  interests: {placeholder: 'Climbing, jazz, chess… (optional)', card: 'who share your interests outside work'},
+  discover: {placeholder: 'Optional: a direction to explore', card: 'furthest from your cluster'},
+};
+const people = {mode: 'query', seq: 0, loaded: false};
+const initials = (name) => name.split(/\s+/).filter(Boolean).slice(0, 2).map((w) => w[0]).join('').toUpperCase() || '?';
+const peopleFilters = () => {
+  const form = $('#people-filters');
+  return {formats: selected('formats', form), roles: selected('roles', form),
+    available_now: form.elements.available_now.checked, sponsor_intent: form.elements.sponsor_intent.checked};
+};
+function updateFilterCount() {
+  const f = peopleFilters(), n = f.formats.length + f.roles.length + f.available_now + f.sponsor_intent;
+  $('#people-filter-count').textContent = n ? ` · ${n}` : '';
+}
+
+async function runPeople() {
+  const seq = ++people.seq, list = $('#people-results'), basis = $('#people-basis');
+  people.loaded = true;
+  list.setAttribute('aria-busy', 'true'); list.classList.add('loading');
+  basis.textContent = 'Ranking people by vector similarity…';
+  const question = $('#people-q').value.trim();
+  try {
+    const data = await post('/api/people/search', {mode:people.mode, question, size:12, include_synthetic:showSynth, ...peopleFilters()});
+    if (seq !== people.seq) return;
+    renderPeople(data, question);
+  } catch (error) {
+    if (seq !== people.seq) return;
+    list.innerHTML = '';
+    basis.textContent = error.message;
+    if (error.status === 403) {
+      const li = document.createElement('li'); li.className = 'people-empty';
+      li.innerHTML = '<p>Join with a card to see who is similar to you.</p><button class="secondary compact-btn" type="button">Create your card</button>';
+      li.querySelector('button').addEventListener('click', () => switchTab('join'));
+      list.appendChild(li);
+    }
+    people.loaded = false;
+  } finally {
+    if (seq === people.seq) { list.removeAttribute('aria-busy'); list.classList.remove('loading'); }
+  }
+}
+
+function renderPeople(data, question) {
+  const list = $('#people-results'), n = data.hits.length;
+  list.innerHTML = '';
+  const what = data.basis === 'query' ? `matching “${question.length > 40 ? `${question.slice(0, 39)}…` : question}”` : PEOPLE_MODES[data.mode].card;
+  const order = data.mode === 'discover' ? 'Ordered by distance from your cluster; % is similarity to you' : '% is vector similarity';
+  const colour = data.colour_source === 'jina' ? 'colour from Jina anchor similarity' : 'colour from keyword affinity';
+  $('#people-basis').textContent = data.note || `${n} ${n === 1 ? 'person' : 'people'} ${what} · ${order} · ${data.similarity} · ${colour}`;
+  if (!n && !data.note) {
+    const li = document.createElement('li'); li.className = 'people-empty';
+    li.innerHTML = `<p>No one matches yet. ${data.mode === 'hire' ? 'No recruiters or sponsors match these filters.' : 'Try another view, clear filters, or invite more attendees to opt in.'}</p>`;
+    list.appendChild(li);
+  }
+  data.hits.forEach((hit, i) => list.appendChild(renderPerson(hit, i)));
+  if (n) field.showQuery(question || `${PEOPLE_MODES[data.mode].card}`, data.hits);
+}
+
+function renderPerson(hit, index) {
+  const li = document.createElement('li'), {x, y} = hit.position, demo = isSynthetic(hit);
+  const name = cleanName(hit.display_name), why = hit.explanation || {};
+  li.className = 'person';
+  li.style.setProperty('--i', index);
+  li.style.setProperty('--wash', tint(x, y, 48, .13, 0, 1.3));
+  li.style.setProperty('--ring', tint(x, y, 68, .9, 0, 1.3));
+  li.style.setProperty('--pct', `${hit.percent}%`);
+  li.innerHTML = `
+    <div class="avatar" aria-hidden="true">${escapeHtml(initials(name))}</div>
+    <div class="person-main">
+      <header class="person-top">
+        <h3 class="openable" title="Open card">${escapeHtml(name)}${demo ? '<span class="demo-flag mono">SynthDemo</span>' : ''}</h3>
+        <span class="pct" aria-label="${hit.percent}% similar"><b>${hit.percent}</b><small>%</small></span>
+      </header>
+      <div class="meter" aria-hidden="true"><i></i></div>
+      <p class="person-headline">${escapeHtml(hit.headline || hit.availability)}${hit.discipline ? ` <span class="discipline mono">${escapeHtml(hit.discipline)}</span>` : ''}</p>
+      <div class="tags"></div>
+      ${hit.reasons.length ? `<p class="person-reason mono">${escapeHtml(hit.reasons[0])}</p>` : ''}
+      <div class="quick">
+        <button type="button" class="qa intro">${demo ? 'Synthetic card' : 'Request intro'}</button>
+        <button type="button" class="qa why-toggle" aria-expanded="false">Why</button>
+        <button type="button" class="qa locate">Map</button>
+      </div>
+      <div class="person-why" hidden>
+        ${hit.reasons.length > 1 ? `<ul class="reasons">${hit.reasons.slice(1).map((r) => `<li>${escapeHtml(r)}</li>`).join('')}</ul>` : ''}
+        <div class="why-body">${renderWhy(why, 'Shared words')}</div>
+      </div>
+    </div>`;
+  const tags = li.querySelector('.tags');
+  hit.tags.forEach((tag) => {
+    const span = document.createElement('span'), p = tag.position;
+    span.className = 'tag'; span.textContent = tag.label;
+    span.title = tag.discipline ? `${tag.discipline} · placed by vector similarity` : 'near the centre: no single discipline';
+    span.style.setProperty('--tag-fg', tint(p.x, p.y, 74, 1, 0, 1.3));
+    span.style.setProperty('--tag-bg', tint(p.x, p.y, 45, .14, 0, 1.3));
+    span.style.setProperty('--tag-line', tint(p.x, p.y, 60, .42, 0, 1.3));
+    tags.appendChild(span);
+  });
+  const intro = li.querySelector('.intro');
+  if (demo) intro.disabled = true;
+  else intro.addEventListener('click', () => createConnection(hit, $('#people-intros')).catch(showStatusError));
+  const toggle = li.querySelector('.why-toggle'), panel = li.querySelector('.person-why');
+  toggle.addEventListener('click', () => { panel.hidden = !panel.hidden; toggle.setAttribute('aria-expanded', String(!panel.hidden)); });
+  li.querySelector('.locate').addEventListener('click', () => { switchTab('constellation'); field.focusId(hit.id); });
+  li.querySelector('h3').addEventListener('click', () => openSheet(hit));
+  li.querySelector('.avatar').addEventListener('click', () => openSheet(hit));
+  return li;
+}
+
+function setPeopleMode(mode, focus = false) {
+  people.mode = mode;
+  document.querySelectorAll('.mode-chips [data-mode]').forEach((b) => {
+    const on = b.dataset.mode === mode; b.setAttribute('aria-checked', String(on)); b.tabIndex = on ? 0 : -1;
+    if (on && focus) b.focus();
+    if (on) b.scrollIntoView({block:'nearest', inline:'nearest', behavior: reduceMotion ? 'auto' : 'smooth'});
+  });
+  $('#people-q').placeholder = PEOPLE_MODES[mode].placeholder;
+  runPeople();
+}
+document.querySelectorAll('.mode-chips [data-mode]').forEach((b) => b.addEventListener('click', () => setPeopleMode(b.dataset.mode)));
+$('.mode-chips').addEventListener('keydown', (event) => {
+  const step = {ArrowRight:1, ArrowDown:1, ArrowLeft:-1, ArrowUp:-1}[event.key];
+  if (!step || !event.target.dataset.mode) return; event.preventDefault();
+  const modes = Object.keys(PEOPLE_MODES);
+  setPeopleMode(modes[(modes.indexOf(people.mode) + step + modes.length) % modes.length], true);
+});
+$('#people-form').addEventListener('submit', (event) => { event.preventDefault(); runPeople(); });
+$('#people-filters-toggle').addEventListener('click', (event) => {
+  const sheet = $('#people-filters'); sheet.hidden = !sheet.hidden; event.currentTarget.setAttribute('aria-expanded', String(!sheet.hidden));
+});
+$('#people-filters').addEventListener('change', updateFilterCount);
+$('#people-filters').addEventListener('submit', (event) => {
+  event.preventDefault(); event.currentTarget.hidden = true; $('#people-filters-toggle').setAttribute('aria-expanded', 'false'); runPeople();
+});
+$('#people-filters').addEventListener('reset', () => setTimeout(() => { updateFilterCount(); runPeople(); }));
 
 /* ======================================================================
    Trust center: what is held, where, under which gates, for how long.
@@ -763,6 +984,291 @@ function createOps() {
 }
 const ops = createOps();
 
+/* ======================================================================
+   Person sheet: the card of whoever you click, docked at the base of the screen.
+   ====================================================================== */
+const sheet = $('#person-sheet');
+let sheetReturnFocus = null;
+function openSheet(p) {
+  if (!p) return;
+  const synthetic = isSynthetic(p), mine = myProfile && p.id === myProfile.id, name = cleanName(p.display_name);
+  const pos = p.position || {x:0, y:0};
+  sheetReturnFocus = sheet.hidden ? document.activeElement : sheetReturnFocus;
+  const tagRow = (label, items) => items?.length ? `<div class="sheet-row"><span class="eyebrow">${label}</span><div class="tags">${items.map((t) => `<span class="tag">${escapeHtml(t)}</span>`).join('')}</div></div>` : '';
+  const facts = [(p.roles || []).join(' · '), (p.formats || []).map((f) => ({async:'async intro', one_to_one:'1:1', small_group:'small group'})[f] || f).join(' · '), p.availability].filter(Boolean).join('  ·  ');
+  $('#sheet-body').innerHTML = `
+    <div class="sheet-head">
+      <div class="avatar" aria-hidden="true" style="--wash:${tint(pos.x, pos.y, 48, .16, 0, 1.3)};--ring:${tint(pos.x, pos.y, 68, .9, 0, 1.3)}">${escapeHtml(initials(name))}</div>
+      <div class="sheet-title">
+        <h2 id="sheet-name">${escapeHtml(name)}${mine ? ' <span class="demo-flag mono">you</span>' : ''}${synthetic ? ' <span class="demo-flag mono">SynthDemo</span>' : ''}</h2>
+        <p class="person-headline">${escapeHtml(p.headline || '')}${p.discipline ? ` <span class="discipline mono">${escapeHtml(p.discipline)}</span>` : ''}</p>
+      </div>
+      ${p.percent != null ? `<span class="pct"><b>${p.percent}</b><small>%</small></span>` : ''}
+    </div>
+    ${p.public_summary ? `<p class="sheet-summary">${escapeHtml(p.public_summary)}</p>` : ''}
+    ${tagRow('Can help with', p.can_help_with)}${tagRow('Looking for', p.looking_for)}${tagRow('Outside work', p.interests)}
+    <p class="sheet-facts mono">${escapeHtml(facts)}</p>
+    <div class="quick">
+      <button type="button" class="qa intro" ${synthetic || mine ? 'disabled' : ''}>${mine ? 'This is your card' : synthetic ? 'Synthetic card · no intros' : 'Request intro'}</button>
+      <button type="button" class="qa similar">Find similar people</button>
+      <button type="button" class="qa in3d">Show in 3D</button>
+    </div>
+    <div class="sheet-intros"></div>`;
+  $('#sheet-body .intro').addEventListener('click', () => createConnection(p, $('#sheet-body .sheet-intros')).catch(showStatusError));
+  $('#sheet-body .similar').addEventListener('click', () => {
+    closeSheet(); $('#people-q').value = p.headline || (p.can_help_with || []).slice(0, 3).join(', ');
+    switchTab('people'); if (people.mode !== 'query') setPeopleMode('query'); else runPeople();
+  });
+  $('#sheet-body .in3d').addEventListener('click', () => { switchTab('network3d'); g3.focusId(p.id); });
+  sheet.hidden = false; requestAnimationFrame(() => sheet.classList.add('open'));
+}
+function closeSheet() {
+  if (sheet.hidden) return;
+  sheet.classList.remove('open');
+  setTimeout(() => { if (!sheet.classList.contains('open')) sheet.hidden = true; }, reduceMotion ? 0 : 220);
+  sheetReturnFocus?.focus?.(); sheetReturnFocus = null;
+}
+sheet.querySelector('.sheet-close').addEventListener('click', closeSheet);
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !sheet.hidden) closeSheet(); });
+
+/* ======================================================================
+   Graph feed: polls /api/graph (every discoverable card in Elastic, placed by
+   its stored embedding) while a map is open, and reports who joined or left.
+   ====================================================================== */
+function createGraphFeed() {
+  let active = false, timer = null, inflight = false, last = null, known = null;
+  const listeners = [];
+  async function load() {
+    if (inflight) return; inflight = true;
+    try {
+      const sponsors = $('#g3-sponsors').checked;
+      const data = await api(`/api/graph?include_synthetic=${showSynth}&include_sponsors=${sponsors}`);
+      const ids = new Set(data.nodes.map((n) => n.id));
+      const joined = known ? data.nodes.filter((n) => !known.has(n.id)) : [];
+      const left = known ? [...known].filter((id) => !ids.has(id)) : [];
+      known = ids; last = data;
+      listeners.forEach((fn) => fn(data, {joined, left}));
+    } catch (error) {
+      listeners.forEach((fn) => fn(null, {error}));
+    } finally { inflight = false; }
+  }
+  return {
+    on(fn) { listeners.push(fn); if (last) fn(last, {joined:[], left:[]}); },
+    setActive(v) { active = v; clearInterval(timer); timer = null; if (v) { load(); timer = setInterval(load, 4000); } },
+    reload() { known = null; if (active) load(); },
+    last: () => last,
+  };
+}
+const graphFeed = createGraphFeed();
+graphFeed.on((data) => { if (data) field.setPeople(data.nodes, data.you); });
+
+/* ======================================================================
+   3D network. Positions are the server's PCA projection of the stored
+   1024-d Jina vectors; colour is the same discipline tint as everywhere else.
+   Plain canvas with a perspective camera, no WebGL dependency.
+   ====================================================================== */
+function createGraph3D() {
+  const canvas = $('#g3-canvas'), stage = $('#g3-stage'), ctx = canvas.getContext('2d');
+  const statsEl = $('#g3-stats'), feedEl = $('#g3-feed'), axesEl = $('#g3-axes'), emptyEl = $('#g3-empty');
+  const SANS = 'Inter, ui-sans-serif, system-ui, sans-serif';
+  let W = 1, H = 1, dpr = 1, visible = false, raf = null, lastT = performance.now();
+  const cam = {yaw:.6, pitch:-.32, dist:2.9, tyaw:null, tpitch:null, tdist:null};
+  let nodes = new Map(), edges = [], youId = null, hov = null, sel = null, pulses = [], idleSince = 0, stats = null, pendingFocus = null, lastFeed = 0;
+  const feed = [];
+
+  function resize() {
+    const b = stage.getBoundingClientRect(); if (!b.width) return;
+    dpr = Math.min(window.devicePixelRatio || 1, 2); W = b.width; H = b.height;
+    canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.width = `${W}px`; canvas.style.height = `${H}px`;
+  }
+  function project(x, y, z) {
+    const cy = Math.cos(cam.yaw), sy = Math.sin(cam.yaw), cp = Math.cos(cam.pitch), sp = Math.sin(cam.pitch);
+    const x1 = x * cy - z * sy, z1 = x * sy + z * cy;
+    const y2 = y * cp - z1 * sp, z2 = y * sp + z1 * cp;
+    const depth = cam.dist + z2, f = Math.min(W, H) * 1.25 / Math.max(.2, depth);
+    return {x: W / 2 + x1 * f, y: H / 2 + y2 * f, depth, f};
+  }
+  function update(data, {joined = [], left = []} = {}) {
+    stats = data.stats; youId = data.you;
+    const now = performance.now(), seen = new Set();
+    data.nodes.forEach((p) => {
+      seen.add(p.id);
+      const t = p.position3, n = nodes.get(p.id);
+      if (n) { Object.assign(n, {tx:t.x, ty:t.y, tz:t.z, profile:p, dying:null}); }
+      else nodes.set(p.id, {id:p.id, profile:p, x:t.x * .2, y:t.y * .2, z:t.z * .2, tx:t.x, ty:t.y, tz:t.z, born:now, dying:null, joinedLive:joined.some((j) => j.id === p.id)});
+    });
+    nodes.forEach((n) => { if (!seen.has(n.id) && !n.dying) n.dying = now; });
+    edges = data.edges.map((e) => ({a:e.a, b:e.b, s:e.similarity}));
+    joined.forEach((p) => { log(`+ ${cleanName(p.display_name)} joined`); edgesOf(p.id).forEach((e, i) => pulse(e, p.id, i * 120)); });
+    left.forEach((id) => log(`− ${cleanName(nodes.get(id)?.profile.display_name || 'a card')} left`));
+    const ev = stats.explained_variance || [], synth = stats.synthetic;
+    statsEl.innerHTML = `<span>${stats.count} cards · ${edges.length} links</span><span>${escapeHtml(stats.index)}</span><span>${stats.engine === 'jina_stored' ? `${escapeHtml(stats.model_id)} · ${stats.dimensions}-d stored vectors` : 'memory demo · concept vectors, not Jina'}</span><span>${synth ? `${synth} SynthDemo · ${stats.count - synth} real` : `${stats.count} real · SynthDemo hidden`}</span>`;
+    axesEl.textContent = ev.length ? `PCA 3D · ${(ev.reduce((a, b) => a + b, 0) * 100).toFixed(1)}% variance (${ev.map((v) => (v * 100).toFixed(1)).join(' / ')})` : '';
+    emptyEl.classList.toggle('hidden', data.nodes.length > 0);
+    emptyEl.textContent = 'No discoverable cards yet. Join, or show the SynthDemo cohort.';
+    if (sel && !nodes.has(sel)) sel = null;
+    if (pendingFocus && nodes.has(pendingFocus)) { focusNode(nodes.get(pendingFocus), false); pendingFocus = null; }
+  }
+  function edgesOf(id) { return edges.filter((e) => e.a === id || e.b === id); }
+  function pulse(e, from, delay = 0) { pulses.push({e, from, t0:performance.now() + delay, dur:900 + Math.random() * 500}); }
+  function log(text) { feed.unshift({text, t:performance.now()}); feed.length = Math.min(feed.length, 5); renderFeed(); }
+  function renderFeed() {
+    const now = performance.now();
+    feedEl.innerHTML = `<span class="g3-live"><i></i>live · polling Elastic</span>${feed.filter((f) => now - f.t < 30000).map((f) => `<span>${escapeHtml(f.text)}</span>`).join('')}`;
+  }
+  function draw(now, dt) {
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    ctx.fillStyle = '#070707'; ctx.fillRect(0, 0, W, H);
+    // ease toward targets
+    const k = 1 - Math.exp(-dt / 380);
+    nodes.forEach((n) => { n.x += (n.tx - n.x) * k; n.y += (n.ty - n.y) * k; n.z += (n.tz - n.z) * k; });
+    if (cam.tyaw != null) { cam.yaw += (cam.tyaw - cam.yaw) * k; cam.pitch += (cam.tpitch - cam.pitch) * k; cam.dist += (cam.tdist - cam.dist) * k; if (Math.abs(cam.tyaw - cam.yaw) < .002) cam.tyaw = null; }
+    else if (!reduceMotion && now - idleSince > 2500 && !sel) cam.yaw += dt * .00008;
+
+    // floor grid for depth cues
+    ctx.strokeStyle = 'rgba(255,255,255,.045)'; ctx.lineWidth = 1;
+    for (let i = -4; i <= 4; i++) {
+      const a = project(i * .4, 1.35, -1.6), b = project(i * .4, 1.35, 1.6), c = project(-1.6, 1.35, i * .4), d = project(1.6, 1.35, i * .4);
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.moveTo(c.x, c.y); ctx.lineTo(d.x, d.y); ctx.stroke();
+    }
+    const P = new Map();
+    nodes.forEach((n) => {
+      const life = n.dying ? 1 - clamp((now - n.dying) / 900, 0, 1) : clamp((now - n.born) / 700, 0, 1);
+      if (n.dying && life <= 0) { nodes.delete(n.id); return; }
+      P.set(n.id, {...project(n.x, n.y, n.z), n, life});
+    });
+    const focusSet = sel ? new Set([sel, ...edgesOf(sel).map((e) => (e.a === sel ? e.b : e.a))]) : null;
+    // edges
+    edges.forEach((e) => {
+      const a = P.get(e.a), b = P.get(e.b); if (!a || !b) return;
+      const on = focusSet && (e.a === sel || e.b === sel), fog = clamp(1.4 - ((a.depth + b.depth) / 2 - cam.dist) * .45, .15, 1);
+      const pa = a.n.profile.position || {x:0, y:0}, pb = b.n.profile.position || {x:0, y:0};
+      ctx.strokeStyle = tint((pa.x + pb.x) / 2, (pa.y + pb.y) / 2, 75, (focusSet ? (on ? .7 : .04) : .16 + Math.max(0, e.s - .5) * .4) * fog * Math.min(a.life, b.life), now, .8);
+      ctx.lineWidth = on ? 1.4 : .7;
+      ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+    });
+    // pulses along edges
+    if (!reduceMotion && edges.length && Math.random() < dt * .004) { const e = edges[Math.random() * edges.length | 0]; pulse(e, Math.random() < .5 ? e.a : e.b); }
+    ctx.globalCompositeOperation = 'lighter';
+    pulses = pulses.filter((pk) => {
+      const t = (now - pk.t0) / pk.dur; if (t < 0) return true; if (t >= 1) return false;
+      const from = P.get(pk.from), to = P.get(pk.from === pk.e.a ? pk.e.b : pk.e.a); if (!from || !to) return false;
+      const x = lerp(from.x, to.x, easeInOut(t)), y = lerp(from.y, to.y, easeInOut(t)), pos = from.n.profile.position || {x:0, y:0};
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 9); g.addColorStop(0, tint(pos.x, pos.y, 85, .8, now, 1.5)); g.addColorStop(1, 'rgba(0,0,0,0)');
+      ctx.fillStyle = g; ctx.beginPath(); ctx.arc(x, y, 9, 0, TAU); ctx.fill();
+      return true;
+    });
+    ctx.globalCompositeOperation = 'source-over';
+    // nodes, back to front
+    const order = [...P.values()].sort((a, b) => b.depth - a.depth);
+    order.forEach((p) => {
+      const n = p.n, pos = n.profile.position || {x:0, y:0}, you = n.id === youId, synth = isSynthetic(n.profile);
+      const dim = focusSet && !focusSet.has(n.id), fog = clamp(1.5 - (p.depth - cam.dist) * .5, .25, 1);
+      const r = Math.max(1.6, (you ? 5.5 : synth ? 3 : 4.2) * p.f / 260) * (.4 + .6 * easeInOut(p.life));
+      const A = (dim ? .15 : 1) * fog * p.life;
+      if (!dim) {
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 4.5);
+        g.addColorStop(0, tint(pos.x, pos.y, 70, .22 * A, now, 1.3)); g.addColorStop(1, 'rgba(0,0,0,0)');
+        ctx.fillStyle = g; ctx.beginPath(); ctx.arc(p.x, p.y, r * 4.5, 0, TAU); ctx.fill();
+      }
+      ctx.fillStyle = tint(pos.x, pos.y, synth ? 72 : 84, A, now, synth ? .7 : 1.1);
+      if ((n.profile.roles || []).some((x) => x === 'sponsor' || x === 'recruiter')) { ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(Math.PI / 4); ctx.fillRect(-r * .8, -r * .8, r * 1.6, r * 1.6); ctx.restore(); }
+      else if (synth) { ctx.strokeStyle = ctx.fillStyle; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, TAU); ctx.stroke(); }
+      else { ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, TAU); ctx.fill(); }
+      if (you || n.joinedLive && now - n.born < 6000) {
+        const ring = you ? r + 5 + (reduceMotion ? 0 : Math.sin(now / 420) * 1.5) : r + ((now - n.born) % 1200) / 1200 * 22;
+        ctx.strokeStyle = `rgba(255,255,255,${you ? .6 * A : .7 * (1 - ((now - n.born) % 1200) / 1200)})`; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(p.x, p.y, ring, 0, TAU); ctx.stroke();
+      }
+      if (n.id === sel || n === hov) { ctx.strokeStyle = n.id === sel ? 'rgba(255,255,255,.9)' : 'rgba(255,255,255,.45)'; ctx.beginPath(); ctx.arc(p.x, p.y, r + 7, 0, TAU); ctx.stroke(); }
+      p.r = r;
+    });
+    // labels: you, hovered, selected, its neighbours, new arrivals, and the nearest few
+    ctx.textBaseline = 'middle'; ctx.textAlign = 'left';
+    const near = new Set(order.slice(-Math.min(10, order.length)).map((p) => p.n.id));
+    order.forEach((p) => {
+      const n = p.n, show = n.id === youId || n === hov || n.id === sel || (focusSet ? focusSet.has(n.id) : near.has(n.id) || (n.joinedLive && performance.now() - n.born < 8000));
+      if (!show || p.life < .5) return;
+      ctx.font = `${n.id === sel || n.id === youId ? 600 : 500} ${n.id === sel ? 12.5 : 11}px ${SANS}`;
+      ctx.fillStyle = n.id === sel || n.id === youId ? '#fff' : `rgba(225,225,225,${(clamp(1.6 - (p.depth - cam.dist) * .6, .35, .85)).toFixed(2)})`;
+      ctx.fillText(cleanName(n.profile.display_name) + (n.id === youId ? ' (you)' : ''), p.x + p.r + 6, p.y);
+    });
+    canvas._order = order;
+  }
+  function frame(now) {
+    const dt = Math.min(64, now - lastT); lastT = now;
+    draw(now, dt);
+    if (now - lastFeed > 1000) { lastFeed = now; renderFeed(); }
+    raf = visible ? requestAnimationFrame(frame) : null;
+  }
+  function pick(sx, sy) {
+    let best = null, bd = Infinity;
+    (canvas._order || []).forEach((p) => { const d = Math.hypot(p.x - sx, p.y - sy) - (p.r || 3); if (d < bd && p.life > .5) { bd = d; best = p.n; } });
+    return bd < 12 ? best : null;
+  }
+  function focusNode(n, open = true) {
+    sel = n.id;
+    // turn the camera so the node faces the viewer
+    const yaw = Math.atan2(-n.tx, -n.tz), pitch = clamp(-Math.atan2(n.ty, Math.hypot(n.tx, n.tz)), -1.2, 1.2);
+    cam.tyaw = cam.yaw + ((yaw - cam.yaw + Math.PI) % TAU + TAU) % TAU - Math.PI; cam.tpitch = pitch * .8; cam.tdist = 2.2;
+    edgesOf(n.id).forEach((e, i) => pulse(e, n.id, i * 90));
+    if (open) openSheet(n.profile);
+  }
+  const pointers = new Map(); let drag = null;
+  canvas.addEventListener('pointerdown', (e) => { canvas.setPointerCapture(e.pointerId); pointers.set(e.pointerId, {x:e.offsetX, y:e.offsetY}); drag = {x:e.offsetX, y:e.offsetY, moved:0}; cam.tyaw = null; idleSince = performance.now(); });
+  canvas.addEventListener('pointermove', (e) => {
+    if (drag && pointers.has(e.pointerId)) {
+      const dx = e.offsetX - drag.x, dy = e.offsetY - drag.y; drag.moved += Math.abs(dx) + Math.abs(dy);
+      cam.yaw += dx * .006; cam.pitch = clamp(cam.pitch + dy * .006, -1.4, 1.4); drag.x = e.offsetX; drag.y = e.offsetY; idleSince = performance.now();
+      if (drag.moved > 4) canvas.classList.add('dragging');
+    } else { hov = pick(e.offsetX, e.offsetY); canvas.classList.toggle('hovering', !!hov); }
+  });
+  const release = (e) => {
+    pointers.delete(e.pointerId);
+    if (drag && drag.moved < 5 && e.type === 'pointerup') { const n = pick(e.offsetX, e.offsetY); if (n) focusNode(n); else { sel = null; closeSheet(); } }
+    drag = null; canvas.classList.remove('dragging');
+  };
+  canvas.addEventListener('pointerup', release); canvas.addEventListener('pointercancel', release);
+  canvas.addEventListener('pointerleave', () => { hov = null; canvas.classList.remove('hovering'); });
+  canvas.addEventListener('wheel', (e) => { e.preventDefault(); cam.tdist = null; cam.tyaw = null; cam.dist = clamp(cam.dist * Math.exp(e.deltaY * .0012), 1.4, 9); idleSince = performance.now(); }, {passive:false});
+  canvas.addEventListener('keydown', (e) => {
+    const step = {ArrowLeft:-.15, ArrowRight:.15}[e.key]; if (step) { e.preventDefault(); cam.yaw += step; idleSince = performance.now(); }
+    if (e.key === 'Escape') { sel = null; }
+  });
+  new ResizeObserver(() => { if (visible) resize(); }).observe(stage);
+  $('#g3-reset').addEventListener('click', () => { sel = null; cam.tyaw = .6; cam.tpitch = -.32; cam.tdist = 2.9; closeSheet(); });
+  $('#g3-sponsors').addEventListener('change', () => graphFeed.reload());
+  graphFeed.on((data, info) => {
+    if (data) update(data, info);
+    else if (info.error) {
+      statsEl.textContent = info.error.status === 403 ? 'join to see the live network' : info.error.message;
+      emptyEl.classList.toggle('hidden', info.error.status !== 403);
+      emptyEl.innerHTML = info.error.status === 403 ? 'The live network shows opted-in attendees only. <button class="secondary compact-btn" type="button">Create your card</button>' : '';
+      emptyEl.querySelector('button')?.addEventListener('click', () => switchTab('join'));
+    }
+  });
+  return {
+    setVisible(v) { visible = v; if (v) { resize(); renderFeed(); if (!raf) { lastT = performance.now(); raf = requestAnimationFrame(frame); } } },
+    focusId(id) { const n = nodes.get(id); if (n) focusNode(n, false); else pendingFocus = id; },
+  };
+}
+const g3 = createGraph3D();
+
+/* SynthDemo visibility, applied to every surface. */
+function renderSynthToggle() {
+  const b = $('#synth-toggle'); b.setAttribute('aria-pressed', String(showSynth)); b.textContent = `SynthDemo · ${showSynth ? 'shown' : 'hidden'}`;
+  b.classList.toggle('off', !showSynth);
+}
+$('#synth-toggle').addEventListener('click', () => {
+  showSynth = !showSynth; renderSynthToggle();
+  try { localStorage.setItem('network.showSynth', showSynth ? '1' : '0'); } catch { /* per-viewer convenience only */ }
+  people.loaded = false;
+  if ($('.shell').dataset.panel === 'people') runPeople();
+  if (lastCompare && $('#question').value.trim().length >= 3) $('#search-form').requestSubmit();
+  graphFeed.reload();
+});
+renderSynthToggle();
+
 async function boot() {
   try {
     const session = await post('/api/session', {});
@@ -770,6 +1276,7 @@ async function boot() {
     if (session.mode === 'memory_demo') $('#seed-demo').classList.remove('hidden');
     await refreshMe();
     if (location.pathname.startsWith('/connect/')) await loadConnection();
+    else if (myState === 'indexed') switchTab('people');
   } catch (error) { showStatusError(error); }
 }
 boot();

@@ -5,16 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#0a0a0a" />
     <title>NETwork Concierge</title>
-    <link rel="stylesheet" href="/styles.css?v=0.5.0" />
+    <link rel="stylesheet" href="/styles.css?v=0.7.0" />
   </head>
   <body>
     <canvas id="field" class="field" aria-hidden="true"></canvas>
-    <main class="shell">
+    <main class="shell" data-panel="join">
       <header class="topbar">
         <a class="brand" href="/"><i aria-hidden="true"></i>NETwork</a>
         <div class="header-meta">
           <span class="live-dot" aria-hidden="true"></span>
           <span id="runtime-status" role="status" aria-live="polite">Connecting…</span>
+          <button id="synth-toggle" class="ghost synth-toggle" type="button" aria-pressed="true" title="Show or hide the SynthDemo synthetic cohort everywhere">SynthDemo · shown</button>
           <button id="open-trust" class="ghost trust-button" type="button" aria-haspopup="dialog" aria-controls="trust-drawer">Trust</button>
         </div>
       </header>
@@ -46,10 +47,12 @@
 
         <nav class="tabs" aria-label="Application sections" role="tablist">
           <button class="tab active" data-panel="join" role="tab"><span>01</span>Join</button>
-          <button class="tab" data-panel="ask" role="tab"><span>02</span>Ask</button>
-          <button class="tab" data-panel="constellation" role="tab"><span>03</span>Field</button>
-          <button class="tab" data-panel="elastic" role="tab"><span>04</span>Stack</button>
-          <button class="tab" data-panel="ops" role="tab"><span>05</span>Ops</button>
+          <button class="tab" data-panel="people" role="tab"><span>02</span>People</button>
+          <button class="tab" data-panel="ask" role="tab"><span>03</span>Ask</button>
+          <button class="tab" data-panel="constellation" role="tab"><span>04</span>Field</button>
+          <button class="tab" data-panel="network3d" role="tab"><span>05</span>3D</button>
+          <button class="tab" data-panel="elastic" role="tab"><span>06</span>Stack</button>
+          <button class="tab" data-panel="ops" role="tab"><span>07</span>Ops</button>
         </nav>
 
         <section id="join" class="panel active">
@@ -58,51 +61,112 @@
               <h2>Your conference card</h2>
               <p class="meta">~1 min</p>
             </header>
-            <p class="subtle">You can upload a resume to prefill your expertise. The file is read in memory and then deleted. Other attendees can only find the card you approve.</p>
-            <form id="profile-form">
-              <div class="grid-2">
-                <label>Display name <input required name="display_name" maxlength="80" placeholder="Your name" /></label>
-                <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
-                <label>Can help with <input name="can_help_with" placeholder="Python, APIs, observability" /></label>
-                <label>Looking for <input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
-              </div>
-              <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or trying to solve?"></textarea></label>
-              <label>Approved professional experience <textarea name="approved_experience" maxlength="2400" placeholder="Review and edit the experience you want other attendees to find."></textarea></label>
-              <div class="grid-2">
-                <fieldset>
-                  <legend>Connection style</legend>
-                  <label class="check"><input type="checkbox" name="formats" value="async" checked /> Async intro</label>
-                  <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
-                  <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
-                </fieldset>
-                <label>Availability
-                  <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
+            <form id="profile-form" novalidate>
+              <div id="resume-step" class="step">
+                <p class="eyebrow">Step 1 of 2 · optional</p>
+                <h3 class="step-title">Start from your resume</h3>
+                <p class="subtle">NETwork autofills your card from it. The file is read in memory and then deleted. You review every field before anything becomes searchable.</p>
+                <label class="dropzone" id="resume-drop">
+                  <input type="file" name="resume" accept=".pdf,.docx,.txt,.md" />
+                  <span class="dropzone-text"><strong>Choose or drop a resume</strong><small>PDF, DOCX, TXT or MD · 6 MB max</small></span>
                 </label>
-              </div>
-              <details>
-                <summary>Contact details and resume (optional)</summary>
-                <div class="details-body">
-                  <div class="grid-2">
-                    <label>Email <input type="email" name="email" placeholder="Shared only after you both accept" /></label>
-                    <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
-                  </div>
-                  <div class="grid-2">
-                    <label>Resume <span class="hint">PDF, DOCX, TXT, MD · 6 MB max</span><input type="file" name="resume" accept=".pdf,.docx,.txt,.md" /></label>
-                    <label>Source <select name="source_type"><option value="upload">My resume</option><option value="linkedin_export">My authorized LinkedIn export</option></select></label>
-                  </div>
-                  <button type="button" id="preview-resume" class="secondary">Preview resume suggestions</button>
-                  <p id="resume-preview" class="result" aria-live="polite"></p>
+                <div class="grid-2">
+                  <label>Source <select name="source_type"><option value="upload">My resume</option><option value="linkedin_export">My authorized LinkedIn export</option></select></label>
+                  <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> Parse my resume to suggest card fields. Required to autofill.</label>
                 </div>
-              </details>
-              <div class="consents">
-                <label class="check consent"><input required type="checkbox" name="consent_to_discover" /> Let other opted-in attendees at this event find my approved card.</label>
-                <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> Parse my resume automatically if I upload one.</label>
+                <div class="row-actions step-actions">
+                  <button type="button" id="preview-resume" class="primary">Autofill my card</button>
+                  <button type="button" id="skip-resume" class="ghost">Skip and fill it in myself →</button>
+                </div>
+                <p id="resume-preview" class="result" aria-live="polite"></p>
               </div>
-              <p class="subtle small">Keep this browser open. You need it to approve introductions and withdraw your card. Only the fields above become searchable.</p>
-              <button class="primary" type="submit">Approve and join</button>
+
+              <div id="card-step" class="step hidden">
+                <div class="inline-row">
+                  <p class="eyebrow">Step 2 of 2 · review your card</p>
+                  <button type="button" id="back-to-resume" class="ghost">← Use a resume</button>
+                </div>
+                <p id="autofill-note" class="autofill-note mono hidden"></p>
+                <p class="subtle small req-legend"><span class="req" aria-hidden="true">*</span> Required. Everything else is optional, but more detail gives better matches.</p>
+                <div class="grid-2">
+                  <label><span>Display name <span class="req" aria-hidden="true">*</span></span><input required name="display_name" minlength="2" maxlength="80" placeholder="Your name" aria-required="true" /></label>
+                  <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
+                  <label>Can help with <span class="hint">comma-separated</span><input name="can_help_with" placeholder="Python, APIs, observability" /></label>
+                  <label>Looking for <span class="hint">comma-separated</span><input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
+                </div>
+                <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or trying to solve?"></textarea></label>
+                <label>Outside work <span class="hint">optional · found only in the People › Outside work view</span><input name="interests" placeholder="Climbing, jazz, board games" /></label>
+                <label>Approved professional experience <textarea name="approved_experience" maxlength="2400" placeholder="Review and edit the experience you want other attendees to find."></textarea></label>
+                <div class="grid-2">
+                  <fieldset aria-required="true">
+                    <legend>Connection style <span class="req" aria-hidden="true">*</span> <span class="hint">pick at least one</span></legend>
+                    <label class="check"><input type="checkbox" name="formats" value="async" checked /> Async intro</label>
+                    <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
+                    <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
+                  </fieldset>
+                  <label>Availability
+                    <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
+                  </label>
+                </div>
+                <details id="contact-details">
+                  <summary>Contact details (optional, private until you accept an intro)</summary>
+                  <div class="details-body">
+                    <div class="grid-2">
+                      <label>Email <input type="email" name="email" placeholder="Shared only after you both accept" /></label>
+                      <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
+                    </div>
+                  </div>
+                </details>
+                <div class="consents">
+                  <label class="check consent"><input required type="checkbox" name="consent_to_discover" aria-required="true" /> <span>Let other opted-in attendees at this event find my approved card. <span class="req" aria-hidden="true">*</span></span></label>
+                </div>
+                <p class="subtle small">Keep this browser open. You need it to approve introductions and withdraw your card. Only the fields above become searchable.</p>
+                <button class="primary" type="submit">Approve and join</button>
+              </div>
             </form>
             <p id="profile-result" class="result" aria-live="polite"></p>
           </article>
+        </section>
+
+        <section id="people" class="panel">
+          <div class="people">
+            <form id="people-form" class="people-search" role="search">
+              <label class="visually-hidden" for="people-q">Search people</label>
+              <input id="people-q" type="search" maxlength="700" autocomplete="off" enterkeyhint="search" placeholder="Search people by skill, project or idea" />
+              <button class="icon-button people-go" type="submit" aria-label="Search">→</button>
+            </form>
+            <div class="mode-chips" role="radiogroup" aria-label="Similarity view">
+              <button type="button" class="chip-btn" role="radio" data-mode="query" aria-checked="true">Search</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="problem" aria-checked="false" tabindex="-1">Help with a problem</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="hire" aria-checked="false" tabindex="-1">Hiring</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="interests" aria-checked="false" tabindex="-1">Outside work</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="discover" aria-checked="false" tabindex="-1">Find new people</button>
+              <button type="button" class="chip-btn filters-btn" id="people-filters-toggle" aria-expanded="false" aria-controls="people-filters">Filters<span class="n" id="people-filter-count"></span></button>
+            </div>
+            <form id="people-filters" class="filter-sheet" hidden>
+              <fieldset><legend>Connection style</legend>
+                <label class="check"><input type="checkbox" name="formats" value="async" /> Async intro</label>
+                <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
+                <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
+              </fieldset>
+              <fieldset><legend>Role</legend>
+                <label class="check"><input type="checkbox" name="roles" value="mentor" /> Mentor</label>
+                <label class="check"><input type="checkbox" name="roles" value="mentee" /> Mentee</label>
+                <label class="check"><input type="checkbox" name="roles" value="peer" /> Peer</label>
+              </fieldset>
+              <fieldset><legend>More</legend>
+                <label class="check"><input type="checkbox" name="available_now" /> Available now</label>
+                <label class="check"><input type="checkbox" name="sponsor_intent" /> Include sponsors and recruiters</label>
+              </fieldset>
+              <div class="row-actions">
+                <button type="submit" class="secondary compact-btn">Apply</button>
+                <button type="reset" class="ghost">Clear</button>
+              </div>
+            </form>
+            <p id="people-basis" class="people-basis mono" aria-live="polite"></p>
+            <div id="people-intros"></div>
+            <ol id="people-results" class="people-list" aria-label="Matching people"></ol>
+          </div>
         </section>
 
         <section id="ask" class="panel">
@@ -138,7 +202,7 @@
             <header class="constellation-heading">
               <div>
                 <h2>Expertise field</h2>
-                <p class="subtle small">People are placed by their public expertise tags. People near each other share expertise, and the colour shows the area of the map. Private profile data is never shown here.</p>
+                <p class="subtle small">Every discoverable card, placed by how close its public text is to six discipline anchors (Jina embeddings in Elastic mode). People near each other work on similar things, and the colour shows the area. Click anyone to open their card. Private profile data is never shown here.</p>
               </div>
               <div class="field-tools">
                 <label class="node-search"><span class="visually-hidden">Go to node</span>
@@ -156,6 +220,29 @@
               <div class="hud hud-br mono" id="zoom-readout">1.00×</div>
             </div>
             <p class="constellation-note mono">drag to pan · scroll to zoom · click to focus · esc to reset · search results appear here as live nodes</p>
+          </article>
+        </section>
+
+        <section id="network3d" class="panel">
+          <article class="constellation-card">
+            <header class="constellation-heading">
+              <div>
+                <h2>Live network · 3D</h2>
+                <p class="subtle small">Every discoverable card in Elasticsearch, placed by the Jina embedding stored with it and projected to 3D with PCA. Lines join each person to their nearest neighbours in the full embedding space. When someone joins or withdraws, the view updates.</p>
+              </div>
+              <div class="field-tools">
+                <label class="check small-check"><input type="checkbox" id="g3-sponsors" /> Sponsors</label>
+                <button class="icon-button" id="g3-reset" type="button" aria-label="Reset view" title="Reset view">⤢</button>
+              </div>
+            </header>
+            <div class="constellation-stage g3-stage" id="g3-stage">
+              <canvas id="g3-canvas" tabindex="0" aria-label="3D map of every discoverable card. Drag to orbit, scroll to zoom, click a person to open their card."></canvas>
+              <div class="hud hud-tl mono g3-stats" id="g3-stats">connecting…</div>
+              <div class="hud hud-tr mono g3-feed" id="g3-feed"></div>
+              <div class="hud hud-br mono" id="g3-axes"></div>
+              <div class="g3-empty hidden" id="g3-empty"></div>
+            </div>
+            <p class="constellation-note mono">drag to orbit · scroll to zoom · click a person for their card · live from Elastic every 4 s</p>
           </article>
         </section>
 
@@ -199,6 +286,12 @@
         <div id="trust-body" class="trust-body"></div>
       </div>
     </aside>
+    <aside id="person-sheet" class="sheet" aria-labelledby="sheet-name" hidden>
+      <div class="sheet-panel">
+        <button class="icon-button sheet-close" type="button" aria-label="Close card">×</button>
+        <div id="sheet-body"></div>
+      </div>
+    </aside>
     <template id="result-template">
       <article class="match-card">
         <span class="hue-bar" aria-hidden="true"></span>
@@ -212,6 +305,6 @@
         </div>
       </article>
     </template>
-    <script src="/app.js?v=0.5.0"></script>
+    <script src="/app.js?v=0.7.0"></script>
   </body>
 </html>
