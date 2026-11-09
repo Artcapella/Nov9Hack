@@ -1,0 +1,26 @@
+replicaCount: 1
+image:
+  repository: ghcr.io/your-org/network-concierge
+  tag: latest
+  pullPolicy: IfNotPresent
+service:
+  type: ClusterIP
+  port: 8000
+ingress:
+  enabled: false
+  className: ""
+  host: network.example.com
+  tls: []
+existingSecret: network-concierge-secrets
+resources:
+  requests:
+    cpu: 100m
+    memory: 256Mi
+  limits:
+    cpu: 500m
+    memory: 512Mi
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 10001
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: true

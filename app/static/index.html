@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a1734" />
+    <title>NETwork Concierge</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="shell">
+      <header class="topbar">
+        <a class="brand" href="/">NET<span>work</span></a>
+        <span class="badge">Elastic-native</span>
+      </header>
+
+      <section id="connect-view" class="view hidden">
+        <p class="eyebrow">Private connection request</p>
+        <h1>Someone wants to connect.</h1>
+        <article id="connection-card" class="card"></article>
+      </section>
+
+      <section id="app-view" class="view">
+        <div class="hero">
+          <p class="eyebrow">Conference connection, made useful</p>
+          <h1>Find the right person in the room.</h1>
+          <p>Opt in once. Let Elasticsearch surface the people, projects, and expertise that can help.</p>
+        </div>
+
+        <nav class="tabs" aria-label="Application sections">
+          <button class="tab active" data-panel="join">Join</button>
+          <button class="tab" data-panel="ask">Ask NETwork</button>
+          <button class="tab" data-panel="elastic">Elastic proof</button>
+        </nav>
+
+        <section id="join" class="panel active">
+          <article class="card">
+            <p class="eyebrow">1 minute · opt-in only</p>
+            <h2>Build your conference card</h2>
+            <p class="subtle">Upload a resume to prefill your expertise. The file is parsed in memory, then discarded; only your approved card becomes discoverable.</p>
+            <form id="profile-form">
+              <label>Display name <input required name="display_name" maxlength="80" placeholder="Your name" /></label>
+              <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
+              <label>What can you help with? <input name="can_help_with" placeholder="Python, APIs, observability" /></label>
+              <label>What are you looking for? <input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
+              <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or hoping to solve?"></textarea></label>
+              <fieldset>
+                <legend>Connection style</legend>
+                <label class="check"><input type="checkbox" name="formats" value="async" checked /> Low-pressure async intro</label>
+                <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
+                <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
+              </fieldset>
+              <label>Availability
+                <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
+              </label>
+              <details>
+                <summary>Optional contact and resume</summary>
+                <label>Email <input type="email" name="email" placeholder="Only revealed after mutual acceptance" /></label>
+                <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
+                <label>Resume (PDF, DOCX, TXT, MD; 6 MB max) <input type="file" name="resume" accept=".pdf,.docx,.txt,.md" /></label>
+                <p id="resume-preview" class="result"></p>
+              </details>
+              <label class="check consent"><input required type="checkbox" name="consent_to_discover" /> I consent to my approved professional card being discoverable by other opted-in attendees for this event.</label>
+              <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> I consent to automated resume parsing if I upload a resume.</label>
+              <button class="primary" type="submit">Join NETwork</button>
+            </form>
+            <p id="profile-result" class="result" aria-live="polite"></p>
+          </article>
+        </section>
+
+        <section id="ask" class="panel">
+          <article class="card contrast">
+            <p class="eyebrow">Live judge demo</p>
+            <h2>Who can help with this?</h2>
+            <form id="search-form">
+              <label>Ask a non-confidential technical question
+                <textarea id="question" required placeholder="Our Kubernetes app is slow and we cannot tell where the bottleneck is."></textarea>
+              </label>
+              <label class="check"><input id="sponsor-intent" type="checkbox" /> Include sponsor/recruiter expertise</label>
+              <button class="primary" type="submit">Find people and evidence</button>
+            </form>
+            <div id="search-results" class="stack" aria-live="polite"></div>
+            <section id="rag-answer" class="rag hidden"></section>
+          </article>
+        </section>
+
+        <section id="elastic" class="panel">
+          <article class="card">
+            <p class="eyebrow">What powers NETwork</p>
+            <h2>Elastic is the conference brain.</h2>
+            <ul class="feature-list">
+              <li><strong>Elastic Cloud Serverless:</strong> operational records, public profile search, private-contact boundary, and connection events.</li>
+              <li><strong>Hybrid retrieval:</strong> BM25-style lexical precision + <code>semantic_text</code> meaning search combined with RRF.</li>
+              <li><strong>AI/RAG:</strong> retrieved attendee and sponsor evidence grounds concierge answers.</li>
+              <li><strong>MCP-ready:</strong> connect an Elastic Agent Builder agent to a coding-agent host for live tool access.</li>
+              <li><strong>ES|QL and aggregations:</strong> turn opt-in activity into conference intelligence.</li>
+            </ul>
+          </article>
+        </section>
+      </section>
+    </main>
+    <template id="result-template">
+      <article class="match-card">
+        <div><p class="eyebrow role"></p><h3 class="name"></h3><p class="headline"></p></div>
+        <p class="summary"></p><ul class="reasons"></ul>
+        <button class="secondary connect">Request async introduction</button>
+      </article>
+    </template>
+    <script src="/app.js"></script>
+  </body>
+</html>

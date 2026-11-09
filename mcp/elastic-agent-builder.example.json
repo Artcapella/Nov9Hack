@@ -1,0 +1,12 @@
+{
+  "mcpServers": {
+    "elastic-agent-builder": {
+      "transport": "http",
+      "url": "${KIBANA_URL}/api/agent_builder/mcp"
+    },
+    "network-elastic-tools": {
+      "command": "python",
+      "args": ["mcp/server.py"]
+    }
+  }
+}

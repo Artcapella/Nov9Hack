@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "network-concierge.fullname" . }}
+spec:
+  type: {{ .Values.service.type }}
+  selector: { app.kubernetes.io/name: {{ include "network-concierge.name" . }} }
+  ports: [{ name: http, port: {{ .Values.service.port }}, targetPort: http }]
