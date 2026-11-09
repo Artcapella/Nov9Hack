@@ -72,6 +72,22 @@ def test_otlp_uses_signal_endpoints_and_dash0_authorization():
     assert exporter_config(legacy) == ("https://ingest.example.com", {"Authorization": "Bearer encoded-token"})
 
 
+def test_app_creation_defers_exporters_until_startup(monkeypatch):
+    from fastapi.testclient import TestClient
+    from unittest.mock import Mock
+    from app.main import create_app
+
+    configure, shutdown = Mock(), Mock()
+    monkeypatch.setattr("app.main.configure_telemetry", configure)
+    monkeypatch.setattr("app.main.shutdown_telemetry", shutdown)
+    app = create_app(Settings(_env_file=None))
+    configure.assert_not_called()
+    with TestClient(app) as client:
+        configure.assert_called_once_with(None, app.state.settings)
+        assert client.get("/healthz").status_code == 200
+    shutdown.assert_called_once()
+
+
 def test_real_request_spans_exclude_text_contacts_cookies_and_token_urls(application):
     exporter = InMemorySpanExporter()
     tp, mp = configure_telemetry(application, application.state.settings)

@@ -18,7 +18,7 @@ from app.resume_parser import extract_text, heuristic_parse
 from app.people import people_search
 from app.schemas import AskRequest, ConnectionRequestCreate, PeopleSearchRequest, ProfileCreate, SearchRequest
 from app.store import NetworkStore
-from app.telemetry import accepted_counter, configure_telemetry, connection_counter, shutdown_telemetry, tracer
+from app.telemetry import accepted_counter, configure_telemetry, connection_counter, instrument_app, shutdown_telemetry, tracer
 
 COOKIE = "network_session"
 
@@ -29,8 +29,10 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
 
     @asynccontextmanager
     async def lifespan(_: FastAPI):
-        await store.start()
+        if telemetry:
+            configure_telemetry(None, settings)
         try:
+            await store.start()
             yield
         finally:
             await store.close()
@@ -45,7 +47,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     app.add_middleware(CORSMiddleware, allow_origins=origins, allow_credentials=True,
                        allow_methods=["GET", "POST", "DELETE"], allow_headers=["Content-Type", "X-NETwork-Request", "X-NETwork-Ops-Token"])
     if telemetry:
-        configure_telemetry(app, settings)
+        instrument_app(app)
 
     @app.middleware("http")
     async def protect_browser_requests(request: Request, call_next):

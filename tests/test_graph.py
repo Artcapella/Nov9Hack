@@ -75,6 +75,18 @@ def test_attendees_cannot_set_the_dataset_tag(application):
     assert card.get("dataset") is None
 
 
+def test_api_rejects_introductions_to_synthetic_cards(application):
+    viewer, _ = participant(application, "Real Person")
+    seed_synthetic(application, 1)
+    store = application.state.store
+    synthetic = next(doc for doc in store.memory_profiles.values() if doc.get("dataset") == SYNTHETIC)
+    response = viewer.post("/api/connection-requests", json={
+        "requester_name": "Real Person", "recipient_profile_id": synthetic["id"], "message": "Hello there",
+    })
+    assert response.status_code == 400
+    assert not store.memory["connections"]
+
+
 def test_generated_cohort_is_deterministic_and_valid():
     cards = generate(40)
     assert cards == generate(40) and len({card["display_name"] for card in cards}) > 30

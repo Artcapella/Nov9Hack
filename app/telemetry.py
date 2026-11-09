@@ -59,9 +59,14 @@ def configure_telemetry(app, settings: Settings):
         metrics.set_meter_provider(mp)
         _providers = tp, mp
     if app is not None:
-        # Do not attach token-bearing URLs to automatic spans. No HTTP client auto instrumentation.
-        FastAPIInstrumentor.instrument_app(app, excluded_urls=r".*/connect/.*,.*/api/connection-requests/.*")
+        instrument_app(app)
     return _providers
+
+
+def instrument_app(app):
+    # Install middleware before startup; exporters are initialized in the lifespan.
+    # Do not attach token-bearing URLs to automatic spans. No HTTP client auto instrumentation.
+    FastAPIInstrumentor.instrument_app(app, excluded_urls=r".*/connect/.*,.*/api/connection-requests/.*")
 
 
 def shutdown_telemetry():

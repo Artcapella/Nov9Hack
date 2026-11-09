@@ -144,6 +144,18 @@ def test_score_and_projection_helpers():
     assert even["discipline"] is None and math.hypot(even["position"]["x"], even["position"]["y"]) < RING * 0.25
 
 
+def test_affinity_cache_eviction_preserves_current_request(application, monkeypatch):
+    space = application.state.store.space
+    space.anchors = [[1.0, 0.0]] * len(DISCIPLINES)
+    space.cache = {"cached": ([1.0] * len(DISCIPLINES), 0.5)}
+    monkeypatch.setattr("app.people.CACHE_LIMIT", 1)
+    space._embed = AsyncMock(return_value=[[1.0, 0.0], [0.0, 1.0]])
+    result = run(space._embedded({"cached", "new", "another"}))
+    assert set(result) == {"cached", "new", "another"}
+    assert result["cached"][1] == 0.5
+    assert len(space.cache) <= 1
+
+
 def test_ensure_indices_adds_missing_fields_and_rejects_changed_ones(application):
     store = application.state.store
     expected = {store.settings.index(name): mapping["properties"] for name, mapping in mappings(store.settings).items()}

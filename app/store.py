@@ -346,8 +346,11 @@ class NetworkStore:
         await self.finish_job(f"profile-{profile_id}-{approval['approval_version']}", "revoked")
 
     async def create_connection(self, request: ConnectionRequestCreate, requester: dict) -> dict:
-        if not await self.public_document(request.recipient_profile_id):
+        recipient = await self.public_document(request.recipient_profile_id)
+        if not recipient:
             raise HTTPException(404, "Recipient is unavailable")
+        if recipient.get("dataset") == SYNTHETIC or requester.get("dataset") == SYNTHETIC:
+            raise HTTPException(400, "Introductions to synthetic demo cards are disabled")
         if request.recipient_profile_id == requester["id"]:
             raise HTTPException(400, "Choose another attendee")
         token = secrets.token_urlsafe(32)

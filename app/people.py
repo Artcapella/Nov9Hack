@@ -129,13 +129,16 @@ class VectorSpace:
     async def _embedded(self, texts: set[str]) -> dict[str, tuple[list[float], float]]:
         if self.anchors is None:
             self.anchors = await self._embed([d["anchor"] for d in DISCIPLINES])
-        missing = [text for text in texts if text not in self.cache]
+        # Keep this request's values independent of eviction by concurrent requests.
+        result = {text: self.cache[text] for text in texts if text in self.cache}
+        missing = [text for text in texts if text not in result]
         if missing:
+            for text, vector in zip(missing, await self._embed(missing)):
+                result[text] = embedding_affinity(vector, self.anchors)
             if len(self.cache) + len(missing) > CACHE_LIMIT:
                 self.cache.clear()
-            for text, vector in zip(missing, await self._embed(missing)):
-                self.cache[text] = embedding_affinity(vector, self.anchors)
-        return {text: self.cache[text] for text in texts}
+            self.cache.update(list(result.items())[:CACHE_LIMIT])
+        return result
 
     async def _embed(self, texts: list[str]) -> list[list[float]]:
         vectors = []
