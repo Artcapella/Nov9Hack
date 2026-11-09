@@ -2,10 +2,10 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0a0a0a" />
     <title>NETwork Concierge</title>
-    <link rel="stylesheet" href="/styles.css?v=0.7.0" />
+    <link rel="stylesheet" href="/styles.css?v=0.8.0" />
   </head>
   <body>
     <canvas id="field" class="field" aria-hidden="true"></canvas>
@@ -48,11 +48,12 @@
         <nav class="tabs" aria-label="Application sections" role="tablist">
           <button class="tab active" data-panel="join" role="tab"><span>01</span>Join</button>
           <button class="tab" data-panel="people" role="tab"><span>02</span>People</button>
-          <button class="tab" data-panel="ask" role="tab"><span>03</span>Ask</button>
-          <button class="tab" data-panel="constellation" role="tab"><span>04</span>Field</button>
-          <button class="tab" data-panel="network3d" role="tab"><span>05</span>3D</button>
-          <button class="tab" data-panel="elastic" role="tab"><span>06</span>Stack</button>
-          <button class="tab" data-panel="ops" role="tab"><span>07</span>Ops</button>
+          <button class="tab" data-panel="mynet" role="tab"><span>03</span>My network</button>
+          <button class="tab" data-panel="ask" role="tab"><span>04</span>Ask</button>
+          <button class="tab" data-panel="constellation" role="tab"><span>05</span>2D</button>
+          <button class="tab" data-panel="network3d" role="tab"><span>06</span>3D</button>
+          <button class="tab" data-panel="elastic" role="tab"><span>07</span>Stack</button>
+          <button class="tab" data-panel="ops" role="tab"><span>08</span>Ops</button>
         </nav>
 
         <section id="join" class="panel active">
@@ -169,6 +170,22 @@
           </div>
         </section>
 
+        <section id="mynet" class="panel">
+          <article class="constellation-card">
+            <header class="constellation-heading">
+              <div>
+                <h2>My network</h2>
+                <p class="subtle small">Only people you have interacted with. Rings show how strong each link is: met in person (innermost), messaged, same session, viewed profile (outermost). Open anyone's card to log an interaction. Lines flash when either of you adds one.</p>
+              </div>
+            </header>
+            <div class="constellation-stage ego-stage" id="ego-stage">
+              <canvas id="ego-canvas" aria-label="Your interaction network. Tap a person to open their card."></canvas>
+              <div class="hud hud-tl mono g3-stats" id="ego-stats">connecting…</div>
+            </div>
+            <div id="ego-list" class="ego-list" aria-live="polite"></div>
+          </article>
+        </section>
+
         <section id="ask" class="panel">
           <article class="card">
             <header class="card-head">
@@ -201,8 +218,8 @@
           <article class="constellation-card">
             <header class="constellation-heading">
               <div>
-                <h2>Expertise field</h2>
-                <p class="subtle small">Every discoverable card, placed by how close its public text is to six discipline anchors (Jina embeddings in Elastic mode). People near each other work on similar things, and the colour shows the area. Click anyone to open their card. Private profile data is never shown here.</p>
+                <h2>Live network · 2D</h2>
+                <p class="subtle small">Every discoverable card in Elasticsearch, placed by the first two PCA components of its stored Jina vector (the 3D view seen from the front). Lines appear only where people interacted, thicker for stronger interactions. Shaded regions are clusters found by k-means and named after their members' most distinctive skills. Packets are live activity: interactions, joins and API requests.</p>
               </div>
               <div class="field-tools">
                 <label class="node-search"><span class="visually-hidden">Go to node</span>
@@ -215,11 +232,11 @@
             <div class="constellation-stage" id="constellation-stage">
               <canvas id="constellation-canvas" tabindex="0" aria-label="Interactive map of opted-in attendee expertise. Drag to pan, scroll to zoom, click a node to focus."></canvas>
               <div class="hud hud-tl" id="cluster-legend"></div>
-              <div class="hud hud-tr mono" id="telemetry-readout">0 pkt/s</div>
-              <div class="constellation-caption" id="constellation-caption"><span class="mono">—</span><p>Click a node to zoom in and see its connections.</p></div>
+              <div class="hud hud-tr mono" id="telemetry-readout">server telemetry…</div>
+              <div class="constellation-caption" id="constellation-caption"><span class="mono">—</span><p>Tap a person to see their links. Tap a cluster name to zoom to it.</p></div>
               <div class="hud hud-br mono" id="zoom-readout">1.00×</div>
             </div>
-            <p class="constellation-note mono">drag to pan · scroll to zoom · click to focus · esc to reset · search results appear here as live nodes</p>
+            <p class="constellation-note mono">drag to pan · pinch or scroll to zoom · tap to focus · esc to reset · live from Elastic every 3 s</p>
           </article>
         </section>
 
@@ -228,7 +245,7 @@
             <header class="constellation-heading">
               <div>
                 <h2>Live network · 3D</h2>
-                <p class="subtle small">Every discoverable card in Elasticsearch, placed by the Jina embedding stored with it and projected to 3D with PCA. Lines join each person to their nearest neighbours in the full embedding space. When someone joins or withdraws, the view updates.</p>
+                <p class="subtle small">Every discoverable card in Elasticsearch, placed by the Jina embedding stored with it and projected to 3D with PCA. Lines are interactions only, weighted by strength (SynthDemo links are simulated and faint). Cluster names float at each cluster's centre. Joins, withdrawals and new interactions flash live.</p>
               </div>
               <div class="field-tools">
                 <label class="check small-check"><input type="checkbox" id="g3-sponsors" /> Sponsors</label>
@@ -242,19 +259,55 @@
               <div class="hud hud-br mono" id="g3-axes"></div>
               <div class="g3-empty hidden" id="g3-empty"></div>
             </div>
-            <p class="constellation-note mono">drag to orbit · scroll to zoom · click a person for their card · live from Elastic every 4 s</p>
+            <p class="constellation-note mono">drag to orbit · pinch or scroll to zoom · tap a person for their card · live from Elastic every 3 s</p>
           </article>
         </section>
 
         <section id="elastic" class="panel">
           <article class="card">
-            <header class="card-head"><h2>What runs NETwork</h2><p class="meta">elastic</p></header>
+            <header class="card-head"><h2>What runs NETwork</h2><p class="meta">live</p></header>
+            <p class="subtle small">Each dot is a real request to this deployment, travelling the path it actually takes. Numbers update every 2 s from the API's own telemetry. Routes appear as templates only, with no IDs or tokens.</p>
+            <div class="diagram-wrap">
+              <svg id="stack-diagram" class="diagram" viewBox="0 0 820 330" role="img" aria-label="Architecture: browser to FastAPI on Kubernetes, to Elastic Cloud Serverless with Jina inference and Agent Builder; a worker queue writes to Elastic; telemetry exports to Dash0.">
+                <g class="paths">
+                  <path data-hop="browser_api" d="M110 70 L300 70"/>
+                  <path data-hop="api_es" d="M440 70 L600 70"/>
+                  <path data-hop="api_worker" d="M370 100 L370 210"/>
+                  <path data-hop="worker_es" d="M440 240 L600 110"/>
+                  <path data-hop="api_dash0" d="M370 100 C 370 300, 220 300, 180 300"/>
+                  <path data-hop="es_jina" d="M670 100 L670 180"/>
+                  <path data-hop="es_agent" d="M740 70 C 800 70, 800 250, 740 250"/>
+                </g>
+                <g class="boxes">
+                  <g><rect x="10" y="40" width="100" height="60" rx="8"/><text x="60" y="66">Browser</text><text x="60" y="84" class="sub">phone · QR</text></g>
+                  <g class="k8s"><rect x="300" y="40" width="140" height="60" rx="8"/><text x="370" y="66">FastAPI</text><text x="370" y="84" class="sub">Helm · K8s · Radar</text></g>
+                  <g class="es"><rect x="600" y="40" width="140" height="60" rx="8"/><text x="670" y="62">Elastic Serverless</text><text x="670" y="80" class="sub">RRF hybrid · ES|QL</text><text x="670" y="94" class="sub">network_*_v3</text></g>
+                  <g class="k8s"><rect x="300" y="210" width="140" height="60" rx="8"/><text x="370" y="236">Worker</text><text x="370" y="254" class="sub">leased queue · retries</text></g>
+                  <g class="es"><rect x="600" y="180" width="140" height="44" rx="8"/><text x="670" y="200">Jina v5 inference</text><text x="670" y="215" class="sub">semantic_text</text></g>
+                  <g class="es"><rect x="600" y="234" width="140" height="44" rx="8"/><text x="670" y="254">Agent Builder</text><text x="670" y="269" class="sub">concierge · MCP</text></g>
+                  <g class="dash0"><rect x="40" y="280" width="140" height="44" rx="8"/><text x="110" y="300">Dash0</text><text x="110" y="315" class="sub">OTLP traces · metrics</text></g>
+                  <g class="gitar"><rect x="10" y="150" width="140" height="44" rx="8"/><text x="80" y="170">Gitar / Sonar</text><text x="80" y="185" class="sub">privacy PR review</text></g>
+                </g>
+              </svg>
+            </div>
+            <p id="stack-note" class="mono small-note">connecting…</p>
+            <div id="stack-tiles" class="tiles"></div>
+            <div class="grid-2 stack-grid">
+              <section><h3 class="eyebrow">Throughput</h3><div id="stack-spark" class="spark"></div></section>
+              <section><h3 class="eyebrow">How much the maps keep (PCA)</h3><div id="stack-pca"></div></section>
+            </div>
+            <section><h3 class="eyebrow">Latency by route · p50 (solid) and p95 (light) · last 5 min</h3><div id="stack-routes"></div></section>
+            <h3 class="eyebrow">How it fits together</h3>
             <dl class="spec">
-              <dt>Elastic Cloud Serverless</dt><dd>Stores profile records, public profile search, the boundary that keeps contacts private, and connection events.</dd>
-              <dt>Hybrid retrieval</dt><dd>Combines BM25 keyword matching with <code>semantic_text</code> meaning search using RRF.</dd>
-              <dt>AI / RAG</dt><dd>Concierge answers are based on the attendee and sponsor records that search returns.</dd>
-              <dt>MCP</dt><dd>Connects an Elastic Agent Builder agent to a coding-agent host so it can call live tools.</dd>
-              <dt>ES|QL</dt><dd>Aggregates opt-in activity into conference statistics.</dd>
+              <dt>Elastic Cloud Serverless</dt><dd>One strict, versioned index per concern: public cards, restricted resume data, encrypted contacts, ingestion queue, introductions and interactions. Contacts never sit in a searchable index.</dd>
+              <dt>Jina embeddings</dt><dd><code>semantic_text</code> fields call the pinned Jina v5 endpoint at index time. The 2D and 3D maps read those stored vectors back (<code>_inference_fields</code>) and never re-embed them.</dd>
+              <dt>Hybrid retrieval</dt><dd>BM25 keyword matching and semantic search fused with RRF. The Ask tab shows all three side by side. Every branch applies the same consent, event and expiry filters.</dd>
+              <dt>Clustering</dt><dd>k-means (cosine, deterministic k-means++) on the full 1024-d vectors. Each cluster is named after the tags most over-represented among its members compared with the whole room (share × idf).</dd>
+              <dt>Interaction graph</dt><dd>Links exist only after an interaction: viewed profile (1) &lt; same session (2) &lt; messaged (3) &lt; met in person (5), with a little extra for repeats. Profile views are visible only to the two people involved.</dd>
+              <dt>Agent Builder + MCP</dt><dd>The concierge answers from approved evidence with three event-scoped ES|QL tools. The same agent is reachable from coding hosts over MCP.</dd>
+              <dt>Dash0</dt><dd>API and worker export OTLP traces and metrics with no profile content. Queue jobs carry trace context, so a publish spans both processes.</dd>
+              <dt>Radar</dt><dd>The Helm release runs non-root and read-only on Kubernetes, watched by the Radar agent.</dd>
+              <dt>Gitar / Sonar</dt><dd>Every PR gets a privacy-focused review against the repository's own instructions.</dd>
             </dl>
           </article>
         </section>
@@ -305,6 +358,6 @@
         </div>
       </article>
     </template>
-    <script src="/app.js?v=0.7.0"></script>
+    <script src="/app.js?v=0.8.0"></script>
   </body>
 </html>

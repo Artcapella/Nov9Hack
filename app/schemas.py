@@ -55,6 +55,11 @@ class PublicProfile(BaseModel):
     dataset: str | None = None
 
 
+class InteractionCreate(BaseModel):
+    target_id: str = Field(min_length=1, max_length=128)
+    kind: Literal["view", "event", "message", "meet"]
+
+
 class SearchRequest(BaseModel):
     question: str = Field(min_length=3, max_length=700)
     formats: list[ConnectionFormat] = Field(default_factory=list)

@@ -1,6 +1,7 @@
 import io
 import json
 import secrets
+import time
 from contextlib import asynccontextmanager
 from typing import Literal
 
@@ -11,12 +12,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
+from app import interactions, live
 from app.config import Settings, get_settings
 from app.ingestion import source_record
 from app.rag import answer_with_evidence
 from app.resume_parser import extract_text, heuristic_parse
 from app.people import people_search
-from app.schemas import AskRequest, ConnectionRequestCreate, PeopleSearchRequest, ProfileCreate, SearchRequest
+from app.schemas import AskRequest, ConnectionRequestCreate, InteractionCreate, PeopleSearchRequest, ProfileCreate, SearchRequest
 from app.store import NetworkStore
 from app.telemetry import accepted_counter, configure_telemetry, connection_counter, instrument_app, shutdown_telemetry, tracer
 
@@ -54,7 +56,11 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         if request.url.path.startswith("/api/") and request.method in {"POST", "PUT", "PATCH", "DELETE"}:
             if request.headers.get("X-NETwork-Request") != "1" or (request.headers.get("origin") and request.headers["origin"] not in origins):
                 return JSONResponse({"detail": "Same-origin application request required"}, status_code=403)
+        started = time.perf_counter()
         response = await call_next(request)
+        if request.url.path.startswith("/api/") and request.url.path != "/api/telemetry/live":
+            route = getattr(request.scope.get("route"), "path", None) or "unmatched"
+            live.record(request.method, route, response.status_code, (time.perf_counter() - started) * 1000)
         if request.url.path.startswith(("/api/", "/connect/")):
             response.headers["Cache-Control"] = "no-store"
             response.headers["Referrer-Policy"] = "no-referrer"
@@ -178,6 +184,32 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
             except Exception:
                 raise HTTPException(503, "The network graph is temporarily unavailable") from None
 
+    @app.post("/api/interactions", status_code=201)
+    async def create_interaction(request: InteractionCreate, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.interaction", record_exception=False, set_status_on_exception=False):
+            return await interactions.record(store, attendee, request.target_id, request.kind)
+
+    elastic_probe: dict = {"at": 0.0, "ms": None, "docs": None}
+
+    @app.get("/api/telemetry/live")
+    async def telemetry_live(since: int = 0, session: dict = Depends(require_session)):
+        """Aggregate request telemetry (route templates only) plus Elastic round-trip timing."""
+        if store.client and time.time() - elastic_probe["at"] > 5:
+            started = time.perf_counter()
+            try:
+                docs = (await store.client.count(index=settings.index("user_vectors")))["count"]
+                elastic_probe.update(at=time.time(), ms=round((time.perf_counter() - started) * 1000, 1), docs=docs)
+            except Exception:
+                elastic_probe.update(at=time.time(), ms=None)
+        cached = next(iter(store.graph.cache.values()), None)
+        stats = cached["stats"] if cached else {}
+        return {**live.snapshot(since), "engine": "elasticsearch" if store.client else "memory_demo",
+                "elastic": {"index": settings.index("user_vectors"), "model_id": stats.get("model_id") or store._model_label(),
+                            "dimensions": stats.get("dimensions"), "cards": stats.get("count"), "clusters": len(cached["clusters"]) if cached else None,
+                            "explained_variance": stats.get("explained_variance"), "count_ms": elastic_probe["ms"], "index_docs": elastic_probe["docs"],
+                            "links_ms": store.graph.last_took_ms},
+                "dash0": bool(settings.dash0_otlp_http_base or settings.otel_exporter_otlp_endpoint)}
+
     @app.get("/api/ops/summary")
     async def ops_summary(request: Request):
         supplied = request.headers.get("X-NETwork-Ops-Token", "")
@@ -202,6 +234,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def create_connection(request: ConnectionRequestCreate, attendee: dict = Depends(require_attendee)):
         item = await store.create_connection(request, attendee)
         connection_counter.add(1, {"channel": item["preferred_channel"]})
+        await interactions.record(store, attendee, request.recipient_profile_id, "message")
         item["qr_url"] = f"{settings.public_base_url.rstrip('/')}/connect/{item['token']}"
         return item
 
@@ -216,10 +249,12 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
 
     @app.post("/api/connection-requests/{token}/accept")
     async def accept_connection(token: str, attendee: dict = Depends(require_attendee)):
+        connection = await store.get_connection_by_token(token)
         item = await store.accept_connection(token, attendee["id"])
         if not item:
             raise HTTPException(410, "Connection request is unavailable or expired")
         accepted_counter.add(1)
+        await interactions.record(store, attendee, connection["requester_profile_id"], "message")
         return item
 
     @app.get("/api/connection-requests/{token}/contacts")

@@ -48,6 +48,7 @@ class NetworkStore:
         self.memory_profiles = self.memory["user_vectors"]
         self.memory_knowledge = self.memory["knowledge"]
         self.space = VectorSpace(self)
+        self.recent_interactions: dict[str, dict] = {}
         from app.graph import GraphModel
         self.graph = GraphModel(self)
 

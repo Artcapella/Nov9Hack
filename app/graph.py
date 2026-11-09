@@ -13,9 +13,15 @@ Only cards that pass the visibility policy are read, and only public card fields
 """
 import hashlib
 import logging
+import math
+import re
+import time
+from collections import Counter
 from datetime import UTC, datetime
 
 import numpy as np
+
+from app import interactions
 
 from app.people import DISCIPLINES, NEUTRAL, embedding_affinity, keyword_affinity, memory_vector, position_text, project
 from app.policy import SYNTHETIC, visibility_filters, visible
@@ -28,11 +34,78 @@ LIMIT = 1000
 SPONSOR_ROLES = {"sponsor", "recruiter"}
 
 
+STOPWORDS = {"and", "the", "for", "with", "of", "to", "in", "a", "an", "on", "at", "my", "our", "new", "ai"}
+
+
+def _terms(doc: dict) -> Counter:
+    """A card's most explicit features: what it offers (full weight) and seeks (half)."""
+    terms: Counter = Counter()
+    for field, weight in (("can_help_with", 1.0), ("looking_for", 0.5)):
+        for tag in doc.get(field) or []:
+            tag = re.sub(r"\s+", " ", tag.strip().lower())
+            if tag and tag not in STOPWORDS and len(tag) > 1:
+                terms[tag] += weight
+    return terms
+
+
+def cluster(unit: np.ndarray, docs: list[dict], coords: np.ndarray) -> tuple[list[int], list[dict]]:
+    """Unlabelled k-means (cosine, k-means++ seeded deterministically) on the stored vectors,
+    then each cluster is named after the features most over-represented among its members."""
+    n = len(docs)
+    if n < 4:
+        return [0] * n, ([{"id": 0, "label": "everyone", "size": n, "features": [], "centroid2": {"x": 0.0, "y": 0.0}}] if n else [])
+    k = int(np.clip(round(math.sqrt(n / 3)), 2, 9))
+    rng = np.random.default_rng(7)
+    centres = [unit[0]]
+    for _ in range(1, k):
+        dist = np.min([1 - unit @ c for c in centres], axis=0).clip(min=0) ** 2
+        centres.append(unit[rng.choice(n, p=dist / dist.sum())] if dist.sum() > 0 else unit[rng.integers(n)])
+    centres = np.array(centres)
+    labels = np.zeros(n, dtype=int)
+    for _ in range(30):
+        new = np.argmax(unit @ centres.T, axis=1)
+        if _ and np.array_equal(new, labels):
+            break
+        labels = new
+        for c in range(k):
+            members = unit[labels == c]
+            if len(members):
+                mean = members.mean(axis=0)
+                centres[c] = mean / (np.linalg.norm(mean) or 1)
+    doc_terms = [_terms(doc) for doc in docs]
+    df: Counter = Counter()
+    for terms in doc_terms:
+        df.update(set(terms))
+    order = sorted((c for c in range(k) if (labels == c).any()), key=lambda c: -(labels == c).sum())
+    remap = {c: i for i, c in enumerate(order)}
+    clusters, used = [], set()
+    for c in order:
+        idx = np.flatnonzero(labels == c)
+        tf: Counter = Counter()
+        present: Counter = Counter()
+        for i in idx:
+            tf.update(doc_terms[i])
+            present.update(set(doc_terms[i]))
+        # share within the cluster x lift over the whole room (an idf-like penalty for ubiquitous tags)
+        scored = sorted((((present[t] / len(idx)) * math.log((n + 1) / (df[t] + 0.5)) * (1 + 0.1 * tf[t]), t) for t in present
+                         if present[t] >= min(2, len(idx))), reverse=True)
+        top = [t for _, t in scored if t not in used][:2] or [t for _, t in scored][:2]
+        used.update(top)
+        roles = Counter(role for i in idx for role in docs[i].get("roles") or [])
+        label = " · ".join(top) if top else (roles.most_common(1)[0][0] + "s" if roles else f"group {len(clusters) + 1}")
+        clusters.append({"id": remap[c], "label": label, "size": int(len(idx)),
+                         "features": [{"term": t, "share": round(present[t] / len(idx), 2)} for _, t in scored[:5]],
+                         "centroid2": {"x": round(float(coords[idx, 0].mean()), 4), "y": round(float(coords[idx, 1].mean()), 4)},
+                         "centroid3": {"x": round(float(coords[idx, 0].mean()), 4), "y": round(float(coords[idx, 1].mean()), 4), "z": round(float(coords[idx, 2].mean()), 4)}})
+    return [remap[int(c)] for c in labels], clusters
+
+
 class GraphModel:
     def __init__(self, store):
         self.store = store
         self.cache: dict[tuple, dict] = {}
         self.axes: np.ndarray | None = None
+        self.last_took_ms: float | None = None
 
     def _keep(self, doc: dict, include_synthetic: bool, include_sponsors: bool) -> bool:
         return (visible(doc, self.store.settings.demo_event_id)
@@ -147,11 +220,14 @@ class GraphModel:
                         seen.add(pair)
                         edges.append({"a": docs[pair[0]]["id"], "b": docs[pair[1]]["id"], "similarity": round(float(similarity[i, j]), 4)})
             colours = await self._colours(docs, matrix, engine)
+            groups, clusters = cluster(unit, docs, coords) if len(docs) else ([], [])
+            simulated = interactions.simulated_links(docs, similarity, SYNTHETIC) if len(docs) > 1 else []
             nodes = []
-            for doc, xyz, colour in zip(docs, coords, colours):
-                nodes.append({**self.store.public_profile(doc), **colour,
+            for doc, xyz, colour, group in zip(docs, coords, colours, groups):
+                nodes.append({**self.store.public_profile(doc), **colour, "cluster": group,
+                              "position2": {"x": round(float(xyz[0]), 4), "y": round(float(xyz[1]), 4)},
                               "position3": {"x": round(float(xyz[0]), 4), "y": round(float(xyz[1]), 4), "z": round(float(xyz[2]), 4)}})
-            cached = {"nodes": nodes, "edges": edges,
+            cached = {"nodes": nodes, "similar": edges, "simulated": simulated, "clusters": clusters,
                       "stats": {"count": len(nodes), "dimensions": int(matrix.shape[1]) if len(matrix) else 0, "explained_variance": explained,
                                 "engine": engine, "index": self.store.settings.index("user_vectors"),
                                 "model_id": self.store.settings.elastic_inference_id if self.store.client else "memory demo · no inference",
@@ -160,4 +236,12 @@ class GraphModel:
             if len(self.cache) > 8:
                 self.cache.clear()
             self.cache[key] = cached
-        return {**cached, "you": viewer["id"], "generated_at": datetime.now(UTC).isoformat()}
+        started = time.perf_counter()
+        ids = {node["id"] for node in cached["nodes"]}
+        real, activity = await interactions.links(self.store, viewer["id"], ids)
+        self.last_took_ms = round((time.perf_counter() - started) * 1000, 1)
+        # Edges exist only where people interacted. Similarity neighbours are kept separately (`similar`).
+        edges = real + [link for link in cached["simulated"] if (link["a"], link["b"]) not in {(r["a"], r["b"]) for r in real}]
+        out = {key: value for key, value in cached.items() if key != "simulated"}
+        return {**out, "edges": edges, "activity": activity, "you": viewer["id"], "generated_at": datetime.now(UTC).isoformat(),
+                "interactions": {"kinds": interactions.KINDS, "labels": interactions.LABELS, "real": len(real), "simulated": len(edges) - len(real)}}

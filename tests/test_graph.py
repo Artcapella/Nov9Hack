@@ -94,3 +94,36 @@ def test_generated_cohort_is_deterministic_and_valid():
         ProfileCreate(**card, consent_to_discover=True)
     checked_in = json.loads(Path("data/synthetic_profiles.json").read_text(encoding="utf-8"))
     assert checked_in[:40] == cards
+
+
+def test_links_exist_only_after_interaction_and_strength_follows_kind(application):
+    viewer, own = participant(application, "Link Viewer", can_help_with=["Python"])
+    other, theirs = participant(application, "Link Peer", can_help_with=["Rust"])
+    third, _ = participant(application, "Link Bystander", can_help_with=["Go"])
+    assert viewer.get("/api/graph").json()["edges"] == []
+    assert viewer.post("/api/interactions", json={"target_id": theirs["id"], "kind": "view"}).status_code == 201
+    mine = viewer.get("/api/graph").json()
+    assert [(e["kind"], e["strength"]) for e in mine["edges"]] == [("view", 1.0)] and mine["activity"]
+    assert third.get("/api/graph").json()["edges"] == []  # profile views are private to the pair
+    viewer.post("/api/interactions", json={"target_id": theirs["id"], "kind": "meet"})
+    link = third.get("/api/graph").json()["edges"][0]
+    assert link["kind"] == "meet" and link["strength"] >= 5 and link["kinds"] == {}
+    assert viewer.post("/api/interactions", json={"target_id": own["id"], "kind": "meet"}).status_code == 400
+    assert viewer.post("/api/interactions", json={"target_id": theirs["id"], "kind": "hug"}).status_code == 422
+
+
+def test_clusters_are_labelled_from_member_features(application):
+    viewer, _ = participant(application, "Cluster Viewer", can_help_with=["Kubernetes"])
+    seed_synthetic(application, 24)
+    data = viewer.get("/api/graph").json()
+    assert len(data["clusters"]) >= 2 and all(c["label"] and c["size"] for c in data["clusters"])
+    assert {n["cluster"] for n in data["nodes"]} == {c["id"] for c in data["clusters"]}
+    assert all(e.get("simulated") for e in data["edges"])  # only SynthDemo pairs have (simulated) links
+
+
+def test_live_telemetry_reports_route_templates_only(application):
+    viewer, _ = participant(application, "Telemetry Viewer")
+    viewer.get("/api/graph")
+    data = viewer.get("/api/telemetry/live").json()
+    routes = {r["route"] for r in data["routes"]}
+    assert "GET /api/graph" in routes and data["total"] >= 1 and len(data["series"]) == 24

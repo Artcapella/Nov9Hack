@@ -442,3 +442,87 @@ code { font-family: var(--mono); font-size: .85em; color: var(--ink); background
 .sheet-facts { color: var(--muted); font-size: .68rem; margin: 14px 0 0; }
 .sheet-intros .card { margin-top: 14px; }
 @media (max-width: 520px) { .sheet { padding: 0; } .sheet-panel { border-radius: 14px 14px 0 0; padding: 18px 16px 22px; } .header-meta .synth-toggle { padding: 4px 6px; } }
+
+/* ---- 2D cluster legend (clickable) ---------------------------------------------------- */
+#cluster-legend { pointer-events: auto; max-height: calc(100% - 120px); overflow-y: auto; gap: 2px; scrollbar-width: none; }
+#cluster-legend .legend-title { margin: 0 0 4px; font-size: .6rem; color: var(--faint); text-transform: uppercase; letter-spacing: .06em; }
+#cluster-legend button { display: flex; align-items: center; gap: 8px; padding: 3px 6px 3px 0; border: 0; background: none; color: var(--muted);
+  font: .66rem/1.2 var(--mono); text-align: left; cursor: pointer; text-transform: lowercase; }
+#cluster-legend button:hover, #cluster-legend button.on { color: var(--ink); }
+#cluster-legend button b { flex: 0 0 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 6px currentColor; }
+#cluster-legend button em { font-style: normal; color: var(--faint); }
+#telemetry-readout { white-space: pre; line-height: 1.5; }
+
+/* ---- My network ----------------------------------------------------------------------- */
+.ego-stage canvas { cursor: default; }
+.ego-list { padding: 8px 20px 20px; display: grid; gap: 4px; }
+.ego-list .eyebrow { margin: 12px 0 4px; }
+.ego-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 1px; }
+.ego-items li { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 8px 0; border-top: 1px solid var(--line); }
+.ego-items button { display: grid; gap: 2px; border: 0; background: none; padding: 0; color: var(--ink); font: 500 .86rem/1.3 var(--sans); text-align: left; cursor: pointer; min-width: 0; }
+.ego-items button small { color: var(--muted); font-weight: 400; font-size: .74rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ego-items em { font-style: normal; color: var(--muted); font-size: .66rem; text-align: right; flex-shrink: 0; max-width: 45%; }
+
+/* ---- Interaction logging on the person card ------------------------------------------ */
+.interact { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--line); display: grid; gap: 8px; }
+.interact .hint { color: var(--faint); text-transform: none; letter-spacing: 0; }
+.interact-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ix { border: 1px solid var(--line-2); border-radius: var(--r); padding: 10px 6px; background: transparent; color: var(--ink-2); font: 500 .76rem/1.2 var(--sans); cursor: pointer; min-height: 40px; }
+.ix:nth-child(2) { border-color: #3a3a3a; } .ix:nth-child(3) { border-color: #4a4a4a; color: var(--ink); }
+.ix:hover:not(:disabled) { border-color: var(--ink-2); color: var(--ink); }
+.ix.done { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.ix:disabled { opacity: .4; cursor: not-allowed; }
+.ix-status { margin: 0; min-height: 1em; font-size: .68rem; color: var(--muted); }
+
+/* ---- Stack ---------------------------------------------------------------------------- */
+.diagram-wrap { margin: 16px 0 8px; border: 1px solid var(--line); border-radius: var(--r); background: #070707; overflow: hidden; }
+.diagram { display: block; width: 100%; height: auto; }
+.diagram .paths path { fill: none; stroke: #2a2a2a; stroke-width: 1.5; transition: stroke .3s; }
+.diagram .paths path.hot { stroke: #6a6a6a; }
+.diagram rect { fill: #111; stroke: #333; }
+.diagram .es rect { stroke: hsl(190 45% 40%); } .diagram .k8s rect { stroke: hsl(220 35% 45%); }
+.diagram .dash0 rect { stroke: hsl(280 35% 50%); } .diagram .gitar rect { stroke: hsl(40 45% 45%); }
+.diagram text { fill: var(--ink); font: 500 13px var(--sans); text-anchor: middle; }
+.diagram text.sub { fill: var(--muted); font: 400 10px var(--mono); }
+.diagram .dot { fill: #fff; filter: drop-shadow(0 0 4px #fff); }
+.diagram .dot.err { fill: hsl(0 70% 62%); filter: drop-shadow(0 0 4px hsl(0 70% 62%)); }
+.small-note { color: var(--faint); font-size: .66rem; margin: 6px 0 14px; }
+.stack-grid { margin: 22px 0; gap: 24px; }
+.spark svg { width: 100%; height: 64px; display: block; }
+.spark .line { fill: none; stroke: var(--ink); stroke-width: 1.5; vector-effect: non-scaling-stroke; }
+.spark .area { fill: #ffffff10; stroke: none; }
+.lat { list-style: none; margin: 0 0 24px; padding: 0; display: grid; gap: 8px; }
+.lat li { display: grid; grid-template-columns: minmax(120px, 230px) 1fr auto; gap: 10px; align-items: center; font-size: .74rem; }
+.lat code { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ink-2); }
+.lat-bar { position: relative; height: 8px; }
+.lat-bar b { position: absolute; left: 0; top: 0; height: 100%; width: var(--w); border-radius: 1px; transition: width .4s; }
+.lat-bar .p95 { background: #ffffff22; } .lat-bar .p50 { background: var(--ink-2); z-index: 1; }
+.lat em { font-style: normal; color: var(--muted); font-size: .66rem; }
+
+/* ---- Phones ----------------------------------------------------------------------------- */
+body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); }
+@media (max-width: 640px) {
+  .tabs { margin-left: -16px; margin-right: -16px; padding: 0 16px; -webkit-overflow-scrolling: touch; }
+  .tab { padding-right: 14px; margin-right: 12px; min-height: 44px; }
+  .constellation-heading { flex-wrap: wrap; gap: 10px; }
+  .constellation-heading .subtle { display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .constellation-stage { height: min(68vh, 520px); }
+  .lat li { grid-template-columns: 1fr; gap: 4px; }
+  .diagram text { font-size: 15px; } .diagram text.sub { font-size: 11px; }
+  input, select, textarea { font-size: 16px; } /* stops iOS zooming into focused fields */
+  .sheet-panel { max-height: 78vh; padding-bottom: calc(22px + env(safe-area-inset-bottom)); }
+  .qa { padding: 10px 12px; }
+}
+@media (max-width: 480px) {
+  .hud-tl#cluster-legend { display: grid; top: 8px; left: 10px; max-height: 38%; background: #070707cc; padding: 4px 6px; border-radius: var(--r); }
+  .hud-tr { top: 8px; right: 10px; font-size: .58rem; }
+  .constellation-caption { left: 10px; bottom: 10px; max-width: 80%; }
+  .ego-list { padding: 8px 16px 16px; }
+}
+#stack-tiles { grid-template-columns: repeat(3, 1fr); }
+@media (max-width: 640px) { #stack-tiles { grid-template-columns: repeat(2, 1fr); } }
+@media (max-width: 480px) {
+  #cluster-legend .legend-title { display: none; }
+  #constellation .hud-tr { top: auto; bottom: 34px; font-size: .56rem; opacity: .8; }
+  #constellation .constellation-caption { max-width: 58%; }
+}

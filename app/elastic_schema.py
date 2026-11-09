@@ -41,6 +41,8 @@ def mappings(settings: Settings) -> dict[str, dict]:
                            "approval_version": integer, "state": keyword, "attempts": integer,
                            "lease_until": date, "claim_id": keyword, "next_attempt_at": date,
                            "trace_context": obj, "error_code": keyword, "created_at": date},
+        "interactions": {"id": keyword, "event_id": keyword, "actor": keyword, "target": keyword, "kind": keyword,
+                         "weight": integer, "count": integer, "first_at": date, "last_at": date},
         "connections": {"id": keyword, "event_id": keyword, "recipient_profile_id": keyword,
                         "requester_profile_id": keyword, "requester_name": keyword, "message": text,
                         "preferred_channel": keyword, "status": keyword, "created_at": date, "expires_at": date},
