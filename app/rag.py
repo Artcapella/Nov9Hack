@@ -60,8 +60,9 @@ async def answer_with_evidence(question: str, store: NetworkStore, settings: Set
     evidence = [{"evidence_id": item["id"], "title": item["title"], "source_type": item["source_type"],
                  "source_id": item.get("source_id"), "profile_id": item["profile_id"], "excerpt": item["content"][:1200]} for item in sources]
     retrieval_mode = sources[0]["retrieval_mode"] if sources else ("hybrid" if store.client else "memory_demo")
+    ranked = f" → rerank {settings.elastic_rerank_inference_id}" if retrieval_mode == "hybrid_reranked" else ""
     retrieval_step = {"tool_id": "network.knowledge_retrieval", "type": "retriever",
-                      "query": f"{'RRF(BM25 content, semantic_text content_semantic)' if store.client else 'memory demo term overlap'} WHERE {' AND '.join(describe_filters(visibility_filters(settings.demo_event_id)))} · current card re-checked",
+                      "query": f"{'RRF(BM25 content, semantic_text content_semantic)' + ranked if store.client else 'memory demo term overlap'} WHERE {' AND '.join(describe_filters(visibility_filters(settings.demo_event_id)))} · current card re-checked",
                       "results": len(evidence)}
     base = {"sources": evidence, "retrieval_mode": retrieval_mode, "trace": [retrieval_step]}
     if not evidence:

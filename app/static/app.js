@@ -43,7 +43,9 @@ function switchTab(name) {
   stack.setVisible(name === 'elastic');
   ops.setVisible(name === 'ops');
   motion.onView(name);
-  if (name === 'people' && !people.loaded) runPeople();
+  if (name === 'people') { if (!people.loaded) runPeople(); loadAvailable(); }
+  if (name === 'sponsors') loadSponsors();
+  document.querySelectorAll('.tab').forEach((tab) => { tab.setAttribute('aria-selected', String(tab.dataset.panel === name)); tab.tabIndex = tab.dataset.panel === name ? 0 : -1; });
 }
 document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => switchTab(tab.dataset.panel)));
 
@@ -52,6 +54,7 @@ async function refreshMe() {
   if (data.state !== myState) people.loaded = false;  // card became searchable (or was withdrawn): re-rank on next visit
   myState = data.state;
   myProfile = data.profile;
+  renderAvailability();
   field.setYou(data.state && data.state !== 'revoked' ? myProfile : null);
   if (data.pipeline) renderPipeline(data.pipeline);
   $('#suggest-people').classList.toggle('hidden', data.state !== 'indexed');
@@ -118,6 +121,7 @@ $('#profile-form').addEventListener('submit', async (event) => {
       consent_to_resume_parsing:fd.get('consent_to_resume_parsing') === 'on', draft_id:draftId});
     result.textContent = data.state === 'indexed' ? 'Other attendees can now find your card. Keep this browser open to accept introductions.' : 'Your card is queued. Other attendees can find it once indexing finishes.';
     await refreshMe();
+    if (myState === 'indexed') switchTab('people');
   } catch (error) { result.textContent = error.message; }
 });
 
@@ -306,6 +310,9 @@ function escapeHtml(value) { const d = document.createElement('div'); d.textCont
    ====================================================================== */
 const TAU = Math.PI * 2;
 const reduceMotion = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const mobileGraphics = matchMedia('(pointer: coarse)').matches || innerWidth < 768;
+const frameInterval = reduceMotion ? 200 : 1000 / 30;
+const graphicsDpr = mobileGraphics ? 1 : 1.5;
 const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const kwRe = (k) => new RegExp(`(?:^|[^a-z0-9])${escRe(k)}(?:$|[^a-z0-9])`, 'i');
 const hashStr = (s) => { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; };
@@ -338,7 +345,7 @@ function createField() {
   let flight = null, nodes = [], edges = [], edgeMap = new Map(), adj = new Map();
   const links = new Map(), byId = new Map();
   let sel = null, hov = null, packets = [], flashes = [], spawnLog = [], lastReq = '', liveStats = null, lastSeq = null;
-  let visible = false, raf = null, last = performance.now(), selAcc = 0, pending = null, firstShow = true, hudTimer = 0;
+  let visible = false, raf = null, last = performance.now(), pending = null, firstShow = true, hudTimer = 0;
   let groups = [], serverEdges = [], youId = null, legendSig = '', fingerprint = null;
 
   function makeNode({id, name, kind, tags = [], pos = null, hue = null, cluster = -1}) {
@@ -466,7 +473,7 @@ function createField() {
   // Rendering
   function resize() {
     const b = stage.getBoundingClientRect(); if (!b.width) return;
-    dpr = Math.min(window.devicePixelRatio || 1, 2); W = b.width; H = b.height; S = Math.min(W, H) * .46;
+    dpr = Math.min(window.devicePixelRatio || 1, graphicsDpr); W = b.width; H = b.height; S = Math.min(W, H) * .46;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.width = `${W}px`; canvas.style.height = `${H}px`;
   }
   function line(p, q) { ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(q.x, q.y); ctx.stroke(); }
@@ -586,9 +593,10 @@ function createField() {
     teleOut.textContent = `${server}${es}\n${String(spawnLog.length).padStart(2, '0')} packets/s${lastReq ? `\n${lastReq}` : ''}`;
   }
   function frame(now) {
+    if (!visible || document.hidden) { raf = null; return; }
+    if (now - last < frameInterval) { raf = requestAnimationFrame(frame); return; }
     const dt = Math.min(64, now - last); last = now;
     stepCamera(now);
-    if (sel && !reduceMotion && (selAcc += dt) > 360) { selAcc = 0; const nb = [...adj.get(sel)]; if (nb.length) { const m = nb[Math.random() * nb.length | 0]; Math.random() < .6 ? spawn(sel, m, {strong:true}) : spawn(m, sel, {strong:true}); } }
     draw(now, dt); updateHud(now);
     raf = visible ? requestAnimationFrame(frame) : null;
   }
@@ -617,24 +625,6 @@ function createField() {
   new ResizeObserver(() => { if (visible) resize(); }).observe(stage);
 
   // Ambient page field: a tiny canvas stretched behind the UI, coloured by the live clusters
-  const fc = $('#field'), fx = fc.getContext('2d'); fc.width = 64; fc.height = 40; let lastAmb = 0;
-  function ambient(now) {
-    requestAnimationFrame(ambient);
-    const dt = now - lastAmb; if (dt < 120) return; lastAmb = now;
-    fx.clearRect(0, 0, 64, 40);
-    const rot = reduceMotion ? 0 : now * .000018 + .6, focusGroup = sel ? sel.cluster : -1;
-    groups.forEach((g) => {
-      if (!visible) g.heat = (g.heat || 0) * Math.exp(-dt / 2600);
-      const x = g.cx * Math.cos(rot) - g.cy * Math.sin(rot), y = g.cx * Math.sin(rot) + g.cy * Math.cos(rot);
-      const px = 32 + x * 30, py = 20 + y * 20, r = 14 + Math.min(10, g.heat * 4) + (g.id === focusGroup ? 6 : 0);
-      const a = .06 + Math.min(.2, g.heat * .07) + (g.id === focusGroup ? .08 : 0);
-      const gr = fx.createRadialGradient(px, py, 0, px, py, r);
-      gr.addColorStop(0, tint(g.hx, g.hy, 48, a, now, 1.3)); gr.addColorStop(1, 'hsla(0,0%,0%,0)');
-      fx.fillStyle = gr; fx.fillRect(0, 0, 64, 40);
-    });
-  }
-  requestAnimationFrame(ambient);
-
   function findNode(query) {
     const q = query.trim().toLowerCase(); if (!q) return null;
     const list = nodes.filter((n) => n.kind !== 'query');
@@ -754,6 +744,7 @@ document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && field.is
 const PEOPLE_MODES = {
   query: {placeholder: 'Search people by skill, project or idea', card: 'similar to your card'},
   problem: {placeholder: 'Describe the problem you are stuck on', card: 'who offer what your card is looking for'},
+  mutual: {placeholder: 'Uses what your card offers and looks for; search text is ignored', card: 'who offer what you need and need what you offer'},
   hire: {placeholder: 'Role or skills you want to be hired for (optional)', card: 'hiring for what your card offers'},
   interests: {placeholder: 'Climbing, jazz, chess… (optional)', card: 'who share your interests outside work'},
   discover: {placeholder: 'Optional: a direction to explore', card: 'furthest from your cluster'},
@@ -830,7 +821,7 @@ function renderPerson(hit, index) {
       </header>
       ${hit.percent == null ? '' : '<div class="meter" aria-hidden="true"><i></i></div>'}
       <p class="person-headline">${escapeHtml(hit.headline || hit.availability)}${hit.discipline ? ` <span class="discipline mono">${escapeHtml(hit.discipline)}</span>` : ''}</p>
-      <div class="tags"></div>
+      ${isAvailable(hit) ? '<span class="availability-badge">Open to connect</span>' : ''}<div class="tags"></div>
       ${hit.reasons.length ? `<p class="person-reason mono">${escapeHtml(hit.reasons[0])}</p>` : ''}
       <div class="quick">
         <button type="button" class="qa intro">${demo ? 'Synthetic card' : 'Request intro'}</button>
@@ -1125,7 +1116,7 @@ function createGraphFeed() {
   let active = false, timer = null, inflight = false, last = null, known = null, seenActivity = null;
   const listeners = [];
   async function load() {
-    if (inflight) return; inflight = true;
+    if (inflight || document.hidden || !active) return; inflight = true;
     try {
       const sponsors = $('#g3-sponsors').checked;
       const data = await api(`/api/graph?include_synthetic=${showSynth}&include_sponsors=${sponsors}`);
@@ -1143,7 +1134,7 @@ function createGraphFeed() {
   }
   return {
     on(fn) { listeners.push(fn); if (last) fn(last, {joined:[], left:[]}); },
-    setActive(v) { active = v; clearInterval(timer); timer = null; if (v) { load(); timer = setInterval(load, 3000); } },
+    setActive(v) { active = v; clearInterval(timer); timer = null; if (v) { load(); timer = setInterval(load, 8000); } },
     reload() { known = null; if (active) load(); },
     poke() { if (active) setTimeout(load, 250); },
     last: () => last,
@@ -1168,7 +1159,7 @@ function createGraph3D() {
 
   function resize() {
     const b = stage.getBoundingClientRect(); if (!b.width) return;
-    dpr = Math.min(window.devicePixelRatio || 1, 2); W = b.width; H = b.height;
+    dpr = Math.min(window.devicePixelRatio || 1, graphicsDpr); W = b.width; H = b.height;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.width = `${W}px`; canvas.style.height = `${H}px`;
   }
   function project(x, y, z) {
@@ -1220,7 +1211,7 @@ function createGraph3D() {
     const k = 1 - Math.exp(-dt / 380);
     nodes.forEach((n) => { n.x += (n.tx - n.x) * k; n.y += (n.ty - n.y) * k; n.z += (n.tz - n.z) * k; });
     if (cam.tyaw != null) { cam.yaw += (cam.tyaw - cam.yaw) * k; cam.pitch += (cam.tpitch - cam.pitch) * k; cam.dist += (cam.tdist - cam.dist) * k; if (Math.abs(cam.tyaw - cam.yaw) < .002) cam.tyaw = null; }
-    else if (!reduceMotion && now - idleSince > 2500 && !sel) cam.yaw += dt * .00008;
+    else if (!reduceMotion && !mobileGraphics && now - idleSince > 2500 && !sel) cam.yaw += dt * .00004;
 
     // floor grid for depth cues
     ctx.strokeStyle = 'rgba(255,255,255,.045)'; ctx.lineWidth = 1;
@@ -1300,6 +1291,8 @@ function createGraph3D() {
     canvas._order = order;
   }
   function frame(now) {
+    if (!visible || document.hidden) { raf = null; return; }
+    if (now - lastT < frameInterval) { raf = requestAnimationFrame(frame); return; }
     const dt = Math.min(64, now - lastT); lastT = now;
     draw(now, dt);
     if (now - lastFeed > 1000) { lastFeed = now; renderFeed(); }
@@ -1373,7 +1366,7 @@ function createLiveFeed() {
   let active = false, timer = null, inflight = false, seq = 0;
   const listeners = [];
   async function load() {
-    if (inflight) return; inflight = true;
+    if (inflight || document.hidden || !active) return; inflight = true;
     try {
       const data = await api(`/api/telemetry/live?since=${seq}`);
       seq = data.seq; listeners.forEach((fn) => fn(data));
@@ -1381,7 +1374,7 @@ function createLiveFeed() {
   }
   return {
     on(fn) { listeners.push(fn); },
-    setActive(v) { if (v === active) return; active = v; clearInterval(timer); timer = null; if (v) { load(); timer = setInterval(load, 2000); } },
+    setActive(v) { if (v === active) return; active = v; clearInterval(timer); timer = null; if (v) { load(); timer = setInterval(load, 5000); } },
   };
 }
 const liveFeed = createLiveFeed();
@@ -1401,7 +1394,7 @@ function createEgo() {
   const placed = new Map();
   function resize() {
     const b = stage.getBoundingClientRect(); if (!b.width) return;
-    dpr = Math.min(window.devicePixelRatio || 1, 2); W = b.width; H = b.height; R = Math.min(W, H) * .44;
+    dpr = Math.min(window.devicePixelRatio || 1, graphicsDpr); W = b.width; H = b.height; R = Math.min(W, H) * .44;
     canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr); canvas.style.width = `${W}px`; canvas.style.height = `${H}px`;
   }
   function update(data, info = {}) {
@@ -1503,7 +1496,7 @@ function createEgo() {
     ctx.strokeStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.arc(c.x, c.y, 11 + (reduceMotion ? 0 : Math.sin(now / 420) * 1.5), 0, TAU); ctx.stroke();
     ctx.font = `600 12px ${SANS}`; ctx.fillStyle = '#fff'; ctx.fillText('you', c.x, c.y + 24);
   }
-  function frame(now) { const dt = Math.min(64, now - last); last = now; draw(now, dt); raf = visible ? requestAnimationFrame(frame) : null; }
+  function frame(now) { if (!visible || document.hidden) { raf = null; return; } if (now - last < frameInterval) { raf = requestAnimationFrame(frame); return; } const dt = Math.min(64, now - last); last = now; draw(now, dt); raf = visible ? requestAnimationFrame(frame) : null; }
   function pick(x, y, slop) {
     let best = null, bd = Infinity;
     [...people, ...ghosts].forEach((p) => { const d = Math.hypot((p.sx ?? -99) - x, (p.sy ?? -99) - y); if (d < bd) { bd = d; best = p; } });
@@ -1539,13 +1532,14 @@ function createStack() {
     return ['browser_api', 'api_dash0'];
   };
   function fly(hops, delay, error) {
+    if (reduceMotion || mobileGraphics || document.hidden) return;
     hops.forEach((hop, i) => setTimeout(() => {
       const path = svg.querySelector(`path[data-hop="${hop}"]`); if (!path || !visible) return;
       const dot = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
       dot.setAttribute('r', '4'); dot.setAttribute('class', error ? 'dot err' : 'dot');
       const len = path.getTotalLength(), t0 = performance.now(), dur = 650;
       svg.appendChild(dot); path.classList.add('hot');
-      const step = (now) => { const p = Math.min(1, (now - t0) / dur), pt = path.getPointAtLength(len * easeInOut(p)); dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); if (p < 1) requestAnimationFrame(step); else { dot.remove(); path.classList.remove('hot'); } };
+      const step = (now) => { const p = Math.min(1, (now - t0) / dur), pt = path.getPointAtLength(len * easeInOut(p)); dot.setAttribute('cx', pt.x); dot.setAttribute('cy', pt.y); if (p < 1 && visible && !document.hidden) requestAnimationFrame(step); else { dot.remove(); path.classList.remove('hot'); } };
       requestAnimationFrame(step);
     }, delay + i * 260));
   }
@@ -1577,9 +1571,10 @@ function createStack() {
 const stack = createStack();
 
 
-/* SynthDemo visibility, applied to every surface. */
+/* Synthetic profiles are optional in discovery; the sponsor catalog stays visible. */
 function renderSynthToggle() {
-  const b = $('#synth-toggle'); b.setAttribute('aria-pressed', String(showSynth)); b.textContent = `SynthDemo · ${showSynth ? 'shown' : 'hidden'}`;
+  const b = $('#synth-toggle'); b.setAttribute('aria-pressed', String(showSynth));
+  b.textContent = `Demo profiles · ${showSynth ? 'on' : 'off'}`;
   b.classList.toggle('off', !showSynth);
 }
 $('#synth-toggle').addEventListener('click', () => {
@@ -1598,85 +1593,122 @@ renderSynthToggle();
    presentational; everything degrades to static under reduced motion.
    ====================================================================== */
 function createMotion() {
-  const backdrop = $('#backdrop'), shell = $('.shell'), hero = $('.hero'), tabs = $('.tabs'), lens = $('.tab-lens'), pulse = $('#bg-pulse'), light = $('#bg-light');
-  const order = [...tabs.querySelectorAll('.tab')].map((t) => t.dataset.panel);
-  let view = Math.max(0, order.indexOf(shell.dataset.panel));
-  backdrop.style.setProperty('--view', view);
-
-  function placeLens(morph) {
-    const t = tabs.querySelector('.tab.active'); if (!t) return;
-    lens.style.width = `${t.offsetWidth}px`; lens.style.translate = `${t.offsetLeft}px 0`;
-    if (morph && !reduceMotion) lens.animate([{scale:'1 1'}, {scale:'1.16 .82', offset:.3}, {scale:'.96 1.05', offset:.65}, {scale:'1 1'}], {duration:650, easing:'ease-out'});
-    // On phones the bar scrolls sideways: keep the active tab in view.
-    const pad = 28, left = t.offsetLeft - pad, right = t.offsetLeft + t.offsetWidth + pad, behavior = reduceMotion ? 'auto' : 'smooth';
-    if (left < tabs.scrollLeft) tabs.scrollTo({left, behavior});
-    else if (right > tabs.scrollLeft + tabs.clientWidth) tabs.scrollTo({left: right - tabs.clientWidth, behavior});
+  const tabs = $('.tabs'), lens = $('.tab-lens');
+  function placeLens() {
+    const active = tabs.querySelector('.tab.active');
+    if (!active) return;
+    lens.style.width = `${active.offsetWidth}px`;
+    lens.style.transform = `translateX(${active.offsetLeft}px)`;
+    const left = active.offsetLeft, right = left + active.offsetWidth;
+    if (left < tabs.scrollLeft) tabs.scrollTo({left, behavior: reduceMotion ? 'auto' : 'smooth'});
+    else if (right > tabs.scrollLeft + tabs.clientWidth) tabs.scrollTo({left: right - tabs.clientWidth, behavior: reduceMotion ? 'auto' : 'smooth'});
   }
-  placeLens(false);
-  requestAnimationFrame(() => lens.classList.add('ready'));
-  document.fonts?.ready.then(() => placeLens(false));
-  new ResizeObserver(() => placeLens(false)).observe(tabs);
-
-  function onView(name) {
-    const next = order.indexOf(name); if (next < 0) return;
-    const moved = next !== view;
-    shell.style.setProperty('--dir', next >= view ? 1 : -1);
-    view = next; backdrop.style.setProperty('--view', next);
-    placeLens(moved);
-    if (moved && !reduceMotion) pulse.animate([{opacity:.55, transform:'scale(.25)'}, {opacity:0, transform:'scale(2.4)'}], {duration:1500, easing:'cubic-bezier(.16,1,.3,1)'});
-  }
-
-  // Scroll: one rAF-batched write per frame. The backdrop and hero read --scroll; the tab bar firms up once it sticks.
-  let scrollQueued = false;
-  const applyScroll = () => {
-    scrollQueued = false;
-    // Read layout first, then write, so a scroll frame never forces a second layout.
-    const y = Math.round(scrollY), heroTop = hero.offsetTop + shell.offsetTop;
-    const stuck = y > 0 && tabs.getBoundingClientRect().top <= parseFloat(getComputedStyle(tabs).top) + .5;
-    if (!reduceMotion) {
-      backdrop.style.setProperty('--scroll', y);
-      // The hero's parallax starts only once the hero itself nears the top (the card status can sit above it).
-      hero.style.setProperty('--scroll', Math.max(0, y - heroTop + 110));
-    }
-    tabs.classList.toggle('stuck', stuck);
-  };
-  addEventListener('scroll', () => { if (!scrollQueued) { scrollQueued = true; requestAnimationFrame(applyScroll); } }, {passive:true});
-  applyScroll();
-
-  if (reduceMotion) { backdrop.querySelectorAll('svg').forEach((s) => s.pauseAnimations?.()); return { onView }; }
-
-  // Pointer: a soft light trails the cursor across the backdrop, and glass surfaces catch a glare where it points.
-  const GLARE = '.card, .person, .tile, .primary, .secondary, .icon-button, .chip-btn';
-  let pointer = null, pointerQueued = false;
-  addEventListener('pointermove', (e) => {
-    if (e.pointerType !== 'mouse') return;
-    pointer = e; if (!pointerQueued) { pointerQueued = true; requestAnimationFrame(() => {
-      pointerQueued = false;
-      light.style.translate = `${pointer.clientX}px ${pointer.clientY}px`;
-      const el = pointer.target.closest?.(GLARE); if (!el) return;
-      const r = el.getBoundingClientRect();
-      el.style.setProperty('--mx', `${(pointer.clientX - r.left).toFixed(0)}px`); el.style.setProperty('--my', `${(pointer.clientY - r.top).toFixed(0)}px`);
-    }); }
-  }, {passive:true});
-
-  // Scroll reveal for static content; elements in hidden panels reveal the first time their panel shows.
-  if ('IntersectionObserver' in window) {
-    document.documentElement.classList.add('reveal-on');
-    const io = new IntersectionObserver((entries) => {
-      let n = 0;
-      entries.forEach((en) => { if (!en.isIntersecting) return; en.target.style.setProperty('--rd', `${n++ * 70}ms`); en.target.classList.add('in'); io.unobserve(en.target); });
-    }, {rootMargin:'0px 0px -6% 0px', threshold:.06});
-    document.querySelectorAll('.spec dt, .spec dd, .stack-grid > section, #stack-routes, .diagram-wrap, .constellation-note, #resume-step > *, #card-step > *')
-      .forEach((el) => { el.dataset.reveal = ''; io.observe(el); });
-  }
-  return { onView };
+  new ResizeObserver(placeLens).observe(tabs);
+  placeLens();
+  return {onView: placeLens};
 }
 const motion = createMotion();
+
+function isAvailable(profile) {
+  return !isSynthetic(profile) && Date.parse(profile?.available_until || '') > Date.now();
+}
+let availabilityExpiry = null, availableExpiry = null, availableLoading = false, sponsorLoaded = false;
+function renderAvailability() {
+  const ready = myState === 'indexed' && myProfile && !isSynthetic(myProfile);
+  $('#availability-control').classList.toggle('hidden', !ready);
+  clearTimeout(availabilityExpiry);
+  const active = ready && isAvailable(myProfile);
+  const button = $('#availability-toggle');
+  button.setAttribute('aria-pressed', String(active));
+  button.textContent = active ? 'Pause availability' : 'I’m available now';
+  $('#availability-label').textContent = active ? 'You’re open to connect' : 'Ready for a conversation?';
+  $('#availability-status').textContent = active
+    ? `Your card is highlighted until ${new Date(myProfile.available_until).toLocaleTimeString([], {hour:'numeric', minute:'2-digit'})}. Pause at any time.`
+    : 'Highlight your card for 15 minutes when you’re free to connect.';
+  if (active) availabilityExpiry = setTimeout(renderAvailability, Math.max(1, Date.parse(myProfile.available_until) - Date.now() + 20));
+}
+$('#availability-toggle').addEventListener('click', async () => {
+  const button = $('#availability-toggle'); button.disabled = true;
+  try {
+    const result = await post('/api/me/availability', {enabled: !isAvailable(myProfile), minutes: 15});
+    myProfile.available_until = result.available_until;
+    renderAvailability();
+    if ($('.shell').dataset.panel === 'people') loadAvailable();
+    people.loaded = false;
+  } catch (error) { $('#availability-status').textContent = error.message; }
+  finally { button.disabled = false; }
+});
+function renderAvailable(hits) {
+  clearTimeout(availableExpiry);
+  const current = hits.filter(isAvailable), target = $('#available-people');
+  target.replaceChildren();
+  $('#available-note').textContent = current.length
+    ? `${current.length} ${current.length === 1 ? 'person has' : 'people have'} chosen to be highlighted. Say hello.`
+    : isAvailable(myProfile) ? 'No other attendees are highlighted yet. Your card is visible here to others.' : 'No one is highlighted yet. Be the first to let the room know you’re free.';
+  current.forEach((profile) => {
+    const button = document.createElement('button');
+    button.type = 'button'; button.className = 'available-person';
+    button.innerHTML = `<span class="avatar">${escapeHtml(initials(profile.display_name))}</span><span><strong>${escapeHtml(profile.display_name)}</strong><small>${escapeHtml(profile.headline || 'Ready for a conversation')}</small><span class="availability-badge">Open to connect</span></span><span aria-hidden="true">↗</span>`;
+    button.addEventListener('click', () => openSheet(profile)); target.appendChild(button);
+  });
+  if (current.length) availableExpiry = setTimeout(() => renderAvailable(current), Math.max(1, Math.min(...current.map((p) => Date.parse(p.available_until))) - Date.now() + 20));
+}
+async function loadAvailable() {
+  if (availableLoading || document.hidden) return;
+  if (myState !== 'indexed') { $('#available-people').replaceChildren(); $('#available-note').textContent = 'Join the event to see who’s free right now.'; return; }
+  availableLoading = true;
+  try { renderAvailable((await api('/api/people/available')).hits); }
+  catch (error) { $('#available-note').textContent = error.message; }
+  finally { availableLoading = false; }
+}
+$('#refresh-available').addEventListener('click', loadAvailable);
+setInterval(() => { if (!document.hidden && $('.shell').dataset.panel === 'people') loadAvailable(); }, 30000);
+
+async function loadSponsors() {
+  if (sponsorLoaded) return;
+  try {
+    const {booths} = await api('/api/sponsors');
+    const grid = $('#sponsor-grid'); grid.replaceChildren();
+    booths.forEach((booth) => {
+      const card = document.createElement('article'); card.className = 'sponsor-card'; card.id = `sponsor-${booth.id}`;
+      card.innerHTML = `<header><span class="sponsor-mark" aria-hidden="true">${escapeHtml(booth.mark)}</span><span class="eyebrow">Demo booth ${escapeHtml(booth.booth)}</span></header><p class="eyebrow">${escapeHtml(booth.focus)}</p><h3>${escapeHtml(booth.name)}</h3><p class="subtle">${escapeHtml(booth.description)}</p><div class="tags">${booth.topics.map((topic) => `<span class="tag">${escapeHtml(topic)}</span>`).join('')}</div><div class="sponsor-contribution"><span class="eyebrow">In NETwork</span><p>${escapeHtml(booth.contribution)}</p></div><button class="secondary" type="button">Explore with the concierge <span aria-hidden="true">↗</span></button>`;
+      card.querySelector('button').addEventListener('click', () => {
+        showSynth = true; renderSynthToggle(); people.loaded = false;
+        $('#question').value = booth.prompt; $('#sponsor-intent').checked = true;
+        switchTab('ask'); $('#question').focus();
+      });
+      grid.appendChild(card);
+    });
+    sponsorLoaded = true;
+  } catch (error) { $('#sponsor-status').textContent = error.message; }
+}
+document.querySelectorAll('[data-sponsor]').forEach((button) => button.addEventListener('click', async () => {
+  switchTab('sponsors'); await loadSponsors();
+  $(`#sponsor-${button.dataset.sponsor}`)?.scrollIntoView({behavior: reduceMotion ? 'auto' : 'smooth', block:'center'});
+}));
+
+// Hidden tabs stop canvas work and polling. Returning resumes only the selected view.
+document.addEventListener('visibilitychange', () => {
+  if (document.hidden) {
+    field.setVisible(false); g3.setVisible(false); ego.setVisible(false);
+    graphFeed.setActive(false); liveFeed.setActive(false); stack.setVisible(false); ops.setVisible(false);
+  } else { renderAvailability(); switchTab($('.shell').dataset.panel); }
+});
+document.querySelectorAll('.tab').forEach((tab, i, tabs) => {
+  tab.setAttribute('aria-selected', String(tab.classList.contains('active')));
+  tab.tabIndex = tab.classList.contains('active') ? 0 : -1;
+  tab.addEventListener('keydown', (event) => {
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(event.key)) return;
+    event.preventDefault();
+    const index = event.key === 'Home' ? 0 : event.key === 'End' ? tabs.length - 1 : (i + (event.key === 'ArrowRight' ? 1 : -1) + tabs.length) % tabs.length;
+    switchTab(tabs[index].dataset.panel); tabs[index].focus();
+  });
+});
 
 async function boot() {
   try {
     const session = await post('/api/session', {});
-    $('#runtime-status').textContent = session.mode === 'memory_demo' ? 'demo · in-memory lexical search · data resets on restart' : `event ${session.event_id} · elastic connected`;
+    $('#runtime-status').textContent = session.mode === 'memory_demo' ? 'Memory demo' : 'Event connected';
     if (session.mode === 'memory_demo') $('#seed-demo').classList.remove('hidden');
     await refreshMe();
     if (location.pathname.startsWith('/connect/')) await loadConnection();
@@ -1684,3 +1716,22 @@ async function boot() {
   } catch (error) { showStatusError(error); }
 }
 boot();
+
+/* Talks & events: Elastic RRF (BM25 + Jina vectors) and the Jina reranker over a fictional demo schedule.
+   An empty box searches with the attendee's own card, interests first. */
+async function runTalks(event) {
+  if (event) event.preventDefault();
+  const status = $('#talks-status'), list = $('#talks-results');
+  status.textContent = 'Ranking talks in Elastic…';
+  try {
+    const data = await post('/api/talks/search', {question: $('#talks-q').value.trim(), size: 6});
+    list.innerHTML = data.hits.map((t) => `<li class="talk"><p class="eyebrow">${escapeHtml(t.time)} · ${escapeHtml(t.room)} · ${escapeHtml(t.kind)}</p>
+      <h4>${escapeHtml(t.title)}</h4><p class="small">${escapeHtml(t.abstract)}</p>
+      <p class="subtle small">${escapeHtml(t.track)}${t.matches_card.length ? ` · matches your card: ${escapeHtml(t.matches_card.join(', '))}` : ''}</p></li>`).join('');
+    status.textContent = data.note || `${data.hits.length} for ${data.basis === 'card' ? 'your card' : 'your search'} · ${data.retrieval_mode.replaceAll('_', ' ')} · ${data.dataset}`;
+  } catch (error) {
+    list.innerHTML = '';
+    status.textContent = error.status === 403 ? 'Join with a card to get suggestions.' : error.message;
+  }
+}
+$('#talks-form')?.addEventListener('submit', runTalks);

@@ -15,7 +15,7 @@ def mappings(settings: Settings) -> dict[str, dict]:
         **visibility, "id": keyword, "display_name": keyword, "headline": text,
         "public_summary": text, "approved_experience": text, "can_help_with": keyword,
         "looking_for": keyword, "interests": keyword, "roles": keyword, "formats": keyword, "availability": keyword,
-        "created_at": date, "profile_text": text, "profile_semantic": semantic,
+        "created_at": date, "available_until": date, "profile_text": text, "profile_semantic": semantic,
         "experience_semantic": semantic, "seeking_semantic": semantic, "offers_semantic": semantic,
         "interests_semantic": semantic, "model_id": keyword, "dataset": keyword,
     }
@@ -23,6 +23,9 @@ def mappings(settings: Settings) -> dict[str, dict]:
         "networking_breaks": {"profile_id": keyword, "event_id": keyword, "starts_at": date,
                               "ends_at": date, "area": keyword},
         "user_vectors": public,
+        "talks": {"id": keyword, "event_id": keyword, "title": text, "kind": keyword, "track": keyword, "time": keyword,
+                  "room": keyword, "speaker": keyword, "abstract": text, "topics": keyword, "talk_text": text,
+                  "talk_semantic": semantic, "dataset": keyword},
         "approvals": {"profile_id": keyword, "event_id": keyword, "owner_id": keyword,
                       "approval_version": integer, "state": keyword, "public": obj, "source_id": keyword},
         "sessions": {"event_id": keyword, "expires_at": date, "profile_id": keyword},

@@ -10,3 +10,5 @@ __pycache__
 *.manifest.private.json
 .env.api
 .env.worker
+backups
+.demo-qa

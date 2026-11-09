@@ -20,7 +20,7 @@ from app.config import Settings
 from app.elastic_schema import mappings
 from app.insights import explain, memory_scores, rrf, topic_summary
 from app.people import VectorSpace
-from app.policy import SYNTHETIC, branch_queries, describe_filters, eligible, hybrid_body, search_filters, visibility_filters, visible
+from app.policy import SYNTHETIC, branch_queries, describe_filters, eligible, hybrid_body, reranked_body, search_filters, visibility_filters, visible
 from app.schemas import ConnectionRequestCreate, ProfileCreate, PublicProfile, SearchRequest
 from app.telemetry import fallback_counter, search_counter, search_latency, tracer
 
@@ -234,7 +234,7 @@ class NetworkStore:
         return PublicProfile(**document).model_dump(mode="json")
 
     async def _retrieve(self, collection: str, question: str, filters: list[dict], text_field: str, semantic_field: str, size: int, source: list[str],
-                        mode: str = "hybrid") -> tuple[list[dict], str]:
+                        mode: str = "hybrid", rerank: bool = False) -> tuple[list[dict], str]:
         assert self.client
         index = self.settings.index(collection)
         if mode == "keyword":
@@ -250,6 +250,15 @@ class NetworkStore:
                 return [], "semantic_unavailable"
             return [{**hit["_source"], "score": hit.get("_score")} for hit in response["hits"]["hits"]], "semantic"
         body, lexical = hybrid_body(question, filters, text_field, semantic_field, size, source)
+        reranker = self.settings.elastic_rerank_inference_id if rerank else None
+        if reranker:
+            try:
+                response = await self.client.search(index=index, body=reranked_body(body, question, text_field, reranker))
+                return [{**hit["_source"], "score": hit.get("_score")} for hit in response["hits"]["hits"]], "hybrid_reranked"
+            except Exception:
+                # Same filters and RRF candidates, only not re-ordered.
+                logger.warning("Reranker unavailable; using RRF order")
+                fallback_counter.add(1, {"operation": f"{collection}_rerank"})
         try:
             response = await self.client.search(index=index, body=body)
             mode = "hybrid"
@@ -312,7 +321,7 @@ class NetworkStore:
         size = max(1, min(size, 10))
         if self.client:
             hits, mode = await self._retrieve("knowledge", question, visibility_filters(self.settings.demo_event_id), "content", "content_semantic", size * (1 if include_synthetic else 4),
-                         ["id", "title", "content", "source_type", "source_id", "profile_id", "event_id", "state", "consent_to_discover", "discoverable_until"])
+                         ["id", "title", "content", "source_type", "source_id", "profile_id", "event_id", "state", "consent_to_discover", "discoverable_until"], rerank=True)
         else:
             terms = set(question.casefold().split())
             hits = sorted(self.memory_knowledge.values(), key=lambda p: sum(term in p.get("content", "").casefold() for term in terms), reverse=True)

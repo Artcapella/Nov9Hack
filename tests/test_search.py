@@ -12,7 +12,8 @@ from conftest import participant, run
 
 def test_memory_search_rag_and_preferences_have_visibility_parity(application):
     client, own = participant(application, "Demo Searcher")
-    _, peer = participant(application, "Demo Peer", formats=["one_to_one"], availability="now")
+    person, peer = participant(application, "Demo Peer", formats=["one_to_one"], availability="now")
+    assert person.post('/api/me/availability', json={'enabled': True}).status_code == 200
     _, sponsor = participant(application, "Demo Sponsor", roles=["sponsor"])
     store = application.state.store
     public = store.memory["user_vectors"]
@@ -54,13 +55,35 @@ def test_each_rrf_branch_and_fallback_share_all_hard_filters(application, caplog
 def test_evidence_filters_apply_in_rrf_and_lexical_failure_does_not_use_memory(application):
     store = application.state.store
     store.memory["knowledge"]["stale"] = {"content": "Must never become a fallback"}
-    search = AsyncMock(side_effect=[RuntimeError("semantic unavailable"), RuntimeError("lexical unavailable")])
+    search = AsyncMock(side_effect=[RuntimeError("reranker unavailable"), RuntimeError("semantic unavailable"), RuntimeError("lexical unavailable")])
     store.client = SimpleNamespace(search=search)
     with pytest.raises(RuntimeError, match="lexical unavailable"):
         run(store.retrieve_knowledge("Python"))
-    for branch in search.call_args_list[0].kwargs["body"]["retriever"]["rrf"]["retrievers"]:
+    reranked, plain = (call.kwargs["body"]["retriever"] for call in search.call_args_list[:2])
+    assert reranked["text_similarity_reranker"]["retriever"] == plain
+    for branch in plain["rrf"]["retrievers"]:
         assert branch["standard"]["query"]["bool"]["filter"] == visibility_filters("cnh-2026")
-    assert search.call_args_list[1].kwargs["query"]["bool"]["filter"] == visibility_filters("cnh-2026")
+    assert search.call_args_list[2].kwargs["query"]["bool"]["filter"] == visibility_filters("cnh-2026")
+
+
+def test_concierge_evidence_is_reranked_but_people_search_stays_rrf(application):
+    store = application.state.store
+    search = AsyncMock(return_value={"hits": {"hits": [{"_source": {"id": "a"}, "_score": 1.3}]}})
+    store.client = SimpleNamespace(search=search)
+    filters = visibility_filters("cnh-2026")
+    hits, mode = run(store._retrieve("knowledge", "Python", filters, "content", "content_semantic", 5, ["id"], rerank=True))
+    assert mode == "hybrid_reranked" and hits == [{"id": "a", "score": 1.3}]
+    reranker = search.call_args.kwargs["body"]["retriever"]["text_similarity_reranker"]
+    assert (reranker["inference_id"], reranker["field"], reranker["inference_text"]) == (".jina-reranker-v3", "content", "Python")
+    assert reranker["rank_window_size"] >= search.call_args.kwargs["body"]["size"]
+    for branch in reranker["retriever"]["rrf"]["retrievers"]:
+        assert branch["standard"]["query"]["bool"]["filter"] == filters
+    # People search and the compare view's hybrid column keep plain RRF.
+    _, mode = run(store._retrieve("user_vectors", "Python", filters, "profile_text", "profile_semantic", 5, ["id"]))
+    assert mode == "hybrid" and "rrf" in search.call_args.kwargs["body"]["retriever"]
+    store.settings = store.settings.model_copy(update={"elastic_rerank_inference_id": None})
+    _, mode = run(store._retrieve("knowledge", "Python", filters, "content", "content_semantic", 5, ["id"], rerank=True))
+    assert mode == "hybrid"
 
 
 def test_stale_evidence_rechecks_current_card(application):

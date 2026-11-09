@@ -33,6 +33,7 @@ RING = 0.62  # Same radius as app.js so server positions sit on the Field map's 
 TEMPERATURE = 0.03  # Softmax sharpness over anchor cosines; Jina cosines differ by a few hundredths.
 DISCOVER_WINDOW = 100
 CACHE_LIMIT = 4096
+EMBED_BATCH = 16
 
 # Angles (degrees) must match CLUSTERS[].hue in app/static/app.js.
 DISCIPLINES = (
@@ -143,8 +144,9 @@ class VectorSpace:
 
     async def _embed(self, texts: list[str]) -> list[list[float]]:
         vectors = []
-        for start in range(0, len(texts), 32):
-            batch = texts[start:start + 32]
+        # Elastic's inference service rejects more than 16 inputs per call for the Jina v5 endpoint (HTTP 400).
+        for start in range(0, len(texts), EMBED_BATCH):
+            batch = texts[start:start + EMBED_BATCH]
             response = await self.store.client.inference.inference(inference_id=self.store.settings.elastic_inference_id, input=batch)
             body = getattr(response, "body", response)
             rows = next(value for value in body.values() if isinstance(value, list))
@@ -256,6 +258,8 @@ async def semantic_people(store, text: str, field: str, filters: list[dict], siz
 async def people_search(store, request: PeopleSearchRequest, viewer: dict) -> dict:
     if request.mode == "shuffle":
         return await shuffled_people(store, request, viewer)
+    if request.mode == "mutual":
+        return await mutual_people(store, request, viewer)
     mode, event_id = request.mode, store.settings.demo_event_id
     if mode == "hire":
         request = request.model_copy(update={"roles": ["recruiter", "sponsor"], "sponsor_intent": True})
@@ -340,3 +344,103 @@ async def shuffled_people(store, request, viewer):
             "hits": hits, "colour_source": colour_source, "you": project(affinities.get(position_text(viewer), NEUTRAL)),
             "note": f"{len(hits)} real attendees sampled at random. Your filters apply; search text is ignored. Shuffle again to explore.",
             "similarity": "Random selection; no similarity score"}
+
+
+# ---- mutual fit -----------------------------------------------------------------------------------
+
+MUTUAL_WINDOW = 40
+MUTUAL_VECTORS = ["_inference_fields.offers_semantic", "_inference_fields.seeking_semantic"]
+
+
+def stored_vector(source: dict, field: str) -> list[float] | None:
+    """The Jina vector Elastic stored for a semantic_text field (chunks averaged), or None."""
+    chunks = source.get("_inference_fields", {}).get(field, {}).get("inference", {}).get("chunks", {}).get(field, [])
+    if not chunks:
+        return None
+    return [sum(values) / len(chunks) for values in zip(*(chunk["embeddings"] for chunk in chunks))]
+
+
+async def _mutual_candidates(store, viewer: dict, filters: list[dict]) -> list[tuple[dict, float, float]] | None:
+    """Elastic retrieves with your own stored vectors as kNN queries (no text is embedded): their offers
+    against your needs, and their needs against your offers, fused by a linear retriever."""
+    index = store.settings.index("user_vectors")
+    try:
+        mine = (await store.client.search(index=index, size=1, query={"ids": {"values": [viewer["id"]]}},
+                                          source={"includes": MUTUAL_VECTORS, "exclude_vectors": False}))["hits"]["hits"]
+        need = stored_vector(mine[0]["_source"], "seeking_semantic") if mine else None
+        offer = stored_vector(mine[0]["_source"], "offers_semantic") if mine else None
+        if need is None or offer is None:
+            return None
+
+        def knn(field: str, vector: list[float]) -> dict:
+            return {"standard": {"query": {"knn": {"field": field, "query_vector": vector, "k": MUTUAL_WINDOW,
+                                                   "num_candidates": 100, "filter": filters}}}}
+        response = await store.client.search(
+            index=index, size=MUTUAL_WINDOW,
+            source={"includes": list(PublicProfile.model_fields) + ["event_id", "consent_to_discover", "state", "profile_text"] + MUTUAL_VECTORS,
+                    "exclude_vectors": False},
+            retriever={"linear": {"rank_window_size": MUTUAL_WINDOW, "retrievers": [
+                {"retriever": knn("offers_semantic", need), "weight": 1.0, "normalizer": "minmax"},
+                {"retriever": knn("seeking_semantic", offer), "weight": 1.0, "normalizer": "minmax"}]}})
+    except Exception:
+        logger.warning("Mutual-fit vector search unavailable")
+        fallback_counter.add(1, {"operation": "people_mutual"})
+        raise HTTPException(503, "Vector search is temporarily unavailable") from None
+    scored = []
+    for hit in response["hits"]["hits"]:
+        source = hit["_source"]
+        theirs_offer, theirs_need = stored_vector(source, "offers_semantic"), stored_vector(source, "seeking_semantic")
+        source.pop("_inference_fields", None)
+        if theirs_offer is not None and theirs_need is not None:
+            scored.append((source, cosine(need, theirs_offer), cosine(offer, theirs_need)))
+    return scored
+
+
+async def mutual_people(store, request, viewer):
+    """Two-way fit: sqrt(cos(your needs, their offers) * cos(your offers, their needs)).
+
+    The linear retriever adds the two normalised scores, which still rewards a one-sided match, so the
+    candidates are re-ranked exactly by the geometric mean: both directions have to be good."""
+    event_id = store.settings.demo_event_id
+    engine = "elasticsearch" if store.client else "memory_demo"
+    result = {"mode": "mutual", "engine": engine, "basis": "card", "field": "offers_semantic × seeking_semantic", "hits": [], "note": None,
+              "similarity": ("Geometric mean of two cosines: their offers vs your needs, and their needs vs your offers"
+                             + (f" ({store.settings.elastic_inference_id}, stored vectors)" if store.client else " (memory demo concept map, not Jina)"))}
+    needs, offers = viewer.get("looking_for") or [], viewer.get("can_help_with") or []
+    if not needs or not offers:
+        result["note"] = "Add both what you can help with and what you're looking for to your card."
+        return result
+    filters = search_filters(request, event_id, viewer["id"])
+    if store.client:
+        scored = await _mutual_candidates(store, viewer, filters)
+        if scored is None:
+            result["note"] = "Your card has no stored needs/offers vectors yet. Wait for indexing, or re-save an older card."
+            return result
+    else:
+        scored = [(profile, memory_similarity(", ".join(needs), ", ".join(profile.get("can_help_with", []))),
+                   memory_similarity(", ".join(offers), ", ".join(profile.get("looking_for", []))))
+                  for profile in store.memory_profiles.values() if eligible(profile, request, event_id, viewer["id"])]
+    ranked = sorted(((profile, math.sqrt(max(theirs, 0.0) * max(yours, 0.0)), theirs, yours) for profile, theirs, yours in scored
+                     if eligible(profile, request, event_id, viewer["id"])), key=lambda item: -item[1])
+    ranked = [item for item in ranked if item[1] > 0][:request.size]
+
+    tags = {profile["id"]: card_tags("mutual", profile) for profile, *_ in ranked}
+    texts = {position_text(viewer)} | {position_text(profile) for profile, *_ in ranked} | {tag for items in tags.values() for tag in items}
+    affinities, colour_source = await store.space.affinities(texts)
+    gates = describe_filters(search_filters(request, event_id, "<your card>"))
+    for profile, fit, theirs, yours in ranked:
+        why = explain(profile, "", viewer, gates, ["semantic"])
+        why["fields_searched"] = ["can_help_with", "looking_for"]
+        give, get = why["you_offer_they_need"], why["they_offer_you_need"]
+        reasons = [f"They can help you ({round(theirs * 100)}%)" + (": " + ", ".join(get[:2]) if get else ""),
+                   f"You can help them ({round(yours * 100)}%)" + (": " + ", ".join(give[:2]) if give else "")]
+        result["hits"].append({
+            **store.public_profile(profile), "similarity": round(fit, 4), "percent": round(fit * 100),
+            **project(affinities.get(position_text(profile), NEUTRAL)),
+            "tags": [{"label": tag, **project(affinities.get(tag, NEUTRAL))} for tag in tags[profile["id"]]],
+            "novelty": None, "reasons": reasons, "explanation": why,
+        })
+    result["you"] = project(affinities.get(position_text(viewer), NEUTRAL))
+    result["colour_source"] = colour_source
+    search_counter.add(1, {"engine": engine, "mode": "people_mutual"})
+    return result

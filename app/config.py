@@ -24,6 +24,8 @@ class Settings(BaseSettings):
     elasticsearch_api_key: str | None = None
     elasticsearch_index_prefix: str = "network"
     elastic_inference_id: str = ".jina-embeddings-v5-text-small"
+    # Cross-encoder that re-orders the concierge's RRF evidence. Empty disables it (plain RRF order).
+    elastic_rerank_inference_id: str | None = ".jina-reranker-v3"
     elastic_schema_version: str = "v3"
     elastic_bootstrap_on_start: bool = False
     elasticsearch_verify_certs: bool = True

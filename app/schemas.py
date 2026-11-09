@@ -53,6 +53,12 @@ class PublicProfile(BaseModel):
     discoverable_until: datetime
     # Set only by administrative seeding ("SynthDemo"); attendees cannot set it.
     dataset: str | None = None
+    available_until: datetime | None = None
+
+
+class AvailabilityUpdate(BaseModel):
+    enabled: bool
+    minutes: int = Field(default=15, ge=5, le=60)
 
 
 class InteractionCreate(BaseModel):
@@ -73,7 +79,7 @@ class SearchRequest(BaseModel):
 
 class PeopleSearchRequest(BaseModel):
     """General similarity view. Attribute names match SearchRequest so the shared policy filters apply."""
-    mode: Literal["query", "problem", "hire", "interests", "discover", "shuffle"] = "query"
+    mode: Literal["query", "problem", "hire", "interests", "discover", "shuffle", "mutual"] = "query"
     question: str = Field(default="", max_length=700)
     formats: list[ConnectionFormat] = Field(default_factory=list)
     roles: list[Role] = Field(default_factory=list)
@@ -81,6 +87,11 @@ class PeopleSearchRequest(BaseModel):
     sponsor_intent: bool = False
     size: int = Field(default=12, ge=1, le=20)
     include_synthetic: bool = True
+
+
+class TalkSearchRequest(BaseModel):
+    question: str = Field(default="", max_length=300)
+    size: int = Field(default=6, ge=1, le=12)
 
 
 class SearchHit(PublicProfile):

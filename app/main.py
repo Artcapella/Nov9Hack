@@ -16,13 +16,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, JSONResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 
-from app import interactions, live, meetings
+from app import availability, interactions, live, meetings
 from app.config import Settings, get_settings
 from app.ingestion import source_record
 from app.rag import answer_with_evidence
 from app.resume_parser import extract_text, heuristic_parse
 from app.people import people_search
-from app.schemas import AskRequest, ConnectionRequestCreate, InteractionCreate, NetworkingBreak, PeopleSearchRequest, ProfileCreate, SearchRequest
+from app.schemas import AvailabilityUpdate, AskRequest, ConnectionRequestCreate, InteractionCreate, NetworkingBreak, PeopleSearchRequest, ProfileCreate, SearchRequest, TalkSearchRequest
+from app.talks import search_talks
 from app.ratelimit import RateLimiter
 from app.store import NetworkStore
 from app.telemetry import (accepted_counter, configure_telemetry, connection_counter, instrument_app, security_rejections,
@@ -157,7 +158,8 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         if not approval:
             return {"profile": None}
         job = await store.get("ingestion_jobs", f"profile-{approval['profile_id']}-{approval['approval_version']}")
-        return {"profile": store.public_profile(approval["public"]) if approval["public"] else None,
+        current = await store.public_document(approval["profile_id"])
+        return {"profile": store.public_profile(current or approval["public"]) if approval["public"] else None,
                 "state": job["state"] if job else approval["state"], "pipeline": await store.pipeline(approval)}
 
     @app.get("/api/trust")
@@ -229,6 +231,21 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def get_break(attendee: dict = Depends(require_attendee)):
         return {"break": await meetings.current_break(store, attendee)}
 
+    @app.post("/api/me/availability")
+    async def update_availability(request: AvailabilityUpdate, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.availability.update", record_exception=False, set_status_on_exception=False):
+            return await availability.set_availability(store, attendee, request)
+
+    @app.get("/api/people/available")
+    async def people_available(attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.availability.list", record_exception=False, set_status_on_exception=False):
+            return await availability.available_people(store, attendee)
+
+    @app.get("/api/sponsors")
+    async def sponsor_booths():
+        from app.sponsors import BOOTHS
+        return {"booths": BOOTHS, "dataset": "SynthDemo"}
+
     @app.post("/api/me/break")
     async def set_break(request: NetworkingBreak, attendee: dict = Depends(require_attendee)):
         with tracer().start_as_current_span("network.break.save", record_exception=False, set_status_on_exception=False):
@@ -257,6 +274,11 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def search_people(request: PeopleSearchRequest, attendee: dict = Depends(require_attendee)):
         with tracer().start_as_current_span("network.people_search", record_exception=False, set_status_on_exception=False):
             return await people_search(store, request, attendee)
+
+    @app.post("/api/talks/search")
+    async def search_talk_catalog(request: TalkSearchRequest, attendee: dict = Depends(require_attendee)):
+        with tracer().start_as_current_span("network.talks_search", record_exception=False, set_status_on_exception=False):
+            return await search_talks(store, attendee, request.question, request.size)
 
     @app.get("/api/graph")
     async def network_graph(include_synthetic: bool = True, include_sponsors: bool = False, attendee: dict = Depends(require_attendee)):
@@ -371,7 +393,9 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         if settings.environment == "production" or settings.elastic_enabled:
             raise HTTPException(404, "Use the administrative seed command")
         with open("data/seed_profiles.json", encoding="utf-8") as handle:
-            return {"seeded": await store.seed(json.load(handle))}
+            count = await store.seed(json.load(handle))
+        from scripts.seed_sponsors import seed_sponsors
+        return {"seeded": count + await seed_sponsors(store)}
 
     @app.get("/connect/{token}", include_in_schema=False)
     async def connection_page(token: str):

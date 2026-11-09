@@ -9,3 +9,5 @@ __pycache__/
 *.zip
 .env.api
 .env.worker
+backups/
+.demo-qa/

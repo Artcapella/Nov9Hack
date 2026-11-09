@@ -20,6 +20,8 @@ async def main() -> None:
         if synthetic.exists():
             records += json.loads(synthetic.read_text(encoding="utf-8"))
         print(f"Seeded {await store.seed(records)} SynthDemo profiles into {settings.elasticsearch_index_prefix}_* indices.")
+        from scripts.seed_sponsors import seed_sponsors
+        print(f"Verified {await seed_sponsors(store)} synthetic sponsor booths.")
         print(f"Pinned inference endpoint inspected: {settings.elastic_inference_id}")
         print("Next: start API and worker, scan the event QR, and collect explicit attendee consent.")
     finally:

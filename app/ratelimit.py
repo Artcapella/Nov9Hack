@@ -33,10 +33,11 @@ RULES = (
     rule("resume", {"POST"}, r"^/api/resumes/preview$", 4, 4),
     rule("ask", {"POST"}, r"^/api/ask$", 6, 6),
     rule("compare", {"POST"}, r"^/api/search/compare$", 15, 15),
-    rule("search", {"POST"}, r"^/api/(search|people/search)$", 30, 30),
+    rule("search", {"POST"}, r"^/api/(search|people/search|talks/search)$", 30, 30),
     rule("interaction", {"POST"}, r"^/api/interactions$", 60, 30),
     rule("introduction", {"POST"}, r"^/api/connection-requests$", 10, 10),
     rule("break", {"POST", "DELETE"}, r"^/api/me/break$", 20, 20),
+    rule("availability", {"POST"}, r"^/api/me/availability$", 20, 20),
     rule("ops", {"GET"}, r"^/api/ops/", 30, 30, by_ip=True),
 )
 GENERAL = rule("general", {"GET", "POST", "PUT", "PATCH", "DELETE"}, r"^/api/", 300, 120)

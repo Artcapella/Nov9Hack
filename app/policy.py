@@ -32,7 +32,7 @@ def search_filters(request: SearchRequest, event_id: str, exclude_id: str | None
     if request.roles:
         filters.append({"terms": {"roles": request.roles}})
     if request.available_now:
-        filters.append({"term": {"availability": "now"}})
+        filters.append({"range": {"available_until": {"gt": "now"}}})
     if not request.sponsor_intent:
         filters.append({"bool": {"must_not": [{"terms": {"roles": ["sponsor", "recruiter"]}}]}})
     if not getattr(request, "include_synthetic", True):
@@ -47,9 +47,18 @@ def eligible(document: dict, request: SearchRequest, event_id: str, exclude_id: 
             and document.get("id") != exclude_id
             and (not request.formats or bool(set(request.formats) & set(document.get("formats", []))))
             and (not request.roles or bool(set(request.roles) & set(document.get("roles", []))))
-            and (not request.available_now or document.get("availability") == "now")
+            and (not request.available_now or available_now(document))
             and (request.sponsor_intent or not {"sponsor", "recruiter"}.intersection(document.get("roles", [])))
             and (getattr(request, "include_synthetic", True) or document.get("dataset") != SYNTHETIC))
+
+
+def available_now(document: dict) -> bool:
+    """Availability is explicit and short-lived; old free-text values are not presence."""
+    try:
+        until = datetime.fromisoformat(document.get("available_until") or "")
+        return until.tzinfo is not None and until > datetime.now(UTC)
+    except (ValueError, TypeError):
+        return False
 
 
 def branch_queries(question: str, filters: list[dict], text_field: str, semantic_field: str) -> tuple[dict, dict]:
@@ -85,3 +94,10 @@ def hybrid_body(question: str, filters: list[dict], text_field: str, semantic_fi
         "retriever": {"rrf": {"rank_window_size": 50, "rank_constant": 20,
                               "retrievers": [{"standard": {"query": lexical}}, {"standard": {"query": semantic}}]}},
     }, lexical
+
+
+def reranked_body(body: dict, question: str, text_field: str, inference_id: str) -> dict:
+    """The same filtered RRF retriever, re-ordered by a cross-encoder that reads question and passage together."""
+    return {**body, "retriever": {"text_similarity_reranker": {
+        "retriever": body["retriever"], "field": text_field, "inference_id": inference_id,
+        "inference_text": question, "rank_window_size": max(body["size"], 20)}}}

@@ -5,53 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0a0a0a" />
     <title>NETwork Concierge</title>
-    <link rel="stylesheet" href="/styles.css?v=0.9.0" />
+    <link rel="stylesheet" href="/styles.css?v=0.11.0" />
   </head>
   <body>
-    <!-- Greyscale backdrop: each layer has a view pose (tab switch), a scroll pose and an idle drift, nested so they compose. -->
-    <div class="backdrop" id="backdrop" aria-hidden="true">
-      <div class="bg-orb bg-orb-a"><i></i></div>
-      <div class="bg-orb bg-orb-b"><i></i></div>
-      <div class="bg-orb bg-orb-c"><i></i></div>
-      <div class="bg-rings"><div class="bg-scroll"><svg class="bg-spin" viewBox="-500 -500 1000 1000">
-        <circle r="488" class="r-faint" />
-        <circle r="470" class="r-ticks" pathLength="360" />
-        <circle r="452" class="r-fine" />
-        <g class="bg-spin-rev"><circle r="392" class="r-dash" pathLength="100" /><circle r="392" class="r-node" pathLength="100" /></g>
-        <circle r="318" class="r-faint" />
-        <circle r="300" class="r-ticks-major" pathLength="360" />
-        <ellipse rx="470" ry="120" class="r-orbit" transform="rotate(-24)" />
-        <ellipse rx="470" ry="120" class="r-orbit" transform="rotate(36)" />
-        <circle r="5" class="r-sat"><animateMotion dur="38s" repeatCount="indefinite" rotate="auto" path="M-470 0 a470 120 0 1 0 940 0 a470 120 0 1 0 -940 0" /></circle>
-        <path d="M-500 0 H-340 M340 0 H500 M0 -500 V-340 M0 340 V500" class="r-cross" />
-      </svg></div></div>
-      <div class="bg-globe"><div class="bg-scroll"><svg class="bg-globe-svg" viewBox="-200 -200 400 400">
-        <g transform="rotate(-18)">
-          <circle r="180" class="g-rim" />
-          <ellipse rx="180" ry="38" class="g-lat" /><ellipse rx="164" ry="34" cy="-74" class="g-lat" /><ellipse rx="164" ry="34" cy="74" class="g-lat" /><ellipse rx="112" ry="23" cy="-132" class="g-lat" /><ellipse rx="112" ry="23" cy="132" class="g-lat" />
-          <g class="g-mer">
-            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="0s" repeatCount="indefinite" /></ellipse>
-            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-6s" repeatCount="indefinite" /></ellipse>
-            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-12s" repeatCount="indefinite" /></ellipse>
-            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-18s" repeatCount="indefinite" /></ellipse>
-            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-24s" repeatCount="indefinite" /></ellipse>
-            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-30s" repeatCount="indefinite" /></ellipse>
-          </g>
-          <line y1="-196" y2="196" class="g-axis" />
-        </g>
-      </svg></div></div>
-      <div class="bg-light" id="bg-light"></div>
-      <div class="bg-pulse" id="bg-pulse"></div>
-      <div class="bg-grain"></div>
-    </div>
-    <canvas id="field" class="field" aria-hidden="true"></canvas>
+    <div class="backdrop" aria-hidden="true"></div>
     <main class="shell" data-panel="join">
       <header class="topbar">
         <a class="brand" href="/"><i aria-hidden="true"></i>NETwork</a>
         <div class="header-meta">
           <span class="live-dot" aria-hidden="true"></span>
           <span id="runtime-status" role="status" aria-live="polite">Connecting…</span>
-          <button id="synth-toggle" class="ghost synth-toggle" type="button" aria-pressed="true" title="Show or hide the SynthDemo synthetic cohort everywhere">SynthDemo · shown</button>
+          <button id="synth-toggle" class="ghost synth-toggle" type="button" aria-pressed="false" title="Include synthetic profiles in search and network maps. Demo booths stay visible in Sponsors.">Demo profiles · off</button>
           <button id="open-trust" class="ghost trust-button" type="button" aria-haspopup="dialog" aria-controls="trust-drawer">Trust</button>
         </div>
       </header>
@@ -63,6 +27,10 @@
             <button id="suggest-people" class="secondary compact-btn hidden" type="button">Find my people</button>
             <button id="revoke-card" class="ghost" type="button">Withdraw card and contacts</button>
           </div>
+        </div>
+        <div id="availability-control" class="availability-control hidden">
+          <div><strong id="availability-label">Ready for a conversation?</strong><p id="availability-status" class="subtle small" role="status">Highlight your card for 15 minutes when you’re free to connect.</p></div>
+          <button id="availability-toggle" type="button" class="secondary" aria-pressed="false">I’m available now</button>
         </div>
         <ol id="pipeline" class="pipeline" aria-label="Enrichment pipeline"></ol>
         <p id="pipeline-meta" class="pipeline-meta mono"></p>
@@ -78,7 +46,7 @@
         <div class="hero">
           <p class="eyebrow">Conference networking · opt-in</p>
           <h1 class="display"><span class="line"><span>Find the people</span></span><span class="line"><span>worth meeting.</span></span></h1>
-          <p class="lede">Opt in once. Elasticsearch matches your question to the people, projects and expertise in the room.</p>
+          <p class="lede">A good conversation starts with the right person. Discover shared interests, exchange ideas, and make your next connection.</p>
         </div>
 
         <nav class="tabs" aria-label="Application sections" role="tablist">
@@ -90,6 +58,7 @@
           <button class="tab" data-panel="constellation" role="tab"><span>05</span>2D</button>
           <button class="tab" data-panel="network3d" role="tab"><span>06</span>3D</button>
           <button class="tab" data-panel="elastic" role="tab"><span>07</span>Stack</button>
+          <button class="tab" data-panel="sponsors" role="tab">Sponsors</button>
           <button class="tab" data-panel="ops" role="tab"><span>08</span>Ops</button>
         </nav>
 
@@ -143,7 +112,7 @@
                     <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
                   </fieldset>
                   <label>Availability
-                    <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
+                    <select name="availability"><option value="during-event">During the event</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
                   </label>
                 </div>
                 <details id="contact-details">
@@ -168,6 +137,11 @@
 
         <section id="people" class="panel">
           <div class="people">
+            <section class="available-section" aria-labelledby="available-title">
+              <div class="section-heading"><div><p class="eyebrow">Here for a conversation</p><h2 id="available-title">Open to connect</h2></div><button id="refresh-available" class="ghost" type="button">Refresh</button></div>
+              <p id="available-note" class="subtle small" role="status">Join the event to see who’s free right now.</p>
+              <div id="available-people" class="available-people"></div>
+            </section>
             <form id="people-form" class="people-search" role="search">
               <label class="visually-hidden" for="people-q">Search people</label>
               <input id="people-q" type="search" maxlength="700" autocomplete="off" enterkeyhint="search" placeholder="Search people by skill, project or idea" />
@@ -176,6 +150,7 @@
             <div class="mode-chips" role="radiogroup" aria-label="Similarity view">
               <button type="button" class="chip-btn" role="radio" data-mode="query" aria-checked="true">Search</button>
               <button type="button" class="chip-btn" role="radio" data-mode="problem" aria-checked="false" tabindex="-1">Help with a problem</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="mutual" aria-checked="false" tabindex="-1">Mutual fit</button>
               <button type="button" class="chip-btn" role="radio" data-mode="hire" aria-checked="false" tabindex="-1">Hiring</button>
               <button type="button" class="chip-btn" role="radio" data-mode="interests" aria-checked="false" tabindex="-1">Outside work</button>
               <button type="button" class="chip-btn" role="radio" data-mode="discover" aria-checked="false" tabindex="-1">Find new people</button>
@@ -216,6 +191,13 @@
             </details>
             <div id="people-intros"></div>
             <ol id="people-results" class="people-list" aria-label="Matching people"></ol>
+            <section id="talks" class="talks" aria-labelledby="talks-title">
+              <h3 id="talks-title">Talks &amp; events for you</h3>
+              <p class="subtle small">Fictional demo schedule ranked by Elastic: BM25 and Jina vectors fused with RRF, then the Jina reranker. Leave the box empty to use your card's interests.</p>
+              <form id="talks-form" class="talks-form"><input id="talks-q" maxlength="300" placeholder="A topic, e.g. climbing or observability" aria-label="Talk or event topic" /><button class="secondary compact-btn" type="submit">Find talks</button></form>
+              <p id="talks-status" class="small" aria-live="polite"></p>
+              <ol id="talks-results" class="talk-list" aria-label="Suggested talks and events"></ol>
+            </section>
           </div>
         </section>
 
@@ -285,7 +267,7 @@
               <div class="constellation-caption" id="constellation-caption"><span class="mono">—</span><p>Tap a person to see their links. Tap a cluster name to zoom to it.</p></div>
               <div class="hud hud-br mono" id="zoom-readout">1.00×</div>
             </div>
-            <p class="constellation-note mono">drag to pan · pinch or scroll to zoom · tap to focus · esc to reset · live from Elastic every 3 s</p>
+            <p class="constellation-note mono">drag to pan · pinch or scroll to zoom · tap to focus · esc to reset · live from Elastic every 8 s</p>
           </article>
         </section>
 
@@ -308,7 +290,7 @@
               <div class="hud hud-br mono" id="g3-axes"></div>
               <div class="g3-empty hidden" id="g3-empty"></div>
             </div>
-            <p class="constellation-note mono">drag to orbit · pinch or scroll to zoom · tap a person for their card · live from Elastic every 3 s</p>
+            <p class="constellation-note mono">drag to orbit · pinch or scroll to zoom · tap a person for their card · live from Elastic every 8 s</p>
           </article>
         </section>
 
@@ -361,6 +343,14 @@
           </article>
         </section>
 
+        <section id="sponsors" class="panel" aria-labelledby="sponsors-title">
+          <header class="section-heading sponsor-heading"><div><p class="eyebrow">Meet the teams behind the tools</p><h2 id="sponsors-title">The sponsor lounge.</h2></div><span class="demo-label">Demo booths</span></header>
+          <p class="subtle sponsor-intro">Four teams. Four ways to move your project forward. Explore a topic and bring it to the concierge.</p>
+          <p class="small subtle">Booth numbers and office-hour scenarios are fictional demo data; they are not a venue map or live staffing schedule.</p>
+          <div id="sponsor-grid" class="sponsor-grid" aria-live="polite"></div>
+          <p id="sponsor-status" class="small" role="status"></p>
+        </section>
+
         <section id="ops" class="panel">
           <article class="card">
             <header class="card-head">
@@ -377,6 +367,7 @@
           </article>
         </section>
       </section>
+      <footer class="site-footer"><span>Built with</span><nav aria-label="Project sponsors"><button type="button" data-sponsor="elastic">Elastic</button><button type="button" data-sponsor="radar">Radar</button><button type="button" data-sponsor="dash0">Dash0</button><button type="button" data-sponsor="gitar">Gitar</button></nav><span>Good conversations. By choice.</span></footer>
     </main>
     <aside id="trust-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="trust-title" hidden>
       <div class="drawer-scrim" data-close></div>
@@ -407,6 +398,6 @@
         </div>
       </article>
     </template>
-    <script src="/app.js?v=0.10.0"></script>
+    <script src="/app.js?v=0.11.0"></script>
   </body>
 </html>

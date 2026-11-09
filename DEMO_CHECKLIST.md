@@ -1,5 +1,18 @@
 # NETwork Concierge demo checklist
 
+## November 9 release verification
+
+- [x] Backed up 29 Elasticsearch indices / 882 documents to verified encrypted files before changes.
+- [x] Added and indexed all four labeled synthetic sponsor booths; highlighted them in the sponsor lounge and footer.
+- [x] Added an owned, expiring **I'm available now** control and promoted available attendees in People.
+- [x] Replaced continuous decorative animation with restrained glass styling and short transitions; bounded graph rendering and suspended hidden-tab polling.
+- [x] Passed 117 local tests, 116 Linux-container tests (one Helm test skipped there), separate Helm lint/render checks, and JavaScript syntax checks.
+- [x] Checked mobile layout at 390 px, two-person availability in the isolated demo, and sponsor-to-concierge navigation.
+- [x] Rolled API and worker to `network-concierge:demo-20261109-r1`; Radar remains healthy.
+- [x] Verified the existing [Cloudflare demo](https://kodak-role-congressional-touring.trycloudflare.com): health, readiness, QR, sponsor catalog, authorization, and deployed assets matching source.
+
+Evidence: [verification record](docs/evidence/demo-readiness.json). [Demo walkthrough and backup notes](docs/DEMO_READINESS.md). Physical-phone frame timing is not included in these checks.
+
 ## Before attendees arrive
 
 - [ ] Set the HTTPS `PUBLIC_BASE_URL` in `.env`.

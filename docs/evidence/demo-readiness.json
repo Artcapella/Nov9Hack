@@ -1,0 +1,40 @@
+{
+  "verified_at": "2026-11-09T23:44:28.969611+00:00",
+  "url": "https://kodak-role-congressional-touring.trycloudflare.com",
+  "image": "network-concierge:demo-20261109-r1",
+  "image_digest": "sha256:5da5a7e64499fc1ad12bd8727226f60c6cad673f000c7fcd84800038f957c76a",
+  "local_tests": 117,
+  "linux_tests_passed": 116,
+  "linux_tests_skipped": 1,
+  "skip_reason": "Helm is tested separately on the host",
+  "endpoints": {
+    "/healthz": 200,
+    "/readyz": 200,
+    "/api/sponsors": 200,
+    "/api/event-qr.png": 200
+  },
+  "assets_match": {
+    "app.js": true,
+    "styles.css": true,
+    "index.html": true
+  },
+  "sponsor_booths_indexed": 4,
+  "backup": {
+    "directory": "backups/20261109T232403Z",
+    "indices": 29,
+    "documents": 882,
+    "encrypted": true,
+    "verified": true
+  },
+  "browser": {
+    "mobile_width": 390,
+    "page_width": 375,
+    "booth_count": 4,
+    "console_errors": 0,
+    "animated_backdrop_svg": 0,
+    "local_two_person_availability": "passed",
+    "physical_phone_frame_benchmark": "not performed"
+  },
+  "unauthenticated_availability_read": 401,
+  "unauthenticated_availability_write": 401
+}
