@@ -5,9 +5,45 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="theme-color" content="#0a0a0a" />
     <title>NETwork Concierge</title>
-    <link rel="stylesheet" href="/styles.css?v=0.8.0" />
+    <link rel="stylesheet" href="/styles.css?v=0.9.0" />
   </head>
   <body>
+    <!-- Greyscale backdrop: each layer has a view pose (tab switch), a scroll pose and an idle drift, nested so they compose. -->
+    <div class="backdrop" id="backdrop" aria-hidden="true">
+      <div class="bg-orb bg-orb-a"><i></i></div>
+      <div class="bg-orb bg-orb-b"><i></i></div>
+      <div class="bg-orb bg-orb-c"><i></i></div>
+      <div class="bg-rings"><div class="bg-scroll"><svg class="bg-spin" viewBox="-500 -500 1000 1000">
+        <circle r="488" class="r-faint" />
+        <circle r="470" class="r-ticks" pathLength="360" />
+        <circle r="452" class="r-fine" />
+        <g class="bg-spin-rev"><circle r="392" class="r-dash" pathLength="100" /><circle r="392" class="r-node" pathLength="100" /></g>
+        <circle r="318" class="r-faint" />
+        <circle r="300" class="r-ticks-major" pathLength="360" />
+        <ellipse rx="470" ry="120" class="r-orbit" transform="rotate(-24)" />
+        <ellipse rx="470" ry="120" class="r-orbit" transform="rotate(36)" />
+        <circle r="5" class="r-sat"><animateMotion dur="38s" repeatCount="indefinite" rotate="auto" path="M-470 0 a470 120 0 1 0 940 0 a470 120 0 1 0 -940 0" /></circle>
+        <path d="M-500 0 H-340 M340 0 H500 M0 -500 V-340 M0 340 V500" class="r-cross" />
+      </svg></div></div>
+      <div class="bg-globe"><div class="bg-scroll"><svg class="bg-globe-svg" viewBox="-200 -200 400 400">
+        <g transform="rotate(-18)">
+          <circle r="180" class="g-rim" />
+          <ellipse rx="180" ry="38" class="g-lat" /><ellipse rx="164" ry="34" cy="-74" class="g-lat" /><ellipse rx="164" ry="34" cy="74" class="g-lat" /><ellipse rx="112" ry="23" cy="-132" class="g-lat" /><ellipse rx="112" ry="23" cy="132" class="g-lat" />
+          <g class="g-mer">
+            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="0s" repeatCount="indefinite" /></ellipse>
+            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-6s" repeatCount="indefinite" /></ellipse>
+            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-12s" repeatCount="indefinite" /></ellipse>
+            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-18s" repeatCount="indefinite" /></ellipse>
+            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-24s" repeatCount="indefinite" /></ellipse>
+            <ellipse ry="180" rx="180"><animate attributeName="rx" values="180;0;180" keyTimes="0;.5;1" calcMode="spline" keySplines=".55 0 1 .45;0 .55 .45 1" dur="36s" begin="-30s" repeatCount="indefinite" /></ellipse>
+          </g>
+          <line y1="-196" y2="196" class="g-axis" />
+        </g>
+      </svg></div></div>
+      <div class="bg-light" id="bg-light"></div>
+      <div class="bg-pulse" id="bg-pulse"></div>
+      <div class="bg-grain"></div>
+    </div>
     <canvas id="field" class="field" aria-hidden="true"></canvas>
     <main class="shell" data-panel="join">
       <header class="topbar">
@@ -41,11 +77,12 @@
       <section id="app-view" class="view">
         <div class="hero">
           <p class="eyebrow">Conference networking · opt-in</p>
-          <h1 class="display">Find the people<br>worth meeting.</h1>
+          <h1 class="display"><span class="line"><span>Find the people</span></span><span class="line"><span>worth meeting.</span></span></h1>
           <p class="lede">Opt in once. Elasticsearch matches your question to the people, projects and expertise in the room.</p>
         </div>
 
         <nav class="tabs" aria-label="Application sections" role="tablist">
+          <span class="tab-lens" aria-hidden="true"></span>
           <button class="tab active" data-panel="join" role="tab"><span>01</span>Join</button>
           <button class="tab" data-panel="people" role="tab"><span>02</span>People</button>
           <button class="tab" data-panel="mynet" role="tab"><span>03</span>My network</button>
@@ -370,6 +407,6 @@
         </div>
       </article>
     </template>
-    <script src="/app.js?v=0.9.0"></script>
+    <script src="/app.js?v=0.10.0"></script>
   </body>
 </html>

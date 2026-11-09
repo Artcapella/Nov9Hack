@@ -42,6 +42,7 @@ function switchTab(name) {
   liveFeed.setActive(['constellation', 'elastic'].includes(name));
   stack.setVisible(name === 'elastic');
   ops.setVisible(name === 'ops');
+  motion.onView(name);
   if (name === 'people' && !people.loaded) runPeople();
 }
 document.querySelectorAll('.tab').forEach((tab) => tab.addEventListener('click', () => switchTab(tab.dataset.panel)));
@@ -1590,6 +1591,81 @@ $('#synth-toggle').addEventListener('click', () => {
   graphFeed.reload();
 });
 renderSynthToggle();
+
+/* ======================================================================
+   Motion: the glass tab lens, the greyscale backdrop's per-view pose and
+   scroll parallax, scroll reveals and pointer-following glare. Purely
+   presentational; everything degrades to static under reduced motion.
+   ====================================================================== */
+function createMotion() {
+  const backdrop = $('#backdrop'), hero = $('.hero'), tabs = $('.tabs'), lens = $('.tab-lens'), pulse = $('#bg-pulse'), light = $('#bg-light');
+  const order = [...tabs.querySelectorAll('.tab')].map((t) => t.dataset.panel);
+  let view = Math.max(0, order.indexOf($('.shell').dataset.panel));
+  backdrop.style.setProperty('--view', view);
+
+  function placeLens(morph) {
+    const t = tabs.querySelector('.tab.active'); if (!t) return;
+    lens.style.width = `${t.offsetWidth}px`; lens.style.translate = `${t.offsetLeft}px 0`;
+    if (morph && !reduceMotion) lens.animate([{scale:'1 1'}, {scale:'1.16 .82', offset:.3}, {scale:'.96 1.05', offset:.65}, {scale:'1 1'}], {duration:650, easing:'ease-out'});
+    // On phones the bar scrolls sideways: keep the active tab in view.
+    const pad = 28, left = t.offsetLeft - pad, right = t.offsetLeft + t.offsetWidth + pad, behavior = reduceMotion ? 'auto' : 'smooth';
+    if (left < tabs.scrollLeft) tabs.scrollTo({left, behavior});
+    else if (right > tabs.scrollLeft + tabs.clientWidth) tabs.scrollTo({left: right - tabs.clientWidth, behavior});
+  }
+  placeLens(false);
+  requestAnimationFrame(() => lens.classList.add('ready'));
+  document.fonts?.ready.then(() => placeLens(false));
+  new ResizeObserver(() => placeLens(false)).observe(tabs);
+
+  function onView(name) {
+    const next = order.indexOf(name); if (next < 0) return;
+    const moved = next !== view;
+    $('.shell').style.setProperty('--dir', next >= view ? 1 : -1);
+    view = next; backdrop.style.setProperty('--view', next);
+    placeLens(moved);
+    if (moved && !reduceMotion) pulse.animate([{opacity:.55, transform:'scale(.25)'}, {opacity:0, transform:'scale(2.4)'}], {duration:1500, easing:'cubic-bezier(.16,1,.3,1)'});
+  }
+
+  // Scroll: one rAF-batched write per frame. The backdrop and hero read --scroll; the tab bar firms up once it sticks.
+  let scrollQueued = false;
+  const applyScroll = () => {
+    scrollQueued = false;
+    const y = Math.round(scrollY);
+    if (!reduceMotion) { backdrop.style.setProperty('--scroll', y); hero.style.setProperty('--scroll', y); }
+    tabs.classList.toggle('stuck', y > 0 && tabs.getBoundingClientRect().top <= parseFloat(getComputedStyle(tabs).top) + .5);
+  };
+  addEventListener('scroll', () => { if (!scrollQueued) { scrollQueued = true; requestAnimationFrame(applyScroll); } }, {passive:true});
+  applyScroll();
+
+  if (reduceMotion) { backdrop.querySelectorAll('svg').forEach((s) => s.pauseAnimations?.()); return { onView }; }
+
+  // Pointer: a soft light trails the cursor across the backdrop, and glass surfaces catch a glare where it points.
+  const GLARE = '.card, .person, .tile, .primary, .secondary, .icon-button, .chip-btn';
+  let pointer = null, pointerQueued = false;
+  addEventListener('pointermove', (e) => {
+    if (e.pointerType !== 'mouse') return;
+    pointer = e; if (!pointerQueued) { pointerQueued = true; requestAnimationFrame(() => {
+      pointerQueued = false;
+      light.style.translate = `${pointer.clientX}px ${pointer.clientY}px`;
+      const el = pointer.target.closest?.(GLARE); if (!el) return;
+      const r = el.getBoundingClientRect();
+      el.style.setProperty('--mx', `${(pointer.clientX - r.left).toFixed(0)}px`); el.style.setProperty('--my', `${(pointer.clientY - r.top).toFixed(0)}px`);
+    }); }
+  }, {passive:true});
+
+  // Scroll reveal for static content; elements in hidden panels reveal the first time their panel shows.
+  if ('IntersectionObserver' in window) {
+    document.documentElement.classList.add('reveal-on');
+    const io = new IntersectionObserver((entries) => {
+      let n = 0;
+      entries.forEach((en) => { if (!en.isIntersecting) return; en.target.style.setProperty('--rd', `${n++ * 70}ms`); en.target.classList.add('in'); io.unobserve(en.target); });
+    }, {rootMargin:'0px 0px -6% 0px', threshold:.06});
+    document.querySelectorAll('.spec dt, .spec dd, .stack-grid > section, #stack-routes, .diagram-wrap, .constellation-note, #resume-step > *, #card-step > *')
+      .forEach((el) => { el.dataset.reveal = ''; io.observe(el); });
+  }
+  return { onView };
+}
+const motion = createMotion();
 
 async function boot() {
   try {
