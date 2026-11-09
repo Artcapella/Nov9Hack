@@ -8,5 +8,9 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: pip install -r requirements.txt
+      - uses: azure/setup-helm@v4.3.1
+        with: { version: v3.17.4 }
       - run: python -m compileall app mcp scripts
       - run: pytest -q
+      - run: helm lint deploy/helm/network-concierge
+      - run: docker build -t network-concierge:test .

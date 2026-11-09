@@ -1,5 +1,8 @@
 .env
 .venv/
+.venv-next/
+.tools/
+*.manifest.private.json
 __pycache__/
 .pytest_cache/
 *.pyc

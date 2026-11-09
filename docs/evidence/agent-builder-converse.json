@@ -1,0 +1,25 @@
+{
+  "checked_at": "2026-11-09T20:50:39.013985+00:00",
+  "agent_id": "network-concierge",
+  "question": "Who can help us diagnose Kubernetes latency before the next session?",
+  "mode": "elastic_agent_builder",
+  "agent_status": "ok",
+  "retrieval_mode": "hybrid",
+  "inference_id": ".jina-embeddings-v5-text-small",
+  "trace": [
+    {
+      "tool_id": "network.knowledge_retrieval",
+      "type": "retriever",
+      "query": "RRF(BM25 content, semantic_text content_semantic) WHERE event_id == cnh-2026 AND consent_to_discover == true AND state == indexed AND discoverable_until > now · current card re-checked",
+      "results": 5
+    }
+  ],
+  "cited_sources": [
+    "DEMO · Maya Chen: conference profile",
+    "DEMO · Omar Rivera: conference profile",
+    "DEMO · Dash0 Office Hours: conference profile",
+    "DEMO · Ari Patel: conference profile",
+    "DEMO · Elastic Office Hours: conference profile"
+  ],
+  "answer_excerpt": "I'll help you identify who can assist with Kubernetes latency diagnosis from the supplied evidence.\n\nBased on the approved sources, here are the people who can help with Kubernetes latency:\n\n## Primary Match\n\n**Maya Chen** [1] — Platform engineer specializing in distributed systems. Maya operates Kubernetes services and uses OpenTelemetry traces to identify latency and reliability bottlenecks. She explicitly lists \"Kubernetes,\" \"OpenTelemetry,\" and \"incident debugging\" as areas where she can help.\n\n## Supporting Resources\n\n**Dash0 Office Hours** [3] — Sponsor expertise offering office hours for OpenTelemetry, traces, logs, metrics, and AI-assisted incident diagnosis. While not Kubernetes-spe"
+}

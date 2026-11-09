@@ -3,109 +3,215 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0a1734" />
+    <meta name="theme-color" content="#0a0a0a" />
     <title>NETwork Concierge</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=0.5.0" />
   </head>
   <body>
+    <canvas id="field" class="field" aria-hidden="true"></canvas>
     <main class="shell">
       <header class="topbar">
-        <a class="brand" href="/">NET<span>work</span></a>
-        <span class="badge">Elastic-native</span>
+        <a class="brand" href="/"><i aria-hidden="true"></i>NETwork</a>
+        <div class="header-meta">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="runtime-status" role="status" aria-live="polite">Connecting…</span>
+          <button id="open-trust" class="ghost trust-button" type="button" aria-haspopup="dialog" aria-controls="trust-drawer">Trust</button>
+        </div>
       </header>
+      <button id="seed-demo" type="button" class="secondary compact hidden">Load synthetic demo profiles</button>
+      <section id="my-card" class="card my-card hidden" aria-live="polite">
+        <div class="inline-row">
+          <p id="my-card-status"></p>
+          <div class="row-actions">
+            <button id="suggest-people" class="secondary compact-btn hidden" type="button">Find my people</button>
+            <button id="revoke-card" class="ghost" type="button">Withdraw card and contacts</button>
+          </div>
+        </div>
+        <ol id="pipeline" class="pipeline" aria-label="Enrichment pipeline"></ol>
+        <p id="pipeline-meta" class="pipeline-meta mono"></p>
+      </section>
 
       <section id="connect-view" class="view hidden">
         <p class="eyebrow">Private connection request</p>
-        <h1>Someone wants to connect.</h1>
+        <h1 class="display">Someone wants to connect.</h1>
         <article id="connection-card" class="card"></article>
       </section>
 
       <section id="app-view" class="view">
         <div class="hero">
-          <p class="eyebrow">Conference connection, made useful</p>
-          <h1>Find the right person in the room.</h1>
-          <p>Opt in once. Let Elasticsearch surface the people, projects, and expertise that can help.</p>
+          <p class="eyebrow">Conference networking · opt-in</p>
+          <h1 class="display">Find the people<br>worth meeting.</h1>
+          <p class="lede">Opt in once. Elasticsearch matches your question to the people, projects and expertise in the room.</p>
         </div>
 
-        <nav class="tabs" aria-label="Application sections">
-          <button class="tab active" data-panel="join">Join</button>
-          <button class="tab" data-panel="ask">Ask NETwork</button>
-          <button class="tab" data-panel="elastic">Elastic proof</button>
+        <nav class="tabs" aria-label="Application sections" role="tablist">
+          <button class="tab active" data-panel="join" role="tab"><span>01</span>Join</button>
+          <button class="tab" data-panel="ask" role="tab"><span>02</span>Ask</button>
+          <button class="tab" data-panel="constellation" role="tab"><span>03</span>Field</button>
+          <button class="tab" data-panel="elastic" role="tab"><span>04</span>Stack</button>
+          <button class="tab" data-panel="ops" role="tab"><span>05</span>Ops</button>
         </nav>
 
         <section id="join" class="panel active">
           <article class="card">
-            <p class="eyebrow">1 minute · opt-in only</p>
-            <h2>Build your conference card</h2>
-            <p class="subtle">Upload a resume to prefill your expertise. The file is parsed in memory, then discarded; only your approved card becomes discoverable.</p>
+            <header class="card-head">
+              <h2>Your conference card</h2>
+              <p class="meta">~1 min</p>
+            </header>
+            <p class="subtle">You can upload a resume to prefill your expertise. The file is read in memory and then deleted. Other attendees can only find the card you approve.</p>
             <form id="profile-form">
-              <label>Display name <input required name="display_name" maxlength="80" placeholder="Your name" /></label>
-              <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
-              <label>What can you help with? <input name="can_help_with" placeholder="Python, APIs, observability" /></label>
-              <label>What are you looking for? <input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
-              <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or hoping to solve?"></textarea></label>
-              <fieldset>
-                <legend>Connection style</legend>
-                <label class="check"><input type="checkbox" name="formats" value="async" checked /> Low-pressure async intro</label>
-                <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
-                <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
-              </fieldset>
-              <label>Availability
-                <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
-              </label>
+              <div class="grid-2">
+                <label>Display name <input required name="display_name" maxlength="80" placeholder="Your name" /></label>
+                <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
+                <label>Can help with <input name="can_help_with" placeholder="Python, APIs, observability" /></label>
+                <label>Looking for <input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
+              </div>
+              <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or trying to solve?"></textarea></label>
+              <label>Approved professional experience <textarea name="approved_experience" maxlength="2400" placeholder="Review and edit the experience you want other attendees to find."></textarea></label>
+              <div class="grid-2">
+                <fieldset>
+                  <legend>Connection style</legend>
+                  <label class="check"><input type="checkbox" name="formats" value="async" checked /> Async intro</label>
+                  <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
+                  <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
+                </fieldset>
+                <label>Availability
+                  <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
+                </label>
+              </div>
               <details>
-                <summary>Optional contact and resume</summary>
-                <label>Email <input type="email" name="email" placeholder="Only revealed after mutual acceptance" /></label>
-                <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
-                <label>Resume (PDF, DOCX, TXT, MD; 6 MB max) <input type="file" name="resume" accept=".pdf,.docx,.txt,.md" /></label>
-                <p id="resume-preview" class="result"></p>
+                <summary>Contact details and resume (optional)</summary>
+                <div class="details-body">
+                  <div class="grid-2">
+                    <label>Email <input type="email" name="email" placeholder="Shared only after you both accept" /></label>
+                    <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
+                  </div>
+                  <div class="grid-2">
+                    <label>Resume <span class="hint">PDF, DOCX, TXT, MD · 6 MB max</span><input type="file" name="resume" accept=".pdf,.docx,.txt,.md" /></label>
+                    <label>Source <select name="source_type"><option value="upload">My resume</option><option value="linkedin_export">My authorized LinkedIn export</option></select></label>
+                  </div>
+                  <button type="button" id="preview-resume" class="secondary">Preview resume suggestions</button>
+                  <p id="resume-preview" class="result" aria-live="polite"></p>
+                </div>
               </details>
-              <label class="check consent"><input required type="checkbox" name="consent_to_discover" /> I consent to my approved professional card being discoverable by other opted-in attendees for this event.</label>
-              <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> I consent to automated resume parsing if I upload a resume.</label>
-              <button class="primary" type="submit">Join NETwork</button>
+              <div class="consents">
+                <label class="check consent"><input required type="checkbox" name="consent_to_discover" /> Let other opted-in attendees at this event find my approved card.</label>
+                <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> Parse my resume automatically if I upload one.</label>
+              </div>
+              <p class="subtle small">Keep this browser open. You need it to approve introductions and withdraw your card. Only the fields above become searchable.</p>
+              <button class="primary" type="submit">Approve and join</button>
             </form>
             <p id="profile-result" class="result" aria-live="polite"></p>
           </article>
         </section>
 
         <section id="ask" class="panel">
-          <article class="card contrast">
-            <p class="eyebrow">Live judge demo</p>
-            <h2>Who can help with this?</h2>
+          <article class="card">
+            <header class="card-head">
+              <h2>Who can help with this?</h2>
+              <p class="meta">hybrid · RRF</p>
+            </header>
             <form id="search-form">
-              <label>Ask a non-confidential technical question
+              <label>Ask a technical question. Don't include anything confidential.
                 <textarea id="question" required placeholder="Our Kubernetes app is slow and we cannot tell where the bottleneck is."></textarea>
               </label>
-              <label class="check"><input id="sponsor-intent" type="checkbox" /> Include sponsor/recruiter expertise</label>
-              <button class="primary" type="submit">Find people and evidence</button>
+              <div class="row-between">
+                <label class="check"><input id="sponsor-intent" type="checkbox" /> Include sponsor and recruiter expertise</label>
+                <button class="primary" type="submit">Search</button>
+              </div>
             </form>
+            <div class="compare-bar hidden" id="compare-bar">
+              <div class="seg" role="radiogroup" aria-label="Retrieval mode">
+                <button type="button" role="radio" data-mode="keyword" aria-checked="false">Keyword <span class="count" data-count="keyword"></span></button>
+                <button type="button" role="radio" data-mode="semantic" aria-checked="false">Semantic <span class="count" data-count="semantic"></span></button>
+                <button type="button" role="radio" data-mode="hybrid" aria-checked="true">Hybrid <span class="count" data-count="hybrid"></span></button>
+              </div>
+              <p id="compare-summary" class="compare-summary mono" aria-live="polite"></p>
+            </div>
             <div id="search-results" class="stack" aria-live="polite"></div>
             <section id="rag-answer" class="rag hidden"></section>
           </article>
         </section>
 
+        <section id="constellation" class="panel">
+          <article class="constellation-card">
+            <header class="constellation-heading">
+              <div>
+                <h2>Expertise field</h2>
+                <p class="subtle small">People are placed by their public expertise tags. People near each other share expertise, and the colour shows the area of the map. Private profile data is never shown here.</p>
+              </div>
+              <div class="field-tools">
+                <label class="node-search"><span class="visually-hidden">Go to node</span>
+                  <input id="node-search" list="node-options" placeholder="Go to…" autocomplete="off" />
+                  <datalist id="node-options"></datalist>
+                </label>
+                <button class="icon-button" id="recenter-constellation" type="button" aria-label="Reset view" title="Reset view (Esc)">⤢</button>
+              </div>
+            </header>
+            <div class="constellation-stage" id="constellation-stage">
+              <canvas id="constellation-canvas" tabindex="0" aria-label="Interactive map of opted-in attendee expertise. Drag to pan, scroll to zoom, click a node to focus."></canvas>
+              <div class="hud hud-tl" id="cluster-legend"></div>
+              <div class="hud hud-tr mono" id="telemetry-readout">0 pkt/s</div>
+              <div class="constellation-caption" id="constellation-caption"><span class="mono">—</span><p>Click a node to zoom in and see its connections.</p></div>
+              <div class="hud hud-br mono" id="zoom-readout">1.00×</div>
+            </div>
+            <p class="constellation-note mono">drag to pan · scroll to zoom · click to focus · esc to reset · search results appear here as live nodes</p>
+          </article>
+        </section>
+
         <section id="elastic" class="panel">
           <article class="card">
-            <p class="eyebrow">What powers NETwork</p>
-            <h2>Elastic is the conference brain.</h2>
-            <ul class="feature-list">
-              <li><strong>Elastic Cloud Serverless:</strong> operational records, public profile search, private-contact boundary, and connection events.</li>
-              <li><strong>Hybrid retrieval:</strong> BM25-style lexical precision + <code>semantic_text</code> meaning search combined with RRF.</li>
-              <li><strong>AI/RAG:</strong> retrieved attendee and sponsor evidence grounds concierge answers.</li>
-              <li><strong>MCP-ready:</strong> connect an Elastic Agent Builder agent to a coding-agent host for live tool access.</li>
-              <li><strong>ES|QL and aggregations:</strong> turn opt-in activity into conference intelligence.</li>
-            </ul>
+            <header class="card-head"><h2>What runs NETwork</h2><p class="meta">elastic</p></header>
+            <dl class="spec">
+              <dt>Elastic Cloud Serverless</dt><dd>Stores profile records, public profile search, the boundary that keeps contacts private, and connection events.</dd>
+              <dt>Hybrid retrieval</dt><dd>Combines BM25 keyword matching with <code>semantic_text</code> meaning search using RRF.</dd>
+              <dt>AI / RAG</dt><dd>Concierge answers are based on the attendee and sponsor records that search returns.</dd>
+              <dt>MCP</dt><dd>Connects an Elastic Agent Builder agent to a coding-agent host so it can call live tools.</dd>
+              <dt>ES|QL</dt><dd>Aggregates opt-in activity into conference statistics.</dd>
+            </dl>
+          </article>
+        </section>
+
+        <section id="ops" class="panel">
+          <article class="card">
+            <header class="card-head">
+              <h2>Command center</h2>
+              <p class="meta" id="ops-meta">organizer</p>
+            </header>
+            <p class="subtle small">Counts and aggregates only. No names, messages or contact details appear here. Topics come from card fields attendees already chose to publish.</p>
+            <form id="ops-auth" class="ops-auth hidden">
+              <label>Organizer token <input id="ops-token" type="password" autocomplete="off" minlength="16" required /></label>
+              <button class="secondary" type="submit">Unlock</button>
+            </form>
+            <p id="ops-status" class="result" aria-live="polite"></p>
+            <div id="ops-body" class="ops hidden"></div>
           </article>
         </section>
       </section>
     </main>
+    <aside id="trust-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="trust-title" hidden>
+      <div class="drawer-scrim" data-close></div>
+      <div class="drawer-panel">
+        <header class="card-head">
+          <div><p class="eyebrow">Trust center</p><h2 id="trust-title">What NETwork holds about you</h2></div>
+          <button class="icon-button" type="button" data-close aria-label="Close trust center">×</button>
+        </header>
+        <div id="trust-body" class="trust-body"></div>
+      </div>
+    </aside>
     <template id="result-template">
       <article class="match-card">
+        <span class="hue-bar" aria-hidden="true"></span>
         <div><p class="eyebrow role"></p><h3 class="name"></h3><p class="headline"></p></div>
+        <p class="found-by mono"></p>
         <p class="summary"></p><ul class="reasons"></ul>
-        <button class="secondary connect">Request async introduction</button>
+        <details class="why"><summary>Why this match?</summary><div class="why-body"></div></details>
+        <div class="row-actions">
+          <button class="secondary connect">Request async introduction</button>
+          <button class="ghost locate" type="button">Show on map</button>
+        </div>
       </article>
     </template>
-    <script src="/app.js"></script>
+    <script src="/app.js?v=0.5.0"></script>
   </body>
 </html>

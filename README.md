@@ -1,136 +1,119 @@
 # NETwork Concierge
 
-**A mobile-first, QR-accessed conference concierge.** Attendees opt in once, optionally upload a resume for automated structured extraction, and become discoverable through Elasticsearch hybrid search. A judge can ask a real, non-confidential technical question and NETwork finds the opted-in people and sponsor expertise that can help.
+A mobile conference concierge: preview a resume, review a professional card, opt into event discovery, search approved expertise, and exchange contacts after the recipient approves an introduction.
 
-## What is deliberately Elastic-native
+This implementation delivers the plan's next foundation stage: secure contact/consent boundaries, durable ingestion, pinned Jina representations, scoped retrieval and Elastic agent integration, plus worker/telemetry/deployment support. Schedule/travel planning, a separate sponsor-booth catalog, diversity ranking, and offline fairness evaluation remain subsequent work. See [implementation status](docs/IMPLEMENTATION_STATUS.md) for evidence and outstanding integration gates.
 
-| Capability | Implementation |
-| --- | --- |
-| Elastic Cloud Serverless | The only search/data platform for user-vector documents, structured resume records, RAG knowledge, private contacts, and connection events. |
-| `semantic_text` / Elastic Inference Service | Generates and stores semantic representations of approved profile text; set `ELASTIC_INFERENCE_ID` to use a chosen EIS endpoint. |
-| Hybrid search + RRF | The matching endpoint fuses lexical technology matches with semantic intent search. |
-| RAG | `network_knowledge` contains profile and sponsor-evidence documents. The concierge returns sources with its answer. |
-| Elastic Agent Builder + MCP | `mcp/elastic-agent-builder.example.json` targets the native Agent Builder MCP endpoint. `mcp/server.py` is a local, read-only fallback with hybrid search and ES|QL tools. |
-| Query DSL, filters, and rules | Consent, expiry, availability, connection-format, and sponsor-intent filters are applied to every search. The README supplies a query-rule extension for sponsor cards. |
-| ES|QL / aggregations | Connection events and opt-in profile data support live “conference intelligence” views. |
+**Sponsor tools in use** ([details and proof](docs/SPONSORS.md)):
+**Elastic** (Serverless, Jina embeddings, RRF hybrid search, an Agent Builder agent with ES|QL tools, a Workflow and MCP),
+**Radar** (Helm deployment to Kubernetes, watched by the Radar agent),
+**Dash0** (OTLP traces and metrics from the API and worker) and
+**Sonar/Gitar** (privacy-focused PR review).
 
-## Privacy boundaries
+## Run locally
 
-- Resume files are parsed **in memory** and discarded. The raw file and raw text are never written to disk, Git, logs, or public search documents.
-- `network_resume_structured` stores only parsed professional facets; extracted email/LinkedIn values are excluded.
-- `network_user_vectors` contains only attendee-approved, discoverable information.
-- Contact values are isolated in `network_private_contacts`. Set `CONTACT_ENCRYPTION_KEY` for deployed use. Search never returns contacts.
-- A temporary QR request must be accepted before the server returns a recipient’s selected contact methods.
-- Synthetic seed data is explicitly demo data. Only QR-form volunteers are live attendee data.
+Python 3.12 or 3.13 is supported. In this workspace, `.venv-next` is the working environment; the original `.venv` points to a missing interpreter.
 
-The temporary-QR possession check is appropriate for an in-person demo but is **not** production authentication. Add verified attendee login or magic-link confirmation before production use.
-
-## Local quick start
-
-```bash
-cp .env.example .env
-python -m venv .venv
-source .venv/bin/activate
-pip install -r requirements.txt
-
-# With your connected Elastic Cloud credentials in .env:
-python scripts/bootstrap_elastic.py
-uvicorn app.main:app --reload
+```powershell
+python -m venv .venv-next
+.venv-next\Scripts\python -m pip install -r requirements.txt
+# For a new checkout only; preserve an existing .env.
+Copy-Item .env.example .env
+.venv-next\Scripts\python -m uvicorn app.main:app --reload --no-access-log
 ```
 
-Open `http://localhost:8000`. To run a local UI without Elastic credentials, leave the two Elasticsearch values blank; the app uses in-memory demo mode. That mode is only for UI iteration, not for the sponsor demo.
+Open [the local app](http://localhost:8000). With blank Elastic settings it displays **memory demo** and uses the same publication, authorization and visibility checks with lexical search. It processes jobs inline; records disappear on restart. The same browser session owns the card and must approve its introductions. Join before searching; another person can join in a different browser/device. A QR contains an introduction capability, never the recipient's login.
 
-## Cloud setup: required demo path
+For managed Elasticsearch, set the URL/API key and a stable Fernet `CONTACT_ENCRYPTION_KEY` in the ignored `.env`, then run:
 
-1. Create or use the existing **Elastic Cloud Serverless Vector Database** project and put `ELASTICSEARCH_URL` plus `ELASTICSEARCH_API_KEY` in `.env`.
-2. Give `PUBLIC_BASE_URL` the deployed HTTPS address **before** generating any attendee or connection QR codes.
-3. Run `python scripts/bootstrap_elastic.py`; this creates the four `network_*` indices and inserts the labeled demonstration cohort.
-4. Open the mobile app from the event QR. Recruit only people who have explicitly opted in.
-5. Use the desktop **Ask NETwork** tab for the judge-led query.
-
-Once deployed, print or project `https://YOUR_PUBLIC_HOST/api/event-qr.png`. It resolves to the mobile signup page, while `https://YOUR_PUBLIC_HOST` is the desktop demo console.
-
-## Resume-to-user-vector pipeline
-
-```text
-Opt-in mobile upload
-  -> in-memory PDF / DOCX / TXT extraction
-  -> structured skills + project / experience highlights
-  -> attendee approval and public-card fields
-  -> network_resume_structured (restricted data)
-  -> network_user_vectors.profile_semantic (semantic user-vector document)
-  -> network_knowledge (RAG evidence)
+```powershell
+.venv-next\Scripts\python -m scripts.verify_elastic
+.venv-next\Scripts\python -m scripts.bootstrap_elastic
+.venv-next\Scripts\python -m app.worker
+# In another terminal:
+.venv-next\Scripts\python -m uvicorn app.main:app --no-access-log
 ```
 
-The prototype uses a fast local heuristic parser so it works immediately. Replace `heuristic_parse` with an approved structured-output LLM only after preserving the same consent boundary and post-parse review UI.
+Bootstrap inspects `.jina-embeddings-v5-text-small`, creates strict versioned backing indices with write aliases, verifies existing schema compatibility, and loads the **synthetic** seed cohort idempotently. It requires index-management permissions; normal startup does not. Defaults now use `network_*_v3` because the existing `network_user_vectors_v2` is an incompatible concrete prototype index. Existing prototype data is not migrated or deleted. Change the schema version and explicitly reapprove/reindex cards for future schema/model migrations; never silently swap models.
 
-Choosing a resume file triggers an editable preview that can prefill skills, project highlights, email, and LinkedIn. The attendee must review the form and separately consent before the app creates any searchable record.
+## Ownership and privacy
 
-## Elasticsearch demo script
+- The server creates an unpredictable HttpOnly, SameSite=Strict session cookie; only its digest is stored. HTTPS adds Secure. Session event scope comes from server configuration. This is device-session ownership, not verification of a person's legal identity. Cross-device login/recovery is subsequent work.
+- Search, RAG and introduction actions require an active event card. Requester name is derived from the owned card, preventing request-name impersonation. Every unsafe browser API call requires `X-NETwork-Request: 1` and validates Origin when present.
+- The requester and unrelated attendees cannot accept the recipient's request. The recipient approves from their own session. Only the original requester can then fetch shared contacts; expiry or either attendee's revocation closes access.
+- Files are size-bounded, parsed in memory and discarded. Preview stores restricted professional suggestions for 20 minutes; contact hints are returned for editing and are not stored in drafts. The public embeddings use **only edited card fields**. Clearing a suggestion removes it from discovery. A source hash and acquisition record preserve provenance.
+- A separate restricted resume representation keeps parsed professional experience apart from public experience/seeking/profile semantic fields. All use the same pinned Jina endpoint. No vector arithmetic or fairness mitigation is claimed.
+- Queue claims use optimistic concurrency, leases, retry limits and deterministic job IDs. The worker checks approval version/consent; revocation tombstones defeat concurrent publication. The public card becomes indexed only after evidence and inference writes succeed.
+- Withdrawal clears public evidence, resume content, private contacts and queued publication. Minimal revocation tombstones and source hashes remain for idempotency/provenance. The worker sweeps expired drafts/sessions and withdraws expired cards every minute. Queries enforce expiry immediately, including before cleanup.
+- Elasticsearch contacts always require encryption. Production also requires Elasticsearch and an HTTPS public URL. Public API projections omit ownership IDs, hidden parser suggestions, contact fields and embedding internals.
 
-1. Ask a judge for a **non-confidential** problem: “What are you trying to build or debug?”
-2. Enter it into **Ask NETwork**.
-3. Explain that the request runs an RRF hybrid query: lexical precision for terms such as `Kubernetes`, plus semantic retrieval for meaning such as `bottleneck` or `debugging`.
-4. Open the result’s reasons and identify the live/opt-in profile evidence.
-5. Send an async intro. Display the temporary QR; a recipient scans and accepts it before contact details unlock.
-6. Switch to Kibana to show the matching index, the query, and the RAG corpus.
-7. Ask the same question through your configured Elastic Agent Builder MCP host.
+The upload flow is `POST /api/resumes/preview` → editable review → `POST /api/profiles` with `draft_id`. The legacy direct-file publication endpoint returns a review-required error. Empty/scanned PDFs provide a manual-entry path. Authorized LinkedIn text/document exports can be labeled during preview; direct LinkedIn profile scraping, CSV/ZIP archive import and access by URL alone are not implemented.
 
-## Elastic Agent Builder and MCP
+## Downloading and scraping a permitted corpus
 
-In Kibana, create a **NETwork Concierge** Agent Builder agent with read-only tools over the `network_user_vectors` and `network_knowledge` indices. Suggested instruction:
+Administrative imports require an acquisition manifest, an exact hostname allowlist, a license and an acquisition basis. The adapter pins validated public DNS addresses, revalidates every redirect, rejects credentials/query strings, bounds size/time, checks content type, and rate-limits each source host. No external import can create an opted-in attendee. HTML extraction excludes scripts and styles. JSON Resume imports omit basics/contact/address/reference fields.
 
-> Search only opt-in conference data. Ground every recommendation in retrieved evidence. Never expose contact values or imply expertise absent from a source. Offer a connection request rather than contact information.
+The checked-in [example manifest](data/permitted_sources.example.json) downloads a licensed **synthetic** JSON Resume fixture. It verifies actual HTTP acquisition; it is not evidence of recruiting or processing a real attendee. Add only permissioned sources for real corpus development. Keep private manifests outside Git.
 
-Enable the Agent Builder MCP endpoint, set `KIBANA_URL`, and add the native endpoint shown in `mcp/elastic-agent-builder.example.json` to your MCP host. For a self-contained fallback, run:
-
-```bash
-python mcp/server.py
+```powershell
+$env:RESUME_SOURCE_HOSTS='["raw.githubusercontent.com"]'
+.venv-next\Scripts\python -m scripts.import_resumes --manifest data/permitted_sources.example.json
 ```
 
-It exposes `find_conference_expert` (live hybrid retrieval) and `conference_intelligence` (ES|QL) as read-only tools.
+Preserve attribution for the MIT-licensed example; see [third-party notice](docs/JSON_RESUME_NOTICE.md). Other manifests can use `source_type: web` for permitted HTML or `download` for PDF/DOCX/TXT, and `format: jsonresume` for JSON Resume. Imports go only to sources, restricted structured records/vectors and ingestion jobs.
 
-### Sponsor-intent query rule (stretch)
+## Hybrid retrieval and Elastic agent
 
-Create an Elastic query rule that pins approved sponsor office-hours cards only when the client passes `connection_intent: sponsor`. Never pin sponsors for ordinary peer or mentor requests. This shows a creative use of query rules while preserving attendee agency.
+Both RRF branches, lexical fallback and memory mode enforce event, consent, indexed state, expiry, roles, formats, availability and explicit sponsor intent. Search excludes the caller. Evidence also rechecks the current public card. Legacy evidence missing visibility metadata fails closed. Fallbacks are labeled in the UI and counted; a failed Elastic lexical query never returns unrelated memory records.
 
-## Dash0: observability track
+`/api/ask` uses the [Elastic Converse API](https://www.elastic.co/docs/api/doc/kibana/operation/operation-post-agent-builder-converse), normalizes `response.message`, and returns source IDs and excerpts. It falls back explicitly to retrieval-only when disabled or unavailable. OpenAI generation has been removed from the application path.
 
-Set the two `OTEL_*` values from Dash0. The app emits FastAPI request traces plus `network.hybrid_search`, `network.rag_answer`, search-latency, search-request, and connection-request telemetry. For the demo, create an intentional slow query in a feature branch, inspect it with Agent0, fix it, and retain the trace/PR as evidence.
+Render and review the fixed event-scoped [ES|QL tool definitions](https://www.elastic.co/docs/explore-analyze/ai-features/agent-builder/tools/esql-tools):
 
-## Radar: Kubernetes / AI SRE track
-
-Build and publish the image, then deploy only the application to Radar’s cluster; **do not self-host Elasticsearch**.
-
-```bash
-docker build -t ghcr.io/YOUR_ORG/network-concierge:demo .
-docker push ghcr.io/YOUR_ORG/network-concierge:demo
-kubectl create secret generic network-concierge-secrets --from-env-file=.env
-helm upgrade --install network-concierge deploy/helm/network-concierge \
-  --set image.repository=ghcr.io/YOUR_ORG/network-concierge --set image.tag=demo \
-  --set ingress.enabled=true --set ingress.host=YOUR_PUBLIC_HOST
+```powershell
+.venv-next\Scripts\python -m scripts.provision_agent
+# Set KIBANA_URL and a provisioning key, then create the tools and agent:
+.venv-next\Scripts\python -m scripts.provision_agent --apply
 ```
 
-Use Radar during deployment and perform one real, reversible investigation—for example, deploy a branch with a deliberately incorrect non-secret environment value that makes `/readyz` fail, investigate it, then fix it through a reviewed PR.
+Tools are `network.find_people`, `network.find_sponsors` and `network.conference_skill_summary`. Runtime disables built-in Elastic capabilities/skills, restricts tools, verifies each query matches this event/schema, and excludes sponsor search unless requested. Provisioning currently creates definitions; it stops on existing IDs instead of overwriting them. Use a separate runtime key and set `AGENT_BUILDER_ENABLED=true` after validation. No session shares a conversation ID. Treat source text as untrusted evidence; model instructions supplement enforced access boundaries.
 
-## Gitar / Sonar: review track
+The [native MCP configuration](mcp/elastic-agent-builder.example.json) connects a coding host to the Elastic MCP endpoint with a scoped API key. The local stdio fallback runs `python mcp/server.py` as in the example configuration. It calls the participant API using `NETWORK_API_URL` and a privately supplied `NETWORK_SESSION_TOKEN`, so it inherits event and consent policies. Never place the session token in committed MCP configuration. Radar MCP stays outside attendee tooling. Schedule tools will be added with the later schedule package.
 
-Install Gitar on this repository before opening feature PRs. `.gitar/review/instructions.md` contains privacy, consent, telemetry, and API-contract rules. Make the work visible through real PRs:
+Import [the queue audit Workflow](deploy/elastic/ingestion-queue-audit.yaml) in the target Kibana editor, adapt the alias/event if configured differently, validate and run it. The worker already claims approvals from Elastic; the audit demonstrates a native action. A successful live Workflow execution remains an explicit acceptance gate.
 
-1. Resume parsing + private/public index boundary.
-2. Hybrid search, RAG, and QR connection flow.
-3. Kubernetes deployment + telemetry.
+## Dash0 and Radar
 
-Create one genuine failing privacy or API-contract test, let Gitar diagnose it, verify the patch, and keep the PR/CI record for judges. Disclose use of coding agents in the project submission and make sure you can explain every component.
+Set `DASH0_OTLP_HTTP_BASE`, `DASH0_AUTH_TOKEN` and `DASH0_DATASET` from Dash0. Exporters append `/v1/traces` and `/v1/metrics` separately, configure once per process, and flush/shut down at termination. API and worker have distinct service names; trace context travels in queued jobs. No HTTP client auto instrumentation is enabled. Automatic FastAPI spans exclude token paths; run Uvicorn with `--no-access-log` so token URLs stay out of access logs.
 
-## Verification
+Metrics include search requests/latency, lexical fallbacks, ingestion failures, agent errors, accepted introductions and publication/agent latency. See the [dashboard recipe](docs/OPERATIONS.md). Local trace tests verify exclusion of profile contents, chat text, contacts, cookies and QR tokens. Actual export to a deployed Dash0 dataset still requires verification.
+
+Build and publish the image through your normal registry workflow, inspect the assigned Radar namespace, and supply separate existing API/worker Secrets:
 
 ```bash
-python -m compileall app mcp scripts
-pytest -q
 helm lint deploy/helm/network-concierge
+helm template network-concierge deploy/helm/network-concierge --namespace TEAM_NAMESPACE
+helm upgrade --install network-concierge deploy/helm/network-concierge \
+  --namespace TEAM_NAMESPACE \
+  --set image.repository=ghcr.io/TEAM/network-concierge --set image.tag=COMMIT_SHA \
+  --set existingSecret=network-concierge-secrets \
+  --set worker.existingSecret=network-worker-secrets \
+  --set ingress.enabled=true --set ingress.host=PUBLIC_HOST \
+  --set ingress.tls[0].secretName=TLS_SECRET --set ingress.tls[0].hosts[0]=PUBLIC_HOST \
+  --atomic --wait --timeout 180s
 ```
 
-## Deliberate cut line
+The chart renders TLS, non-root read-only API/worker deployments, writable bounded temporary volumes, readiness/liveness checks, resource limits, image-pull secrets and selectors that route traffic only to the API. Both processes use managed Elasticsearch. The worker requires Elastic and does not run as a separate process in memory mode (`--set worker.enabled=false`). Existing 0.1.0 releases need a fresh release name or a planned deployment replacement because selector labels changed; preserve the healthy release until the replacement is verified.
 
-Do not add chat, automatic recruiting, social scraping, demographic inference, real-time location tracking, or a generalized multi-conference admin portal. The complete demo loop is: **QR opt-in → automated resume enrichment → Elastic hybrid/RAG answer → mutual QR intro → observable Kubernetes deployment.**
+## Checks and evidence
+
+```powershell
+.venv-next\Scripts\python -m compileall -q app mcp scripts
+.venv-next\Scripts\python -m pytest -q
+node --check app/static/app.js
+helm lint deploy/helm/network-concierge
+# Uses live Elastic; creates then revokes a labeled synthetic card:
+.venv-next\Scripts\python -m scripts.smoke_elastic
+```
+
+CI runs Python checks, Helm lint/render assertions and an image build. Sonar/Gitar review instructions remain in `.gitar/review/instructions.md`; configuration and passing local tests do not establish a completed sponsor review. Retain actual PR/review, Workflow, Radar and Dash0 records in the [evidence checklist](docs/IMPLEMENTATION_STATUS.md). No public deployment or sponsor account setup is claimed by this source change.

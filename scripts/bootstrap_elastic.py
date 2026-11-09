@@ -14,9 +14,11 @@ async def main() -> None:
     store = NetworkStore(settings)
     await store.start()
     try:
+        await store.ensure_indices()
         records = json.loads(Path("data/seed_profiles.json").read_text())
         print(f"Seeded {await store.seed(records)} demo profiles into {settings.elasticsearch_index_prefix}_* indices.")
-        print("Next: start the app, scan the event QR, and collect explicit attendee consent.")
+        print(f"Pinned inference endpoint inspected: {settings.elastic_inference_id}")
+        print("Next: start API and worker, scan the event QR, and collect explicit attendee consent.")
     finally:
         await store.close()
 

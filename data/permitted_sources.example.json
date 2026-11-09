@@ -1,0 +1,9 @@
+[
+  {
+    "url": "https://raw.githubusercontent.com/jsonresume/resume-schema/v1.0.0/sample.resume.json",
+    "source_type": "download",
+    "format": "jsonresume",
+    "acquisition_basis": "public_licensed_example_resume; synthetic fixture, not an attendee",
+    "license": "MIT; Copyright 2024 JSON Resume; https://raw.githubusercontent.com/jsonresume/resume-schema/master/LICENSE.md"
+  }
+]

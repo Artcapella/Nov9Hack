@@ -12,6 +12,14 @@ ingress:
   host: network.example.com
   tls: []
 existingSecret: network-concierge-secrets
+imagePullSecrets: []
+worker:
+  enabled: true
+  replicaCount: 1
+  existingSecret: network-worker-secrets
+  resources:
+    requests: { cpu: 100m, memory: 256Mi }
+    limits: { cpu: 500m, memory: 512Mi }
 resources:
   requests:
     cpu: 100m

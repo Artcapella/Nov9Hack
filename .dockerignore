@@ -4,3 +4,7 @@
 __pycache__
 *.pyc
 *.zip
+.venv
+.venv-next
+.tools
+*.manifest.private.json

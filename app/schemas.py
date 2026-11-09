@@ -1,26 +1,39 @@
 from datetime import datetime
-from typing import Literal
+from typing import Annotated, Literal
 
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, EmailStr, Field, field_validator
 
 
 ConnectionFormat = Literal["async", "one_to_one", "small_group"]
 Role = Literal["peer", "mentor", "mentee", "sponsor", "recruiter"]
+Facet = Annotated[str, Field(min_length=1, max_length=100)]
 
 
 class ProfileCreate(BaseModel):
     display_name: str = Field(min_length=2, max_length=80)
     headline: str = Field(default="", max_length=160)
     public_summary: str = Field(default="", max_length=1600)
-    can_help_with: list[str] = Field(default_factory=list)
-    looking_for: list[str] = Field(default_factory=list)
-    roles: list[Role] = Field(default_factory=lambda: ["peer"])
-    formats: list[ConnectionFormat] = Field(default_factory=lambda: ["async"])
+    approved_experience: str = Field(default="", max_length=2400)
+    draft_id: str | None = None
+    can_help_with: list[Facet] = Field(default_factory=list, max_length=30)
+    looking_for: list[Facet] = Field(default_factory=list, max_length=30)
+    roles: list[Role] = Field(default_factory=lambda: ["peer"], min_length=1, max_length=5)
+    formats: list[ConnectionFormat] = Field(default_factory=lambda: ["async"], min_length=1, max_length=3)
     availability: str = Field(default="Available during the event", max_length=160)
     email: EmailStr | None = None
     linkedin_url: str | None = Field(default=None, max_length=500)
     consent_to_discover: bool
     consent_to_resume_parsing: bool = False
+
+    @field_validator("linkedin_url")
+    @classmethod
+    def safe_linkedin(cls, value):
+        from urllib.parse import urlsplit
+        if value:
+            url = urlsplit(value)
+            if url.scheme != "https" or url.hostname not in {"linkedin.com", "www.linkedin.com"} or not url.path.startswith("/in/") or url.username or url.password:
+                raise ValueError("Use an https://linkedin.com/in/ profile URL")
+        return value
 
 
 class PublicProfile(BaseModel):
@@ -28,6 +41,7 @@ class PublicProfile(BaseModel):
     display_name: str
     headline: str
     public_summary: str
+    approved_experience: str
     can_help_with: list[str]
     looking_for: list[str]
     roles: list[str]
@@ -44,15 +58,18 @@ class SearchRequest(BaseModel):
     available_now: bool = False
     sponsor_intent: bool = False
     size: int = Field(default=5, ge=1, le=10)
+    mode: Literal["hybrid", "keyword", "semantic"] = "hybrid"
 
 
 class SearchHit(PublicProfile):
     score: float | None = None
     match_reasons: list[str] = Field(default_factory=list)
+    explanation: dict = Field(default_factory=dict)
 
 
 class AskRequest(BaseModel):
     question: str = Field(min_length=3, max_length=700)
+    sponsor_intent: bool = False
 
 
 class ConnectionRequestCreate(BaseModel):

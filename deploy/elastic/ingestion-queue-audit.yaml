@@ -1,0 +1,43 @@
+version: "1"
+name: NETwork opt-in pipeline audit
+description: Event-scoped audit of the opt-in resume pipeline (queued jobs and live discoverable cards). Returns counts and states only, never resume text or contacts.
+enabled: true
+tags: [network, privacy, ingestion]
+triggers:
+  - type: manual
+  - type: scheduled
+    with:
+      every: 15m
+steps:
+  - name: inspect_pending_jobs
+    type: elasticsearch.search
+    with:
+      index: network_ingestion_jobs_v3
+      size: 10
+      _source: [job_id, kind, state, attempts, created_at]
+      query:
+        bool:
+          filter:
+            - term: { event_id: cnh-2026 }
+            - terms: { state: [queued, leased, failed] }
+  - name: count_discoverable_cards
+    type: elasticsearch.search
+    with:
+      index: network_user_vectors_v3
+      size: 0
+      track_total_hits: true
+      query:
+        bool:
+          filter:
+            - term: { event_id: cnh-2026 }
+            # Workflow schema accepts string term values; Elasticsearch coerces "true" for boolean fields.
+            - term: { consent_to_discover: "true" }
+            - term: { state: indexed }
+            - range: { discoverable_until: { gt: now } }
+      aggs:
+        roles:
+          terms: { field: roles, size: 10 }
+  - name: report
+    type: console
+    with:
+      message: "NETwork audit: {{ steps.inspect_pending_jobs.output.hits.total.value }} pending/failed jobs; {{ steps.count_discoverable_cards.output.hits.total.value }} discoverable opted-in cards."

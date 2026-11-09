@@ -1,39 +1,43 @@
-"""Read-only MCP tools over the live NETwork Elastic Cloud data.
+"""Local stdio MCP fallback. Uses a participant session and the API's boundaries.
 
-Use this as a demo fallback or connect an Elastic Agent Builder agent through
-its native MCP endpoint for the sponsor-facing version.
+The native Elastic MCP endpoint remains the preferred coding-host integration.
+Do not expose this fallback as an unauthenticated remote HTTP service.
 """
 import os
 
-from elasticsearch import Elasticsearch
+import httpx
 from fastmcp import FastMCP
 
-app = FastMCP("NETwork Elastic tools")
-client = Elasticsearch(os.environ["ELASTICSEARCH_URL"], api_key=os.environ["ELASTICSEARCH_API_KEY"])
-PREFIX = os.getenv("ELASTICSEARCH_INDEX_PREFIX", "network")
+app = FastMCP("NETwork scoped tools")
+
+
+async def request_api(path: str, body: dict | None = None):
+    token = os.environ.get("NETWORK_SESSION_TOKEN")
+    if not token:
+        raise ValueError("Use a local participant session via NETWORK_SESSION_TOKEN")
+    base = os.environ.get("NETWORK_API_URL", "http://localhost:8000").rstrip("/")
+    if not base.startswith("https://") and base not in {"http://localhost:8000", "http://127.0.0.1:8000"}:
+        raise ValueError("Remote API connections require HTTPS")
+    async with httpx.AsyncClient(base_url=base, cookies={"network_session": token},
+                                  headers={"X-NETwork-Request": "1"}, timeout=60) as client:
+        response = await client.post(path, json=body) if body is not None else await client.get(path)
+        if response.status_code >= 400:
+            raise ValueError("NETwork request denied or unavailable")
+        return response.json()
 
 
 @app.tool()
-def find_conference_expert(question: str, limit: int = 5) -> list[dict]:
-    """Hybrid-search opted-in attendee and sponsor expertise. Never returns contacts."""
-    filters = [{"term": {"consent_to_discover": True}}, {"range": {"discoverable_until": {"gte": "now"}}}]
-    response = client.search(
-        index=f"{PREFIX}_user_vectors", size=limit,
-        retriever={"rrf": {"retrievers": [
-            {"standard": {"query": {"bool": {"must": [{"multi_match": {"query": question, "fields": ["profile_text^3", "headline", "can_help_with"]}}], "filter": filters}}}},
-            {"standard": {"query": {"bool": {"must": [{"match": {"profile_semantic": question}}], "filter": filters}}}},
-        ]}},
-    )
-    return [{"name": hit["_source"]["display_name"], "headline": hit["_source"]["headline"], "can_help_with": hit["_source"]["can_help_with"], "availability": hit["_source"]["availability"]} for hit in response["hits"]["hits"]]
+async def find_conference_expert(question: str, limit: int = 5) -> list[dict]:
+    """Search approved event attendees. Never returns contacts or hidden resume text."""
+    return await request_api("/api/search", {"question": question, "size": max(1, min(limit, 10))})
 
 
 @app.tool()
-def conference_intelligence() -> list[dict]:
-    """Use ES|QL to surface which opted-in skills are most available at the event."""
-    query = f'''FROM {PREFIX}_user_vectors | WHERE consent_to_discover == true | STATS attendees = COUNT(*) BY availability | SORT attendees DESC'''
-    response = client.esql.query(query=query)
-    columns = [column["name"] for column in response["columns"]]
-    return [dict(zip(columns, row, strict=True)) for row in response["values"]]
+async def find_sponsors(question: str, limit: int = 5) -> list[dict]:
+    """Explicitly include approved sponsor/recruiter cards for this event."""
+    results = await request_api("/api/search", {"question": question, "size": max(1, min(limit, 10)),
+                                               "roles": ["sponsor", "recruiter"], "sponsor_intent": True})
+    return results
 
 
 if __name__ == "__main__":
