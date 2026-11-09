@@ -16,7 +16,7 @@ Local validation: 64 passing pytest cases, Python compilation, JavaScript syntax
 | Elastic Workflow | Event-scoped native queue audit YAML supplied | Validate/run in target editor; record successful execution |
 | Radar | Helm API + worker + TLS + separate Secrets + probes/resources/non-root containers; local lint/render checks pass | Assigned cluster/namespace, image publication, healthy HTTPS deployment and actual Radar investigation |
 | Dash0 | Separate OTLP signal endpoints, dataset/auth headers, process lifecycle, queue trace context, content-free spans and bounded metrics; exported local test spans inspected | Configure dataset/token, inspect a trace from a deployed pod, save dashboard link |
-| Sonar / Gitar | Existing repository review instructions retained; CI now includes Helm checks and image build; regression tests cover actual priority issues | Publish requested PR(s), obtain review, verify findings and record links |
+| Gitar | Existing repository review instructions retained; CI now includes Helm checks and image build; regression tests cover actual priority issues | Publish requested PR(s), obtain review, verify findings and record links |
 | Browser flow | Local browser checked joining, indexed owned card, explicit memory mode, labeled synthetic results, source excerpts and explicit retrieval-only status; script cache versioned | Second-device deployed journey |
 | Docker | Build configured in CI | Local daemon unavailable; image build not run locally |
 
@@ -39,5 +39,5 @@ Before submission, fill actual links and timestamps below. Never substitute a lo
 - Workflow execution: `network-opt-in-pipeline-audit-1`, execution `ec9727b0-6601-48ee-b91c-bd8cd2d66fc3`, completed 2026-11-09T20:39Z ([evidence](evidence/elastic-workflow-and-tools.json)).
 - Radar HTTPS URL and investigation: pending.
 - Dash0: `network-api` traces and `network.search.requests` metrics received in us-west-2 (2026-11-09, local run); deployed-pod traces carry k8s resource attributes.
-- Sonar/Gitar PR/review/fix commits: pending.
+- Gitar PR/review/fix commits: pending.
 - Public repository and three-minute video/submission receipt: pending.

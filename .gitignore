@@ -9,4 +9,3 @@ __pycache__/
 *.zip
 .env.api
 .env.worker
-coverage.xml

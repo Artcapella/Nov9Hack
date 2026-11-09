@@ -8,7 +8,7 @@ This implementation delivers the plan's next foundation stage: secure contact/co
 **Elastic** (Serverless, Jina embeddings, RRF hybrid search, an Agent Builder agent with ES|QL tools, a Workflow and MCP),
 **Radar** (Helm deployment to Kubernetes, watched by the Radar agent),
 **Dash0** (OTLP traces and metrics from the API and worker) and
-**Sonar/Gitar** (privacy-focused PR review).
+**Gitar** (privacy-focused PR review).
 
 ## Run locally
 
@@ -136,4 +136,4 @@ helm lint deploy/helm/network-concierge
 .venv-next\Scripts\python -m scripts.smoke_elastic
 ```
 
-CI (actions pinned to commit SHAs) runs a gitleaks full-history secret scan, pip-audit, Python checks with coverage, Helm lint/render assertions, an image build and, when `SONAR_TOKEN` is configured, a SonarQube Cloud scan with the quality gate ([sonar-project.properties](sonar-project.properties)). Sonar/Gitar review instructions remain in `.gitar/review/instructions.md`; configuration and passing local tests do not establish a completed sponsor review. Retain actual PR/review, Workflow, Radar and Dash0 records in the [evidence checklist](docs/IMPLEMENTATION_STATUS.md). No public deployment or sponsor account setup is claimed by this source change.
+CI (actions pinned to commit SHAs) runs a gitleaks full-history secret scan, pip-audit, Python checks with coverage, Helm lint/render assertions, an image build. Gitar reviews every pull request against `.gitar/review/instructions.md`; configuration and passing local tests do not establish a completed sponsor review. Retain actual PR/review, Workflow, Radar and Dash0 records in the [evidence checklist](docs/IMPLEMENTATION_STATUS.md). No public deployment or sponsor account setup is claimed by this source change.

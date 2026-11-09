@@ -28,4 +28,4 @@ Metric naming may be normalized by the backend; select the exported instruments 
 
 For Radar, inspect namespace, ingress class/TLS handling, registry permissions and quotas before applying Helm values. Use a fresh release name when transitioning from chart 0.1.0; its selectors differ. Check rollout for both deployments and verify HTTPS on another device. Run Radar diagnosis against actual workload events and retain the investigation link; do not fault the healthy application just for a demo.
 
-For Gitar/Sonar, retain an actual PR review of the negative consent/contact tests and concurrency boundaries, then verify any findings. This change does not create or publish a PR automatically.
+For Gitar, retain an actual PR review of the negative consent/contact tests and concurrency boundaries, then verify any findings. This change does not create or publish a PR automatically.
