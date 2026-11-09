@@ -1598,9 +1598,9 @@ renderSynthToggle();
    presentational; everything degrades to static under reduced motion.
    ====================================================================== */
 function createMotion() {
-  const backdrop = $('#backdrop'), hero = $('.hero'), tabs = $('.tabs'), lens = $('.tab-lens'), pulse = $('#bg-pulse'), light = $('#bg-light');
+  const backdrop = $('#backdrop'), shell = $('.shell'), hero = $('.hero'), tabs = $('.tabs'), lens = $('.tab-lens'), pulse = $('#bg-pulse'), light = $('#bg-light');
   const order = [...tabs.querySelectorAll('.tab')].map((t) => t.dataset.panel);
-  let view = Math.max(0, order.indexOf($('.shell').dataset.panel));
+  let view = Math.max(0, order.indexOf(shell.dataset.panel));
   backdrop.style.setProperty('--view', view);
 
   function placeLens(morph) {
@@ -1620,7 +1620,7 @@ function createMotion() {
   function onView(name) {
     const next = order.indexOf(name); if (next < 0) return;
     const moved = next !== view;
-    $('.shell').style.setProperty('--dir', next >= view ? 1 : -1);
+    shell.style.setProperty('--dir', next >= view ? 1 : -1);
     view = next; backdrop.style.setProperty('--view', next);
     placeLens(moved);
     if (moved && !reduceMotion) pulse.animate([{opacity:.55, transform:'scale(.25)'}, {opacity:0, transform:'scale(2.4)'}], {duration:1500, easing:'cubic-bezier(.16,1,.3,1)'});
@@ -1630,9 +1630,15 @@ function createMotion() {
   let scrollQueued = false;
   const applyScroll = () => {
     scrollQueued = false;
-    const y = Math.round(scrollY);
-    if (!reduceMotion) { backdrop.style.setProperty('--scroll', y); hero.style.setProperty('--scroll', y); }
-    tabs.classList.toggle('stuck', y > 0 && tabs.getBoundingClientRect().top <= parseFloat(getComputedStyle(tabs).top) + .5);
+    // Read layout first, then write, so a scroll frame never forces a second layout.
+    const y = Math.round(scrollY), heroTop = hero.offsetTop + shell.offsetTop;
+    const stuck = y > 0 && tabs.getBoundingClientRect().top <= parseFloat(getComputedStyle(tabs).top) + .5;
+    if (!reduceMotion) {
+      backdrop.style.setProperty('--scroll', y);
+      // The hero's parallax starts only once the hero itself nears the top (the card status can sit above it).
+      hero.style.setProperty('--scroll', Math.max(0, y - heroTop + 110));
+    }
+    tabs.classList.toggle('stuck', stuck);
   };
   addEventListener('scroll', () => { if (!scrollQueued) { scrollQueued = true; requestAnimationFrame(applyScroll); } }, {passive:true});
   applyScroll();

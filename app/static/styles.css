@@ -631,7 +631,8 @@ body { padding-left: env(safe-area-inset-left); padding-right: env(safe-area-ins
 @keyframes drop-in { from { opacity: 0; transform: translateY(-14px) scale(.98); filter: blur(6px); } }
 
 /* Hero: line-by-line reveal, a slow light sweep across the type, and a scroll parallax */
-.hero { --scroll: 0; transform: translate3d(0, calc(var(--scroll) * .22px), 0); opacity: clamp(0, 1 - var(--scroll) / 620, 1); }
+/* --scroll here is px scrolled past the hero's own top; .14 × 440 ≈ 60px of drift, inside the hero's 88px bottom padding */
+.hero { --scroll: 0; transform: translate3d(0, calc(var(--scroll) * .14px), 0); opacity: clamp(0, 1 - var(--scroll) / 440, 1); }
 .hero .display { background: none; color: var(--ink); }
 .display .line { display: block; overflow: hidden; padding: .04em 0 .2em; margin: -.04em 0 -.2em; }
 .display .line > span { display: inline-block; padding-bottom: .16em; margin-bottom: -.16em; color: transparent; -webkit-background-clip: text; background-clip: text;
