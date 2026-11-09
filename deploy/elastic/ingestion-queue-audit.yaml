@@ -1,8 +1,8 @@
 version: "1"
 name: NETwork opt-in pipeline audit
-description: Event-scoped audit of the opt-in resume pipeline (queued jobs and live discoverable cards). Returns counts and states only, never resume text or contacts.
+description: Event-scoped audit of the opt-in resume pipeline (queued jobs and live discoverable cards) plus abuse signals (interaction, introduction and session bursts). Returns counts, states and pseudonymous ids only, never resume text, messages or contacts.
 enabled: true
-tags: [network, privacy, ingestion]
+tags: [network, privacy, ingestion, security]
 triggers:
   - type: manual
   - type: scheduled
@@ -38,7 +38,51 @@ steps:
       aggs:
         roles:
           terms: { field: roles, size: 10 }
+  # Abuse signals (counts and pseudonymous profile ids only). The API rate-limits per session; these
+  # catch slow, distributed or multi-session abuse that per-client budgets cannot see.
+  - name: interaction_bursts
+    type: elasticsearch.search
+    with:
+      index: network_interactions_v3
+      size: 0
+      track_total_hits: true
+      query:
+        bool:
+          filter:
+            - term: { event_id: cnh-2026 }
+            - range: { last_at: { gte: now-15m } }
+      aggs:
+        heavy_actors:
+          terms: { field: actor, size: 5, min_doc_count: 25 }
+        by_kind:
+          terms: { field: kind, size: 4 }
+  - name: introduction_bursts
+    type: elasticsearch.search
+    with:
+      index: network_connections_v3
+      size: 0
+      track_total_hits: true
+      query:
+        bool:
+          filter:
+            - term: { event_id: cnh-2026 }
+            - range: { created_at: { gte: now-15m } }
+      aggs:
+        heavy_requesters:
+          terms: { field: requester_profile_id, size: 5, min_doc_count: 8 }
+  - name: new_sessions
+    type: elasticsearch.search
+    with:
+      index: network_sessions_v3
+      size: 0
+      track_total_hits: true
+      query:
+        bool:
+          filter:
+            - term: { event_id: cnh-2026 }
+            # Sessions last SESSION_HOURS (24 h): one expiring after now+23h45m was created in the last 15 min.
+            - range: { expires_at: { gte: now+1425m } }
   - name: report
     type: console
     with:
-      message: "NETwork audit: {{ steps.inspect_pending_jobs.output.hits.total.value }} pending/failed jobs; {{ steps.count_discoverable_cards.output.hits.total.value }} discoverable opted-in cards."
+      message: "NETwork audit: {{ steps.inspect_pending_jobs.output.hits.total.value }} pending/failed jobs; {{ steps.count_discoverable_cards.output.hits.total.value }} discoverable opted-in cards. Last 15 min: {{ steps.interaction_bursts.output.hits.total.value }} interaction records, {{ steps.introduction_bursts.output.hits.total.value }} introductions, {{ steps.new_sessions.output.hits.total.value }} new sessions (heavy actors/requesters are in the step aggregations)."

@@ -1,0 +1,64 @@
+# Dash0 check rules for NETwork, as a PrometheusRule the Dash0 Kubernetes operator syncs into Dash0 alerting.
+# Apply in the cluster that runs the operator:   kubectl apply -n network -f deploy/dash0/check-rules.yaml
+# Or paste each `expr` into Dash0 > Alerting > Check rules (PromQL). Metric names are the ones Dash0
+# derives from the app's OTel instruments (app/telemetry.py), e.g. network.security.rejections ->
+# network_security_rejections_total. Labels never carry user content: rule names, routes, outcomes only.
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: network-concierge-checks
+  labels: { app.kubernetes.io/name: network-concierge }
+spec:
+  groups:
+    - name: network-security
+      interval: 1m
+      rules:
+        - alert: NetworkRateLimitSpike
+          expr: sum by (reason) (increase(network_security_rejections_total{reason=~"rate_limit:.*"}[5m])) > 20
+          for: 0m
+          labels: { severity: warning }
+          annotations:
+            summary: "Clients are hitting the {{ $labels.reason }} budget"
+            description: "{{ $value }} requests were refused with 429 in 5 minutes. Check for scripted abuse of costly routes (Agent Builder, inference, resume parsing)."
+        - alert: NetworkRateLimitFlood
+          expr: sum(increase(network_security_rejections_total{reason=~"rate_limit:.*"}[5m])) > 200
+          labels: { severity: critical }
+          annotations:
+            summary: "Sustained request flood against the public event URL"
+            description: "{{ $value }} rate-limited requests in 5 minutes."
+        - alert: NetworkCrossSiteRequests
+          expr: sum(increase(network_security_rejections_total{reason="csrf"}[5m])) > 5
+          labels: { severity: warning }
+          annotations:
+            summary: "Cross-site or header-less writes were refused"
+            description: "{{ $value }} state-changing requests lacked the same-origin header in 5 minutes."
+        - alert: NetworkForbiddenProbing
+          expr: sum by (route) (increase(network_security_rejections_total{reason="forbidden", route=~".*connection-requests.*|/api/ops/.*"}[10m])) > 10
+          labels: { severity: warning }
+          annotations:
+            summary: "Repeated 403s on {{ $labels.route }}"
+            description: "Someone may be guessing introduction tokens or the organizer token."
+    - name: network-reliability
+      interval: 1m
+      rules:
+        - alert: NetworkSemanticFallbacks
+          expr: sum(increase(network_retrieval_fallbacks_total[10m])) > 5
+          labels: { severity: warning }
+          annotations:
+            summary: "Jina inference is failing; search fell back to lexical"
+        - alert: NetworkAgentBuilderErrors
+          expr: sum(increase(network_agent_errors_total[10m])) > 3
+          labels: { severity: warning }
+          annotations:
+            summary: "Elastic Agent Builder calls are failing; the concierge is answering from evidence only"
+        - alert: NetworkIngestionFailed
+          expr: sum(increase(network_ingestion_failures_total{outcome="failed"}[15m])) > 0
+          labels: { severity: critical }
+          annotations:
+            summary: "An opted-in card exhausted its publication retries"
+        - alert: NetworkSearchSlow
+          expr: histogram_quantile(0.95, sum by (le) (rate(network_search_latency_milliseconds_bucket[5m]))) > 3000
+          for: 5m
+          labels: { severity: warning }
+          annotations:
+            summary: "p95 search latency above 3 s"

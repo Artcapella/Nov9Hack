@@ -1,7 +1,12 @@
-"""Bounded, content-free application telemetry; one provider pair per process."""
+"""Bounded, content-free application telemetry; one provider set per process."""
+import logging
 from urllib.parse import unquote
 
 from opentelemetry import metrics, trace
+from opentelemetry._logs import set_logger_provider
+from opentelemetry.exporter.otlp.proto.http._log_exporter import OTLPLogExporter
+from opentelemetry.sdk._logs import LoggerProvider, LoggingHandler
+from opentelemetry.sdk._logs.export import BatchLogRecordProcessor
 from opentelemetry.exporter.otlp.proto.http.metric_exporter import OTLPMetricExporter
 from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
 from opentelemetry.instrumentation.fastapi import FastAPIInstrumentor
@@ -22,6 +27,8 @@ accepted_counter = meter.create_counter("network.connection.accepted", unit="1")
 ingestion_failures = meter.create_counter("network.ingestion.failures", unit="1")
 agent_errors = meter.create_counter("network.agent.errors", unit="1")
 operation_latency = meter.create_histogram("network.operation.latency", unit="ms")
+# Denied requests by reason (csrf, rate_limit:<rule>, unauthenticated, forbidden) and route template. Alerted on in Dash0.
+security_rejections = meter.create_counter("network.security.rejections", unit="1")
 _providers = None
 
 
@@ -57,7 +64,17 @@ def configure_telemetry(app, settings: Settings):
         mp = MeterProvider(resource=resource, metric_readers=readers)
         trace.set_tracer_provider(tp)
         metrics.set_meter_provider(mp)
-        _providers = tp, mp
+        providers = [tp, mp]
+        if base:
+            # Application warnings (already content-free: fallbacks, queue retries) also go to Dash0 as OTLP logs,
+            # correlated with the active trace. Only the `app` logger tree: library logs can carry document ids/URLs.
+            lp = LoggerProvider(resource=resource)
+            lp.add_log_record_processor(BatchLogRecordProcessor(OTLPLogExporter(endpoint=base + "/v1/logs", headers=headers)))
+            set_logger_provider(lp)
+            app_logger = logging.getLogger("app")
+            app_logger.addHandler(LoggingHandler(level=logging.WARNING, logger_provider=lp))
+            providers.append(lp)
+        _providers = tuple(providers)
     if app is not None:
         instrument_app(app)
     return _providers

@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # Deploy NETwork (API + worker) to the current kubectl context and connect it to Radar Cloud.
 #
-#   RADAR_TOKEN=rhc_... RADAR_CLUSTER=<cluster-id> scripts/deploy_k8s.sh
+#   python -m scripts.provision_keys --apply      # least-privilege Elastic keys -> .env.api / .env.worker
+#   RADAR_TOKEN=rhc_... RADAR_CLUSTER=<cluster-id> CLIENT_IP_HEADER=cf-connecting-ip scripts/deploy_k8s.sh
 #
 # Secrets are read from the local, gitignored .env and stored only as Kubernetes Secrets.
 # IMAGE defaults to the locally built network-concierge:dev (Docker Desktop shares its image store).
@@ -17,16 +18,32 @@ HELM="${HELM:-$(command -v helm || echo .tools/helm/windows-amd64/helm.exe)}"
 
 [ -f .env ] || { echo "Missing .env" >&2; exit 1; }
 
-# 1. Application secrets (API and worker get separate Secret objects, as the chart expects).
-env_file="$(mktemp)"
-trap 'rm -f "$env_file"' EXIT
-grep -E '^[A-Z0-9_]+=' .env | grep -vE '^(PUBLIC_BASE_URL|CORS_ORIGINS|OTEL_SERVICE_NAME)=' > "$env_file"
-printf 'PUBLIC_BASE_URL=%s\nCORS_ORIGINS=%s\nOTEL_SERVICE_NAME=network-api\n' "$PUBLIC_BASE_URL" "$PUBLIC_BASE_URL" >> "$env_file"
+# 1. Application secrets: one Secret per component, each holding only what that process needs.
+#    scripts/provision_keys.py writes .env.api / .env.worker with least-privilege Elastic keys. Without them
+#    the admin key from .env would be deployed, so refuse unless explicitly allowed for a local cluster.
+if [ -f .env.api ] && [ -f .env.worker ]; then
+  api_source=.env.api; worker_source=.env.worker
+elif [ "${ALLOW_ADMIN_KEY:-}" = "1" ]; then
+  echo "WARNING: deploying the admin Elastic key from .env (ALLOW_ADMIN_KEY=1)" >&2
+  api_source=.env; worker_source=.env
+else
+  echo "Run 'python -m scripts.provision_keys --apply' first (or ALLOW_ADMIN_KEY=1 for a throwaway cluster)" >&2
+  exit 1
+fi
+api_env="$(mktemp)"; worker_env="$(mktemp)"
+trap 'rm -f "$api_env" "$worker_env"' EXIT
+EDGE="PUBLIC_BASE_URL|CORS_ORIGINS|OTEL_SERVICE_NAME|NETWORK_ROLE|CLIENT_IP_HEADER"
+grep -E '^[A-Z0-9_]+=' "$api_source" | grep -vE "^($EDGE)=" > "$api_env"
+# The worker never decrypts contacts, serves the ops view or calls Agent Builder.
+grep -E '^[A-Z0-9_]+=' "$worker_source" | grep -vE "^($EDGE|CONTACT_ENCRYPTION_KEY|OPS_TOKEN|AGENT_BUILDER_[A-Z_]+|KIBANA_URL)=" > "$worker_env"
+printf 'PUBLIC_BASE_URL=%s\nCORS_ORIGINS=%s\nOTEL_SERVICE_NAME=network-api\nNETWORK_ROLE=api\n' "$PUBLIC_BASE_URL" "$PUBLIC_BASE_URL" >> "$api_env"
+# Behind a Cloudflare tunnel the edge overwrites cf-connecting-ip, so rate limits see real clients.
+[ -n "${CLIENT_IP_HEADER:-}" ] && printf 'CLIENT_IP_HEADER=%s\n' "$CLIENT_IP_HEADER" >> "$api_env"
+printf 'PUBLIC_BASE_URL=%s\nCORS_ORIGINS=%s\nOTEL_SERVICE_NAME=network-worker\nNETWORK_ROLE=worker\n' "$PUBLIC_BASE_URL" "$PUBLIC_BASE_URL" >> "$worker_env"
 
 kubectl create namespace "$NS" --dry-run=client -o yaml | kubectl apply -f -
-for secret in network-concierge-secrets network-worker-secrets; do
-  kubectl create secret generic "$secret" -n "$NS" --from-env-file="$env_file" --dry-run=client -o yaml | kubectl apply -f -
-done
+kubectl create secret generic network-concierge-secrets -n "$NS" --from-env-file="$api_env" --dry-run=client -o yaml | kubectl apply -f -
+kubectl create secret generic network-worker-secrets -n "$NS" --from-env-file="$worker_env" --dry-run=client -o yaml | kubectl apply -f -
 
 # Docker Desktop's kind-mode node does not share the Docker image store; import the local image.
 if [ "$PULL_POLICY" = "Never" ] && docker inspect desktop-control-plane >/dev/null 2>&1; then

@@ -1,0 +1,39 @@
+{{- $np := .Values.networkPolicy | default dict }}
+{{- if $np.enabled }}
+# API pod: ingress only on the HTTP port. Both pods: egress only to DNS and HTTPS.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "network-concierge.fullname" . }}-api
+  labels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }} }
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }}, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api }
+  policyTypes: [Ingress, Egress]
+  ingress:
+    - ports: [{ protocol: TCP, port: 8000 }]
+  egress:
+    - ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+    - ports:
+      {{- range ($np.egressPorts | default (list 443)) }}
+        - { protocol: TCP, port: {{ . }} }
+      {{- end }}
+---
+# Worker pod: no ingress at all (its probes are exec, not HTTP).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "network-concierge.fullname" . }}-worker
+  labels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }} }
+spec:
+  podSelector:
+    matchLabels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }}, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: worker }
+  policyTypes: [Ingress, Egress]
+  ingress: []
+  egress:
+    - ports: [{ protocol: UDP, port: 53 }, { protocol: TCP, port: 53 }]
+    - ports:
+      {{- range ($np.egressPorts | default (list 443)) }}
+        - { protocol: TCP, port: {{ . }} }
+      {{- end }}
+{{- end }}

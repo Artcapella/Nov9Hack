@@ -4,9 +4,12 @@ Strength grows with the kind of interaction: viewed a profile < attended the sam
 messaged (an introduction request or acceptance) < met in person. One document per
 (actor, target, kind) keeps a count and the last time, so repeated views do not flood the index.
 
-Privacy: profile views are shown only to the two people involved; everyone else sees the
-strongest non-view kind between a pair. Interactions with withdrawn or hidden cards are dropped
-because the graph keeps only links whose endpoints are visible nodes.
+Privacy and integrity: profile views are shown only to the two people involved. A session,
+message or meeting is one person's claim until the other person logs the same kind, so only
+those two see it (`confirmed: false`); everyone else sees only the strongest confirmed kind.
+Introductions record "messaged" in both directions on acceptance, never on request. Interactions
+with withdrawn or hidden cards are dropped because the graph keeps only links whose endpoints are
+visible nodes, and an explicit withdrawal deletes them (NetworkStore.erase_links).
 
 The SynthDemo cohort has no real attendees to interact, so its links are simulated
 deterministically from embedding neighbours and flagged `simulated`.
@@ -62,12 +65,19 @@ async def links(store, viewer_id: str, node_ids: set[str]) -> tuple[list[dict], 
     pairs: dict[tuple[str, str], dict] = {}
     activity = []
     cutoff = datetime.now(UTC).timestamp() - ACTIVITY_SECONDS
-    for doc in await _documents(store):
+    documents = await _documents(store)
+    directed = {(doc["actor"], doc["target"], doc["kind"]) for doc in documents}
+
+    def confirmed(a, b, kind):
+        return (a, b, kind) in directed and (b, a, kind) in directed
+
+    for doc in documents:
         a, b = doc["actor"], doc["target"]
         if a not in node_ids or b not in node_ids:
             continue
         mine = viewer_id in (a, b)
-        if doc["kind"] == "view" and not mine:
+        # Anyone can log a claim about anyone; others see it only once the other person logged the same kind.
+        if not mine and (doc["kind"] == "view" or not confirmed(a, b, doc["kind"])):
             continue
         link = pairs.setdefault(pair_key(a, b), {"a": pair_key(a, b)[0], "b": pair_key(a, b)[1], "kind": doc["kind"], "count": 0,
                                                  "kinds": {}, "last_at": doc["last_at"], "mine": mine})
@@ -83,6 +93,8 @@ async def links(store, viewer_id: str, node_ids: set[str]) -> tuple[list[dict], 
     for link in pairs.values():
         # Strength: the strongest kind, plus a little for repetition and breadth.
         repeat = min(1.0, 0.15 * (link["count"] - 1)) + 0.25 * (len(link["kinds"]) - 1)
+        # Views are private to the pair and need no confirmation; every other kind is mutual or pending.
+        link["confirmed"] = link["kind"] == "view" or confirmed(link["a"], link["b"], link["kind"])
         if not link["mine"]:
             link["kinds"] = {}  # others see only the strongest kind
         out.append({**link, "strength": round(KINDS[link["kind"]] + repeat, 2), "label": LABELS[link["kind"]]})

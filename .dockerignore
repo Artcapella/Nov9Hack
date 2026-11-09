@@ -8,3 +8,5 @@ __pycache__
 .venv-next
 .tools
 *.manifest.private.json
+.env.api
+.env.worker

@@ -7,3 +7,6 @@ __pycache__/
 .pytest_cache/
 *.pyc
 *.zip
+.env.api
+.env.worker
+coverage.xml

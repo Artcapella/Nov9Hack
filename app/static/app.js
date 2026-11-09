@@ -1103,7 +1103,7 @@ async function logInteraction(id, kind, button) {
   const status = $('#sheet-body .ix-status');
   try {
     const result = await post('/api/interactions', {target_id: id, kind});
-    if (button) { button.classList.add('done'); if (status) status.textContent = `Logged · ${result.label}${result.count > 1 ? ` ×${result.count}` : ''}`; }
+    if (button) { button.classList.add('done'); if (status) status.textContent = `Logged · ${result.label}${result.count > 1 ? ` ×${result.count}` : ''}${kind === 'view' ? '' : ' · others see it once they log it too'}`; }
     graphFeed.poke();
   } catch (error) { if (button && status) status.textContent = error.message; }
 }

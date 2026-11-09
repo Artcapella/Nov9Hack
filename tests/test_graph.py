@@ -106,8 +106,13 @@ def test_links_exist_only_after_interaction_and_strength_follows_kind(applicatio
     assert [(e["kind"], e["strength"]) for e in mine["edges"]] == [("view", 1.0)] and mine["activity"]
     assert third.get("/api/graph").json()["edges"] == []  # profile views are private to the pair
     viewer.post("/api/interactions", json={"target_id": theirs["id"], "kind": "meet"})
+    # One person's claim is visible only to the pair, marked unconfirmed, until the other logs it too.
+    assert third.get("/api/graph").json()["edges"] == []
+    pending = viewer.get("/api/graph").json()["edges"][0]
+    assert pending["kind"] == "meet" and pending["confirmed"] is False
+    other.post("/api/interactions", json={"target_id": own["id"], "kind": "meet"})
     link = third.get("/api/graph").json()["edges"][0]
-    assert link["kind"] == "meet" and link["strength"] >= 5 and link["kinds"] == {}
+    assert link["kind"] == "meet" and link["strength"] >= 5 and link["kinds"] == {} and link["confirmed"] is True
     assert viewer.post("/api/interactions", json={"target_id": own["id"], "kind": "meet"}).status_code == 400
     assert viewer.post("/api/interactions", json={"target_id": theirs["id"], "kind": "hug"}).status_code == 422
 

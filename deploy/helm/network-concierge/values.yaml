@@ -1,7 +1,8 @@
 replicaCount: 1
 image:
   repository: ghcr.io/your-org/network-concierge
-  tag: latest
+  # Empty uses the chart appVersion. Deploy immutable tags (git SHA), never latest.
+  tag: ""
   pullPolicy: IfNotPresent
 service:
   type: ClusterIP
@@ -32,3 +33,8 @@ securityContext:
   runAsUser: 10001
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: true
+networkPolicy:
+  # Default-deny for both pods: the API accepts HTTP only on its port, the worker accepts nothing.
+  # Egress is DNS plus HTTPS (Elastic Serverless, Kibana Agent Builder, Dash0 OTLP).
+  enabled: true
+  egressPorts: [443]

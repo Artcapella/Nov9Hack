@@ -1,5 +1,7 @@
+import asyncio
 import io
 import json
+import math
 import secrets
 import time
 from contextlib import asynccontextmanager
@@ -20,8 +22,10 @@ from app.rag import answer_with_evidence
 from app.resume_parser import extract_text, heuristic_parse
 from app.people import people_search
 from app.schemas import AskRequest, ConnectionRequestCreate, InteractionCreate, NetworkingBreak, PeopleSearchRequest, ProfileCreate, SearchRequest
+from app.ratelimit import RateLimiter
 from app.store import NetworkStore
-from app.telemetry import accepted_counter, configure_telemetry, connection_counter, instrument_app, shutdown_telemetry, tracer
+from app.telemetry import (accepted_counter, configure_telemetry, connection_counter, instrument_app, security_rejections,
+                           shutdown_telemetry, tracer)
 
 COOKIE = "network_session"
 
@@ -66,16 +70,37 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         served_host = forwarded(request, "host") or request.headers.get("host")
         return bool(served_host) and urlsplit(origin).netloc == served_host
 
+    limiter = RateLimiter()
+    app.state.limiter = limiter
+
+    def client_ip(request: Request) -> str:
+        # Only a trusted edge that overwrites the header (e.g. Cloudflare's cf-connecting-ip) may name the client.
+        if settings.client_ip_header and (value := request.headers.get(settings.client_ip_header)):
+            return value.split(",")[0].strip()[:64]
+        return request.client.host if request.client else "unknown"
+
     @app.middleware("http")
     async def protect_browser_requests(request: Request, call_next):
-        if request.url.path.startswith("/api/") and request.method in {"POST", "PUT", "PATCH", "DELETE"}:
+        api = request.url.path.startswith("/api/")
+        if api and request.method in {"POST", "PUT", "PATCH", "DELETE"}:
             if request.headers.get("X-NETwork-Request") != "1" or not same_origin(request):
+                security_rejections.add(1, {"reason": "csrf"})
                 return JSONResponse({"detail": "Same-origin application request required"}, status_code=403)
+        if api and settings.rate_limits_enabled:
+            denied = limiter.check(request.method, request.url.path, client_ip(request), request.cookies.get(COOKIE))
+            if denied:
+                rule, wait = denied
+                security_rejections.add(1, {"reason": f"rate_limit:{rule}"})
+                live.record(request.method, f"rate limited · {rule}", 429, 0.0)
+                return JSONResponse({"detail": "Too many requests; slow down and try again shortly"}, status_code=429,
+                                    headers={"Retry-After": str(max(1, math.ceil(wait)))})
         started = time.perf_counter()
         response = await call_next(request)
-        if request.url.path.startswith("/api/") and request.url.path != "/api/telemetry/live":
+        if api and request.url.path != "/api/telemetry/live":
             route = getattr(request.scope.get("route"), "path", None) or "unmatched"
             live.record(request.method, route, response.status_code, (time.perf_counter() - started) * 1000)
+            if response.status_code in {401, 403}:
+                security_rejections.add(1, {"reason": "unauthenticated" if response.status_code == 401 else "forbidden", "route": route})
         if request.url.path.startswith(("/api/", "/connect/")):
             response.headers["Cache-Control"] = "no-store"
             response.headers["Referrer-Policy"] = "no-referrer"
@@ -140,7 +165,8 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def revoke(session: dict = Depends(require_session)):
         if not session.get("profile_id"):
             raise HTTPException(404, "No conference card in this session")
-        await store.revoke_profile(session["profile_id"], session["owner_id"])
+        # An explicit withdrawal also erases this person's interaction links and introductions.
+        await store.revoke_profile(session["profile_id"], session["owner_id"], erase_links=True)
 
     @app.post("/api/profiles", status_code=201)
     async def create_profile(profile: ProfileCreate, session: dict = Depends(require_session)):
@@ -157,6 +183,8 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def legacy_resume(session: dict = Depends(require_session)):
         raise HTTPException(409, "Preview the resume, review the editable card, then POST /api/profiles with draft_id")
 
+    parse_slots = asyncio.Semaphore(2)
+
     @app.post("/api/resumes/preview")
     async def preview_resume(resume: UploadFile = File(...), consent_to_resume_parsing: bool = Form(False),
                              source_type: Literal["upload", "linkedin_export"] = Form("upload"),
@@ -170,7 +198,11 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
             raise HTTPException(413, "Resume must be 6 MB or smaller")
         try:
             with tracer().start_as_current_span("network.resume.parse", record_exception=False, set_status_on_exception=False):
-                parsed = heuristic_parse(extract_text(resume.filename, content))
+                # PDF/DOCX parsing is CPU-bound: run it off the event loop, a few at a time, with a deadline.
+                async with parse_slots:
+                    parsed = await asyncio.wait_for(asyncio.to_thread(lambda: heuristic_parse(extract_text(resume.filename, content))), 20)
+        except TimeoutError:
+            raise HTTPException(400, "This file took too long to read. Try another format or enter your card manually.") from None
         except ValueError as exc:
             raise HTTPException(400, str(exc)) from None
         source = source_record(content, source_type=source_type, basis="attendee_authorized_upload", owner_id=session["owner_id"])
@@ -227,7 +259,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     elastic_probe: dict = {"at": 0.0, "ms": None, "docs": None}
 
     @app.get("/api/telemetry/live")
-    async def telemetry_live(since: int = 0, session: dict = Depends(require_session)):
+    async def telemetry_live(since: int = 0, attendee: dict = Depends(require_attendee)):
         """Aggregate request telemetry (route templates only) plus Elastic round-trip timing."""
         if store.client and time.time() - elastic_probe["at"] > 5:
             started = time.perf_counter()
@@ -269,7 +301,7 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
     async def create_connection(request: ConnectionRequestCreate, attendee: dict = Depends(require_attendee)):
         item = await store.create_connection(request, attendee)
         connection_counter.add(1, {"channel": item["preferred_channel"]})
-        await interactions.record(store, attendee, request.recipient_profile_id, "message")
+        # No link yet: an unanswered request must not tell other attendees who asked whom. Acceptance records it.
         item["qr_url"] = f"{settings.public_base_url.rstrip('/')}/connect/{item['token']}"
         return item
 
@@ -289,7 +321,9 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
         if not item:
             raise HTTPException(410, "Connection request is unavailable or expired")
         accepted_counter.add(1)
+        # Both people agreed, so the "messaged" link is mutual and may be shown to others.
         await interactions.record(store, attendee, connection["requester_profile_id"], "message")
+        await interactions.record(store, {"id": connection["requester_profile_id"]}, attendee["id"], "message")
         return item
 
     @app.get("/api/connection-requests/{token}/contacts")

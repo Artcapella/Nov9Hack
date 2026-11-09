@@ -1,4 +1,5 @@
 from functools import lru_cache
+from typing import Literal
 from urllib.parse import urlsplit
 
 from pydantic import Field, model_validator
@@ -47,6 +48,14 @@ class Settings(BaseSettings):
     dash0_dataset: str = "default"
     app_version: str = "dev"
 
+    # Which process reads this configuration. The worker never decrypts contacts, so it runs without the key.
+    network_role: Literal["api", "worker"] = "api"
+    # Per-client request budgets for the public event URL (in-process; one API replica).
+    rate_limits_enabled: bool = True
+    # Header carrying the real client IP, set only by a trusted edge that overwrites it
+    # (Cloudflare: cf-connecting-ip). Unset: the TCP peer address is used.
+    client_ip_header: str | None = None
+
     # Required in production to encrypt email / LinkedIn contact values at rest.
     contact_encryption_key: str | None = None
     # Organizer-only operations view. Required whenever Elasticsearch or production is enabled.
@@ -62,7 +71,7 @@ class Settings(BaseSettings):
         if "*" in self.cors_origins.split(","):
             raise ValueError("Authenticated sessions require explicit CORS origins")
         if self.environment == "production":
-            if not self.elastic_enabled or not self.contact_encryption_key:
+            if not self.elastic_enabled or (self.network_role == "api" and not self.contact_encryption_key):
                 raise ValueError("Production requires Elasticsearch and CONTACT_ENCRYPTION_KEY")
             if not self.public_base_url.startswith("https://"):
                 raise ValueError("Production requires an HTTPS PUBLIC_BASE_URL")

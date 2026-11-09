@@ -54,7 +54,8 @@ class NetworkStore:
 
     async def start(self) -> None:
         if self.settings.elastic_enabled:
-            if not self.cipher:
+            # The worker publishes cards and sweeps expiry but never reads contacts, so it runs without the key.
+            if not self.cipher and self.settings.network_role == "api":
                 raise RuntimeError("Elasticsearch storage requires CONTACT_ENCRYPTION_KEY")
             self.client = AsyncElasticsearch(self.settings.elasticsearch_url, api_key=self.settings.elasticsearch_api_key,
                                              verify_certs=self.settings.elasticsearch_verify_certs, request_timeout=60)
@@ -324,7 +325,24 @@ class NetworkStore:
                 evidence.append({**hit, "retrieval_mode": mode})
         return evidence[:size]
 
-    async def revoke_profile(self, profile_id: str, owner_id: str) -> None:
+    async def erase_links(self, profile_id: str) -> None:
+        """Delete every interaction and introduction that names this person (explicit withdrawal only)."""
+        targets = (("interactions", ("actor", "target")), ("connections", ("requester_profile_id", "recipient_profile_id")))
+        for collection, fields in targets:
+            if self.client:
+                await self.client.delete_by_query(
+                    index=self.settings.index(collection), conflicts="proceed", refresh=True,
+                    query={"bool": {"filter": [{"term": {"event_id": self.settings.demo_event_id}}],
+                                    "should": [{"term": {field: profile_id}} for field in fields], "minimum_should_match": 1}})
+            else:
+                for key, record in list(self.memory[collection].items()):
+                    if any(record.get(field) == profile_id for field in fields):
+                        await self.delete(collection, key)
+        for key, record in list(self.recent_interactions.items()):
+            if profile_id in (record.get("actor"), record.get("target")):
+                self.recent_interactions.pop(key, None)
+
+    async def revoke_profile(self, profile_id: str, owner_id: str, erase_links: bool = False) -> None:
         approval = await self.get("approvals", profile_id)
         if not approval or approval["owner_id"] != owner_id:
             raise HTTPException(403, "Only the card owner may revoke it")
@@ -344,6 +362,8 @@ class NetworkStore:
                 break
         for collection in ("private_contacts", "resume_structured", "networking_breaks"):
             await self.delete(collection, profile_id)
+        if erase_links:
+            await self.erase_links(profile_id)
         await self.finish_job(f"profile-{profile_id}-{approval['approval_version']}", "revoked")
 
     async def create_connection(self, request: ConnectionRequestCreate, requester: dict) -> dict:
