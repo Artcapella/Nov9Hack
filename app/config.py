@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     agent_builder_api_key: str | None = None
     agent_builder_agent_id: str = "network-concierge"
     agent_builder_enabled: bool = False
+    # LLM behind the agent (an Elastic inference endpoint). The trial capped the Kibana default model (HTTP 429). Empty = Kibana default.
+    agent_builder_connector_id: str | None = ".anthropic-claude-5-sonnet-chat_completion"
     # Administrative imports only. Exact hostnames, never wildcards.
     resume_source_hosts: list[str] = Field(default_factory=list)
     import_max_bytes: int = Field(default=6_000_000, ge=1, le=6_000_000)

@@ -117,7 +117,9 @@ def main():
             print(f"created {name} (id {response.json()['id']}, expires in {args.expiration})")
     for key in keys.values():
         verify(es, key, settings)
-    source = env_lines(Path(".env"))
+    # Scoped keys read by --from-env stay out of both files: each pod gets only its own key (Gitar review).
+    scoped = {"NETWORK_API_KEY", "NETWORK_WORKER_KEY", "NETWORK_AGENT_KEY"}
+    source = [(name, value) for name, value in env_lines(Path(".env")) if name not in scoped]
     write_env(Path(".env.api"), source,
               {"ELASTICSEARCH_API_KEY": keys["network-api"], "AGENT_BUILDER_API_KEY": keys["network-agent"], "NETWORK_ROLE": "api"})
     write_env(Path(".env.worker"), [(n, v) for n, v in source if n in WORKER_KEEP],
