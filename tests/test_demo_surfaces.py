@@ -77,8 +77,14 @@ def test_ops_summary_is_aggregate_only(application, client):
     assert {"label": "python", "count": 2} in summary["impact"]["offers"]
 
 
-def test_ops_summary_requires_token_when_configured():
+def test_ops_summary_is_open_by_default_even_with_a_token():
     settings = Settings(_env_file=None, elasticsearch_url=None, elasticsearch_api_key=None, ops_token="organizer-token-123456")
+    with TestClient(create_app(settings, telemetry=False)) as client:
+        assert client.get("/api/ops/summary").status_code == 200
+
+
+def test_ops_summary_requires_token_when_locked():
+    settings = Settings(_env_file=None, elasticsearch_url=None, elasticsearch_api_key=None, ops_token="organizer-token-123456", ops_public=False)
     with TestClient(create_app(settings, telemetry=False)) as client:
         assert client.get("/api/ops/summary").status_code == 401
         assert client.get("/api/ops/summary", headers={"X-NETwork-Ops-Token": "wrong-token-1234567"}).status_code == 401

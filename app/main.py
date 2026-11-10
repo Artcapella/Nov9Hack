@@ -316,16 +316,25 @@ def create_app(settings: Settings | None = None, telemetry: bool = True) -> Fast
                             "links_ms": store.graph.last_took_ms},
                 "dash0": bool(settings.dash0_otlp_http_base or settings.otel_exporter_otlp_endpoint)}
 
+    ops_cache: dict[str, tuple[float, dict]] = {}
+
     @app.get("/api/ops/summary")
     async def ops_summary(request: Request):
-        supplied = request.headers.get("X-NETwork-Ops-Token", "")
-        if settings.ops_token:
-            if not secrets.compare_digest(supplied.encode(), settings.ops_token.encode()):
-                raise HTTPException(401, "Organizer token required")
-        elif settings.environment == "production" or settings.elastic_enabled:
-            raise HTTPException(404, "Set OPS_TOKEN to enable the operations view")
+        if not settings.ops_public:
+            supplied = request.headers.get("X-NETwork-Ops-Token", "")
+            if settings.ops_token:
+                if not secrets.compare_digest(supplied.encode(), settings.ops_token.encode()):
+                    raise HTTPException(401, "Organizer token required")
+            elif settings.environment == "production" or settings.elastic_enabled:
+                raise HTTPException(404, "Set OPS_TOKEN to enable the operations view")
         try:
-            return await store.ops_summary()
+            # Open to every viewer, so one computation (about 15 Elastic queries) serves everyone for 5 s.
+            cached = ops_cache.get("summary")
+            if cached and time.monotonic() - cached[0] < 5:
+                return cached[1]
+            summary = await store.ops_summary()
+            ops_cache["summary"] = (time.monotonic(), summary)
+            return summary
         except HTTPException:
             raise
         except Exception:

@@ -64,6 +64,8 @@ class Settings(BaseSettings):
     contact_encryption_key: str | None = None
     # Organizer-only operations view. Required whenever Elasticsearch or production is enabled.
     ops_token: str | None = Field(default=None, min_length=16)
+    # The command center shows aggregates only and is open by default. OPS_PUBLIC=false restores the organizer token gate.
+    ops_public: bool = True
 
     @model_validator(mode="after")
     def validate_runtime(self):
