@@ -6,22 +6,40 @@ metadata:
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
-    matchLabels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }} }
+    matchLabels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }}, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api }
   template:
     metadata:
-      labels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }} }
+      labels: { app.kubernetes.io/name: {{ include "network-concierge.name" . }}, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api }
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets: {{- toYaml . | nindent 8 }}
+      {{- end }}
+      # The app never talks to the Kubernetes API; do not mount a service-account token.
+      automountServiceAccountToken: false
       securityContext: { runAsNonRoot: true, runAsUser: 10001, seccompProfile: { type: RuntimeDefault } }
       containers:
         - name: app
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports: [{ name: http, containerPort: 8000 }]
           envFrom: [{ secretRef: { name: {{ .Values.existingSecret }} } }]
+          env:
+            - { name: K8S_POD_NAME, valueFrom: { fieldRef: { fieldPath: metadata.name } } }
+            - { name: K8S_NAMESPACE, valueFrom: { fieldRef: { fieldPath: metadata.namespace } } }
+            - { name: K8S_NODE_NAME, valueFrom: { fieldRef: { fieldPath: spec.nodeName } } }
+            # Correlates Dash0 traces with the workloads Radar shows.
+            - { name: OTEL_RESOURCE_ATTRIBUTES, value: "k8s.pod.name=$(K8S_POD_NAME),k8s.namespace.name=$(K8S_NAMESPACE),k8s.node.name=$(K8S_NODE_NAME),k8s.deployment.name={{ include "network-concierge.fullname" . }}" }
+            {{- with .Values.extraEnv }}
+            # Non-secret API settings (e.g. CLIENT_IP_HEADER); secrets stay in existingSecret.
+            {{- toYaml . | nindent 12 }}
+            {{- end }}
+          volumeMounts: [{ name: tmp, mountPath: /tmp }]
           securityContext:
             allowPrivilegeEscalation: {{ .Values.securityContext.allowPrivilegeEscalation }}
             readOnlyRootFilesystem: {{ .Values.securityContext.readOnlyRootFilesystem }}
             capabilities: { drop: ["ALL"] }
           resources: {{- toYaml .Values.resources | nindent 12 }}
-          readinessProbe: { httpGet: { path: /readyz, port: http }, initialDelaySeconds: 5, periodSeconds: 10 }
-          livenessProbe: { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 15, periodSeconds: 20 }
+          # /readyz makes two Elastic Serverless round trips (0.7-2.5 s); the 1 s default timeout flapped readiness.
+          readinessProbe: { httpGet: { path: /readyz, port: http }, initialDelaySeconds: 5, periodSeconds: 10, timeoutSeconds: 5, failureThreshold: 3 }
+          livenessProbe: { httpGet: { path: /healthz, port: http }, initialDelaySeconds: 15, periodSeconds: 20, timeoutSeconds: 5, failureThreshold: 6 }
+      volumes: [{ name: tmp, emptyDir: { sizeLimit: 64Mi } }]

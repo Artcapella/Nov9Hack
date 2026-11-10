@@ -14,9 +14,16 @@ async def main() -> None:
     store = NetworkStore(settings)
     await store.start()
     try:
-        records = json.loads(Path("data/seed_profiles.json").read_text())
-        print(f"Seeded {await store.seed(records)} demo profiles into {settings.elasticsearch_index_prefix}_* indices.")
-        print("Next: start the app, scan the event QR, and collect explicit attendee consent.")
+        await store.ensure_indices()
+        records = json.loads(Path("data/seed_profiles.json").read_text(encoding="utf-8"))
+        synthetic = Path("data/synthetic_profiles.json")
+        if synthetic.exists():
+            records += json.loads(synthetic.read_text(encoding="utf-8"))
+        print(f"Seeded {await store.seed(records)} SynthDemo profiles into {settings.elasticsearch_index_prefix}_* indices.")
+        from scripts.seed_sponsors import seed_sponsors
+        print(f"Verified {await seed_sponsors(store)} synthetic sponsor booths.")
+        print(f"Pinned inference endpoint inspected: {settings.elastic_inference_id}")
+        print("Next: start API and worker, scan the event QR, and collect explicit attendee consent.")
     finally:
         await store.close()
 

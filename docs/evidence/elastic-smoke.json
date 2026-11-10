@@ -1,0 +1,24 @@
+{
+  "checked_at": "2026-11-09T19:54:05.325500+00:00",
+  "schema": "v3",
+  "inference_id": ".jina-embeddings-v5-text-small",
+  "approved_ingestion": true,
+  "separate_resume_representation": true,
+  "hybrid_hits": 4,
+  "eligible_evidence": 4,
+  "esql_tools": [
+    {
+      "id": "network.find_people",
+      "rows": 3
+    },
+    {
+      "id": "network.find_sponsors",
+      "rows": 0
+    },
+    {
+      "id": "network.conference_skill_summary",
+      "rows": 4
+    }
+  ],
+  "synthetic_card_revoked_after_check": true
+}

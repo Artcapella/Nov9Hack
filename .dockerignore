@@ -4,3 +4,11 @@
 __pycache__
 *.pyc
 *.zip
+.venv
+.venv-next
+.tools
+*.manifest.private.json
+.env.api
+.env.worker
+backups
+.demo-qa

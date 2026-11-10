@@ -2,7 +2,8 @@
   "mcpServers": {
     "elastic-agent-builder": {
       "transport": "http",
-      "url": "${KIBANA_URL}/api/agent_builder/mcp"
+      "url": "${KIBANA_URL}/api/agent_builder/mcp",
+      "headers": {"Authorization": "ApiKey ${AGENT_BUILDER_API_KEY}", "kbn-xsrf": "true"}
     },
     "network-elastic-tools": {
       "command": "python",

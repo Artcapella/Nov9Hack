@@ -1,5 +1,8 @@
 from functools import lru_cache
+from typing import Literal
+from urllib.parse import urlsplit
 
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,30 +16,80 @@ class Settings(BaseSettings):
     public_base_url: str = "http://localhost:8000"
     cors_origins: str = "http://localhost:8000"
     demo_event_id: str = "cnh-2026"
-    profile_expiry_hours: int = 8
+    profile_expiry_hours: int = Field(default=8, ge=1, le=72)
+    session_hours: int = Field(default=24, ge=1, le=168)
+    draft_minutes: int = Field(default=20, ge=1, le=60)
 
     elasticsearch_url: str | None = None
     elasticsearch_api_key: str | None = None
     elasticsearch_index_prefix: str = "network"
-    elastic_inference_id: str | None = None
+    elastic_inference_id: str = ".jina-embeddings-v5-text-small"
+    # Cross-encoder that re-orders the concierge's RRF evidence. Empty disables it (plain RRF order).
+    elastic_rerank_inference_id: str | None = ".jina-reranker-v3"
+    elastic_schema_version: str = "v3"
+    elastic_bootstrap_on_start: bool = False
     elasticsearch_verify_certs: bool = True
 
-    openai_api_key: str | None = None
-    openai_model: str = "gpt-4.1-mini"
+    kibana_url: str | None = None
+    agent_builder_api_key: str | None = None
+    agent_builder_agent_id: str = "network-concierge"
+    agent_builder_enabled: bool = False
+    # LLM behind the agent (an Elastic inference endpoint). The trial capped the Kibana default model (HTTP 429). Empty = Kibana default.
+    agent_builder_connector_id: str | None = ".anthropic-claude-5-sonnet-chat_completion"
+    # Administrative imports only. Exact hostnames, never wildcards.
+    resume_source_hosts: list[str] = Field(default_factory=list)
+    import_max_bytes: int = Field(default=6_000_000, ge=1, le=6_000_000)
+    import_min_interval_seconds: float = Field(default=1.0, ge=0, le=60)
+    worker_poll_seconds: float = Field(default=3.0, ge=0.1, le=60)
+    worker_lease_seconds: int = Field(default=180, ge=30, le=600)
+    worker_max_attempts: int = Field(default=3, ge=1, le=10)
 
     otel_exporter_otlp_endpoint: str | None = None
     otel_exporter_otlp_headers: str | None = None
-    otel_service_name: str = "network-concierge"
+    otel_service_name: str = "network-api"
+    dash0_otlp_http_base: str | None = None
+    dash0_auth_token: str | None = None
+    dash0_dataset: str = "default"
+    app_version: str = "dev"
+
+    # Which process reads this configuration. The worker never decrypts contacts, so it runs without the key.
+    network_role: Literal["api", "worker"] = "api"
+    # Per-client request budgets for the public event URL (in-process; one API replica).
+    rate_limits_enabled: bool = True
+    # Header carrying the real client IP, set only by a trusted edge that overwrites it
+    # (Cloudflare: cf-connecting-ip). Unset: the TCP peer address is used.
+    client_ip_header: str | None = None
 
     # Required in production to encrypt email / LinkedIn contact values at rest.
     contact_encryption_key: str | None = None
+    # Organizer-only operations view. Required whenever Elasticsearch or production is enabled.
+    ops_token: str | None = Field(default=None, min_length=16)
+    # The command center shows aggregates only and is open by default. OPS_PUBLIC=false restores the organizer token gate.
+    ops_public: bool = True
+
+    @model_validator(mode="after")
+    def validate_runtime(self):
+        if not self.elastic_inference_id.strip():
+            raise ValueError("Pin ELASTIC_INFERENCE_ID to an inspected inference endpoint")
+        public = urlsplit(self.public_base_url)
+        if public.scheme not in {"http", "https"} or not public.hostname or public.username or public.password or public.path not in {"", "/"} or public.query or public.fragment:
+            raise ValueError("PUBLIC_BASE_URL must be an HTTP(S) origin without credentials or a path")
+        if "*" in self.cors_origins.split(","):
+            raise ValueError("Authenticated sessions require explicit CORS origins")
+        if self.environment == "production":
+            if not self.elastic_enabled or (self.network_role == "api" and not self.contact_encryption_key):
+                raise ValueError("Production requires Elasticsearch and CONTACT_ENCRYPTION_KEY")
+            if not self.public_base_url.startswith("https://"):
+                raise ValueError("Production requires an HTTPS PUBLIC_BASE_URL")
+        return self
 
     @property
     def elastic_enabled(self) -> bool:
         return bool(self.elasticsearch_url and self.elasticsearch_api_key)
 
     def index(self, suffix: str) -> str:
-        return f"{self.elasticsearch_index_prefix}_{suffix}"
+        # New aliases avoid silently mixing the prototype's default model/schema.
+        return f"{self.elasticsearch_index_prefix}_{suffix}_{self.elastic_schema_version}"
 
 
 @lru_cache

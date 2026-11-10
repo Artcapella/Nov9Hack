@@ -1,0 +1,4576 @@
+[
+ {
+  "display_name": "Gus Dimitrov",
+  "headline": "Accessibility specialist · TypeScript + pen testing",
+  "public_summary": "I work on a component library used by six product teams. 10 years in web, lately crossing into security. Happy to talk about CSS and web performance.",
+  "approved_experience": "Accessibility specialist, 10 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "TypeScript",
+   "CSS",
+   "web performance",
+   "zero trust",
+   "pen testing"
+  ],
+  "looking_for": [
+   "backend mentorship",
+   "a co-founder"
+  ],
+  "interests": [
+   "pottery",
+   "board games",
+   "volunteering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Jae Moreno",
+  "headline": "Compliance engineer · IAM",
+  "public_summary": "I work on a secrets-scanning pipeline. 5 years in security. Happy to talk about compliance and privacy.",
+  "approved_experience": "Compliance engineer, 5 years. Built a secrets-scanning pipeline.",
+  "can_help_with": [
+   "IAM",
+   "compliance",
+   "privacy"
+  ],
+  "looking_for": [
+   "platform partners",
+   "engineers who want security reviews"
+  ],
+  "interests": [
+   "sci-fi novels",
+   "drawing",
+   "surfing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Esme Haddad",
+  "headline": "MLOps engineer · LLMs",
+  "public_summary": "I work on fine-tuning a small model for triage. 14 years in AI / ML. Happy to talk about vector search and Python.",
+  "approved_experience": "MLOps engineer, 14 years. Built fine-tuning a small model for triage.",
+  "can_help_with": [
+   "LLMs",
+   "vector search",
+   "Python"
+  ],
+  "looking_for": [
+   "privacy reviews",
+   "GPU infrastructure help"
+  ],
+  "interests": [
+   "cycling",
+   "sourdough",
+   "jazz"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Rory Tran",
+  "headline": "Design lead · product strategy",
+  "public_summary": "I work on a design critique ritual for remote teams. 5 years in design. Happy to talk about service design and UX research.",
+  "approved_experience": "Design lead, 5 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "product strategy",
+   "service design",
+   "UX research",
+   "roadmapping"
+  ],
+  "looking_for": [
+   "frontend collaborators",
+   "user interview partners"
+  ],
+  "interests": [
+   "gardening",
+   "board games"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Dev Haddad",
+  "headline": "Product manager · roadmapping",
+  "public_summary": "I work on a prototype for accessible voting kiosks. 5 years in design. Happy to talk about service design and usability testing.",
+  "approved_experience": "Product manager, 5 years. Built a prototype for accessible voting kiosks.",
+  "can_help_with": [
+   "roadmapping",
+   "service design",
+   "usability testing"
+  ],
+  "looking_for": [
+   "user interview partners",
+   "frontend collaborators"
+  ],
+  "interests": [
+   "jazz",
+   "birdwatching",
+   "pottery"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Gus Mbeki",
+  "headline": "Identity engineer · cryptography",
+  "public_summary": "I work on passkey rollout for a consumer app. 11 years in security. Happy to talk about authentication and IAM.",
+  "approved_experience": "Identity engineer, 11 years. Built passkey rollout for a consumer app.",
+  "can_help_with": [
+   "cryptography",
+   "authentication",
+   "IAM",
+   "pen testing"
+  ],
+  "looking_for": [
+   "mentees",
+   "AI safety collaborators"
+  ],
+  "interests": [
+   "bouldering",
+   "chess"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Oona Wiles",
+  "headline": "MLOps engineer · LLMs",
+  "public_summary": "I work on a RAG assistant over internal docs. 13 years in AI / ML. Happy to talk about embeddings and fine-tuning.",
+  "approved_experience": "MLOps engineer, 13 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "LLMs",
+   "embeddings",
+   "fine-tuning"
+  ],
+  "looking_for": [
+   "product designers",
+   "GPU infrastructure help"
+  ],
+  "interests": [
+   "tea",
+   "drawing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Luca Tran",
+  "headline": "Product designer · prototyping",
+  "public_summary": "I work on journey maps for hospital discharge. 11 years in design. Happy to talk about usability testing and growth.",
+  "approved_experience": "Product designer, 11 years. Built journey maps for hospital discharge.",
+  "can_help_with": [
+   "prototyping",
+   "usability testing",
+   "growth"
+  ],
+  "looking_for": [
+   "frontend collaborators",
+   "user interview partners"
+  ],
+  "interests": [
+   "sourdough",
+   "speedcubing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Chidi Ueda",
+  "headline": "Frontend engineer · TypeScript",
+  "public_summary": "I work on a component library used by six product teams. 9 years in web. Happy to talk about React and Node.",
+  "approved_experience": "Frontend engineer, 9 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "TypeScript",
+   "React",
+   "Node"
+  ],
+  "looking_for": [
+   "backend mentorship",
+   "a co-founder"
+  ],
+  "interests": [
+   "tea",
+   "film photography"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Priya Lopez",
+  "headline": "Technical recruiter · design teams · growth",
+  "public_summary": "I work on a design critique ritual for remote teams. 7 years in design. Happy to talk about product strategy and usability testing.",
+  "approved_experience": "Technical recruiter · design teams, 7 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "growth",
+   "product strategy",
+   "usability testing"
+  ],
+  "looking_for": [
+   "design engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "hiking"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Lin Zhou",
+  "headline": "Growth PM · UX research",
+  "public_summary": "I work on a prototype for accessible voting kiosks. 3 years in design. Happy to talk about Figma and growth.",
+  "approved_experience": "Growth PM, 3 years. Built a prototype for accessible voting kiosks.",
+  "can_help_with": [
+   "UX research",
+   "Figma",
+   "growth",
+   "product strategy"
+  ],
+  "looking_for": [
+   "AI product ideas",
+   "user interview partners"
+  ],
+  "interests": [
+   "gardening",
+   "chess",
+   "volunteering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Haru Rossi",
+  "headline": "DevOps engineer · incident response",
+  "public_summary": "I work on chaos testing for a payments API. 8 years in systems. Happy to talk about Docker and AWS.",
+  "approved_experience": "DevOps engineer, 8 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "incident response",
+   "Docker",
+   "AWS",
+   "OpenTelemetry"
+  ],
+  "looking_for": [
+   "ML deployment problems",
+   "frontend observability"
+  ],
+  "interests": [
+   "bouldering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Hana Rossi",
+  "headline": "DevOps engineer · OpenTelemetry",
+  "public_summary": "I work on chaos testing for a payments API. 11 years in systems. Happy to talk about Kubernetes and Helm.",
+  "approved_experience": "DevOps engineer, 11 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "OpenTelemetry",
+   "Kubernetes",
+   "Helm"
+  ],
+  "looking_for": [
+   "product feedback",
+   "frontend observability"
+  ],
+  "interests": [
+   "birdwatching",
+   "tea",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Eli Sato",
+  "headline": "Full-stack developer · Next.js",
+  "public_summary": "I work on a component library used by six product teams. 9 years in web. Happy to talk about TypeScript and React.",
+  "approved_experience": "Full-stack developer, 9 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "Next.js",
+   "TypeScript",
+   "React",
+   "Node"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "design feedback"
+  ],
+  "interests": [
+   "salsa dancing",
+   "chess"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Wren Ueda",
+  "headline": "Data scientist · SQL",
+  "public_summary": "I work on a streaming ETL pipeline for IoT sensors. 2 years in data. Happy to talk about Spark and Elasticsearch.",
+  "approved_experience": "Data scientist, 2 years. Built a streaming ETL pipeline for IoT sensors.",
+  "can_help_with": [
+   "SQL",
+   "Spark",
+   "Elasticsearch"
+  ],
+  "looking_for": [
+   "real-time search ideas",
+   "ML collaborators"
+  ],
+  "interests": [
+   "pottery",
+   "board games"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Sol Hoang",
+  "headline": "Platform engineer · Docker",
+  "public_summary": "I work on cutting cloud spend by right-sizing. 15 years in systems. Happy to talk about incident response and Go.",
+  "approved_experience": "Platform engineer, 15 years. Built cutting cloud spend by right-sizing.",
+  "can_help_with": [
+   "Docker",
+   "incident response",
+   "Go",
+   "Helm"
+  ],
+  "looking_for": [
+   "security reviews",
+   "SRE mentees"
+  ],
+  "interests": [
+   "tea",
+   "bouldering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Yara Zhou",
+  "headline": "Web performance engineer · TypeScript + usability testing",
+  "public_summary": "I work on server-side rendering for a large marketplace. 3 years in web, lately crossing into design. Happy to talk about React and Next.js.",
+  "approved_experience": "Web performance engineer, 3 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "TypeScript",
+   "React",
+   "Next.js",
+   "growth",
+   "usability testing"
+  ],
+  "looking_for": [
+   "design feedback",
+   "a co-founder"
+  ],
+  "interests": [
+   "cycling",
+   "sourdough",
+   "film photography"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Gia Quispe",
+  "headline": "Growth PM · roadmapping + dbt",
+  "public_summary": "I work on a prototype for accessible voting kiosks. 9 years in design, lately crossing into data. Happy to talk about product strategy and prototyping.",
+  "approved_experience": "Growth PM, 9 years. Built a prototype for accessible voting kiosks.",
+  "can_help_with": [
+   "roadmapping",
+   "product strategy",
+   "prototyping",
+   "analytics",
+   "dbt"
+  ],
+  "looking_for": [
+   "AI product ideas",
+   "frontend collaborators"
+  ],
+  "interests": [
+   "bouldering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Xia Wiles",
+  "headline": "Privacy engineer · privacy",
+  "public_summary": "I work on a secrets-scanning pipeline. 14 years in security. Happy to talk about compliance and authentication.",
+  "approved_experience": "Privacy engineer, 14 years. Built a secrets-scanning pipeline.",
+  "can_help_with": [
+   "privacy",
+   "compliance",
+   "authentication"
+  ],
+  "looking_for": [
+   "mentees",
+   "policy feedback"
+  ],
+  "interests": [
+   "karaoke",
+   "tea",
+   "birdwatching"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Gus Berg",
+  "headline": "Data engineer · analytics + Next.js",
+  "public_summary": "I work on a lakehouse migration. 12 years in data, lately crossing into web. Happy to talk about Python and ETL.",
+  "approved_experience": "Data engineer, 12 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "analytics",
+   "Python",
+   "ETL",
+   "React",
+   "Next.js"
+  ],
+  "looking_for": [
+   "mentorship",
+   "data visualisation help"
+  ],
+  "interests": [
+   "tea",
+   "birdwatching",
+   "jazz"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Sol Kaur",
+  "headline": "Accessibility specialist · Node + PyTorch",
+  "public_summary": "I work on evaluation harness for LLM agents. 3 years in web, lately crossing into AI. Happy to talk about Svelte and accessibility.",
+  "approved_experience": "Accessibility specialist, 3 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "Node",
+   "Svelte",
+   "accessibility",
+   "NLP",
+   "PyTorch"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "open-source contributors"
+  ],
+  "interests": [
+   "volunteering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Kai Berg",
+  "headline": "Full-stack developer · GraphQL",
+  "public_summary": "I work on server-side rendering for a large marketplace. 1 years in web. Happy to talk about web performance and Node.",
+  "approved_experience": "Full-stack developer, 1 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "GraphQL",
+   "web performance",
+   "Node",
+   "Svelte"
+  ],
+  "looking_for": [
+   "backend mentorship",
+   "open-source contributors"
+  ],
+  "interests": [
+   "chess",
+   "sci-fi novels"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Femi Hoang",
+  "headline": "Applied scientist · MLOps + web performance",
+  "public_summary": "I work on a component library used by six product teams. 6 years in AI / ML, lately crossing into web. Happy to talk about Python and LLMs.",
+  "approved_experience": "Applied scientist, 6 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "MLOps",
+   "Python",
+   "LLMs",
+   "TypeScript",
+   "web performance"
+  ],
+  "looking_for": [
+   "privacy reviews",
+   "product designers"
+  ],
+  "interests": [
+   "surfing",
+   "tea"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Rory Gupta",
+  "headline": "Search engineer · data pipelines",
+  "public_summary": "I work on a lakehouse migration. 9 years in data. Happy to talk about Elasticsearch and dbt.",
+  "approved_experience": "Search engineer, 9 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "data pipelines",
+   "Elasticsearch",
+   "dbt",
+   "analytics"
+  ],
+  "looking_for": [
+   "real-time search ideas",
+   "Kubernetes deployment advice"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Vik Hoang",
+  "headline": "Search engineer · data warehouse",
+  "public_summary": "I work on a lakehouse migration. 11 years in data. Happy to talk about ETL and Elasticsearch.",
+  "approved_experience": "Search engineer, 11 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "data warehouse",
+   "ETL",
+   "Elasticsearch",
+   "dbt"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "mentorship"
+  ],
+  "interests": [
+   "salsa dancing",
+   "sourdough"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Amara Varga",
+  "headline": "Design lead · Figma",
+  "public_summary": "I work on journey maps for hospital discharge. 1 years in design. Happy to talk about prototyping and service design.",
+  "approved_experience": "Design lead, 1 years. Built journey maps for hospital discharge.",
+  "can_help_with": [
+   "Figma",
+   "prototyping",
+   "service design",
+   "roadmapping"
+  ],
+  "looking_for": [
+   "engineers to prototype with",
+   "user interview partners"
+  ],
+  "interests": [
+   "hiking",
+   "speedcubing",
+   "board games"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Esme Fischer",
+  "headline": "Data scientist · SQL",
+  "public_summary": "I work on a lakehouse migration. 11 years in data. Happy to talk about data pipelines and Python.",
+  "approved_experience": "Data scientist, 11 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "SQL",
+   "data pipelines",
+   "Python",
+   "dbt"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "ML collaborators"
+  ],
+  "interests": [
+   "cycling"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Gus Jensen",
+  "headline": "Product designer · usability testing",
+  "public_summary": "I work on a design critique ritual for remote teams. 12 years in design. Happy to talk about roadmapping and growth.",
+  "approved_experience": "Product designer, 12 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "usability testing",
+   "roadmapping",
+   "growth"
+  ],
+  "looking_for": [
+   "AI product ideas",
+   "data for research"
+  ],
+  "interests": [
+   "board games",
+   "film photography"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Oz Fischer",
+  "headline": "Applied scientist · fine-tuning",
+  "public_summary": "I work on embedding-based recommendations. 1 years in AI / ML. Happy to talk about RAG and LLMs.",
+  "approved_experience": "Applied scientist, 1 years. Built embedding-based recommendations.",
+  "can_help_with": [
+   "fine-tuning",
+   "RAG",
+   "LLMs",
+   "PyTorch"
+  ],
+  "looking_for": [
+   "labelled datasets",
+   "privacy reviews"
+  ],
+  "interests": [
+   "pottery",
+   "karaoke"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Gia Adeyemi",
+  "headline": "Web performance engineer · Next.js",
+  "public_summary": "I work on a WCAG audit tool for design tokens. 4 years in web. Happy to talk about React and GraphQL.",
+  "approved_experience": "Web performance engineer, 4 years. Built a WCAG audit tool for design tokens.",
+  "can_help_with": [
+   "Next.js",
+   "React",
+   "GraphQL",
+   "Node"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "design feedback"
+  ],
+  "interests": [
+   "jazz",
+   "gardening",
+   "chess"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Jonah Lopez",
+  "headline": "Web performance engineer · Svelte",
+  "public_summary": "I work on a real-time collaborative whiteboard. 3 years in web. Happy to talk about Node and GraphQL.",
+  "approved_experience": "Web performance engineer, 3 years. Built a real-time collaborative whiteboard.",
+  "can_help_with": [
+   "Svelte",
+   "Node",
+   "GraphQL"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "a co-founder"
+  ],
+  "interests": [
+   "trail running",
+   "board games",
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Xia Adeyemi",
+  "headline": "LLM engineer · RAG",
+  "public_summary": "I work on evaluation harness for LLM agents. 9 years in AI / ML. Happy to talk about fine-tuning and embeddings.",
+  "approved_experience": "LLM engineer, 9 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "RAG",
+   "fine-tuning",
+   "embeddings",
+   "NLP"
+  ],
+  "looking_for": [
+   "privacy reviews",
+   "product designers"
+  ],
+  "interests": [
+   "drawing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Kai Lopez",
+  "headline": "Privacy engineer · threat modeling",
+  "public_summary": "I work on threat models for a Kubernetes platform. 9 years in security. Happy to talk about privacy and pen testing.",
+  "approved_experience": "Privacy engineer, 9 years. Built threat models for a Kubernetes platform.",
+  "can_help_with": [
+   "threat modeling",
+   "privacy",
+   "pen testing"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "AI safety collaborators"
+  ],
+  "interests": [
+   "sourdough",
+   "gardening",
+   "karaoke"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Dara Gallo",
+  "headline": "DevOps engineer · Terraform",
+  "public_summary": "I work on SLO dashboards with OpenTelemetry. 12 years in systems. Happy to talk about AWS and incident response.",
+  "approved_experience": "DevOps engineer, 12 years. Built SLO dashboards with OpenTelemetry.",
+  "can_help_with": [
+   "Terraform",
+   "AWS",
+   "incident response",
+   "OpenTelemetry"
+  ],
+  "looking_for": [
+   "security reviews",
+   "product feedback"
+  ],
+  "interests": [
+   "bouldering",
+   "film photography"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Vera Novak",
+  "headline": "Analytics engineer · Elasticsearch + prototyping",
+  "public_summary": "I work on churn analytics for a SaaS product. 12 years in data, lately crossing into design. Happy to talk about data warehouse and Airflow.",
+  "approved_experience": "Analytics engineer, 12 years. Built churn analytics for a SaaS product.",
+  "can_help_with": [
+   "Elasticsearch",
+   "data warehouse",
+   "Airflow",
+   "product strategy",
+   "prototyping"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "real-time search ideas"
+  ],
+  "interests": [
+   "drawing",
+   "karaoke",
+   "chess"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Bodhi Berg",
+  "headline": "Full-stack developer · Node",
+  "public_summary": "I work on a WCAG audit tool for design tokens. 4 years in web. Happy to talk about Next.js and TypeScript.",
+  "approved_experience": "Full-stack developer, 4 years. Built a WCAG audit tool for design tokens.",
+  "can_help_with": [
+   "Node",
+   "Next.js",
+   "TypeScript"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "salsa dancing",
+   "birdwatching",
+   "sci-fi novels"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Dev Zhou",
+  "headline": "Analytics engineer · analytics",
+  "public_summary": "I work on a lakehouse migration. 4 years in data. Happy to talk about Airflow and dbt.",
+  "approved_experience": "Analytics engineer, 4 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "analytics",
+   "Airflow",
+   "dbt",
+   "Spark"
+  ],
+  "looking_for": [
+   "mentorship",
+   "ML collaborators"
+  ],
+  "interests": [
+   "hiking",
+   "pottery",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Chidi Moreno",
+  "headline": "Applied scientist · fine-tuning",
+  "public_summary": "I work on a RAG assistant over internal docs. 2 years in AI / ML. Happy to talk about evaluation and LLMs.",
+  "approved_experience": "Applied scientist, 2 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "fine-tuning",
+   "evaluation",
+   "LLMs",
+   "NLP"
+  ],
+  "looking_for": [
+   "GPU infrastructure help",
+   "MLOps feedback"
+  ],
+  "interests": [
+   "tea",
+   "surfing",
+   "karaoke"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Vik Jensen",
+  "headline": "Frontend engineer · Next.js + roadmapping",
+  "public_summary": "I work on a design critique ritual for remote teams. 2 years in web, lately crossing into design. Happy to talk about Svelte and accessibility.",
+  "approved_experience": "Frontend engineer, 2 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "Next.js",
+   "Svelte",
+   "accessibility",
+   "UX research",
+   "roadmapping"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "a co-founder"
+  ],
+  "interests": [
+   "pottery"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Hana Nakamura",
+  "headline": "AI researcher · MLOps",
+  "public_summary": "I work on a multimodal search prototype. 3 years in AI / ML. Happy to talk about vector search and PyTorch.",
+  "approved_experience": "AI researcher, 3 years. Built a multimodal search prototype.",
+  "can_help_with": [
+   "MLOps",
+   "vector search",
+   "PyTorch",
+   "Python"
+  ],
+  "looking_for": [
+   "MLOps feedback",
+   "privacy reviews"
+  ],
+  "interests": [
+   "speedcubing",
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Bea Wiles",
+  "headline": "Web performance engineer · Next.js",
+  "public_summary": "I work on a real-time collaborative whiteboard. 13 years in web. Happy to talk about accessibility and CSS.",
+  "approved_experience": "Web performance engineer, 13 years. Built a real-time collaborative whiteboard.",
+  "can_help_with": [
+   "Next.js",
+   "accessibility",
+   "CSS",
+   "Svelte"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "trail running",
+   "tea",
+   "sci-fi novels"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Xia Farah",
+  "headline": "AI researcher · LLMs + SQL",
+  "public_summary": "I work on fine-tuning a small model for triage. 13 years in AI / ML, lately crossing into data. Happy to talk about evaluation and vector search.",
+  "approved_experience": "AI researcher, 13 years. Built fine-tuning a small model for triage.",
+  "can_help_with": [
+   "LLMs",
+   "evaluation",
+   "vector search",
+   "ETL",
+   "SQL"
+  ],
+  "looking_for": [
+   "labelled datasets",
+   "product designers"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Sol Castro",
+  "headline": "AppSec lead · threat modeling + SQL",
+  "public_summary": "I work on passkey rollout for a consumer app. 5 years in security, lately crossing into data. Happy to talk about pen testing and IAM.",
+  "approved_experience": "AppSec lead, 5 years. Built passkey rollout for a consumer app.",
+  "can_help_with": [
+   "threat modeling",
+   "pen testing",
+   "IAM",
+   "Airflow",
+   "SQL"
+  ],
+  "looking_for": [
+   "mentees",
+   "platform partners"
+  ],
+  "interests": [
+   "hiking"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Cal Abara",
+  "headline": "Applied scientist · embeddings",
+  "public_summary": "I work on evaluation harness for LLM agents. 9 years in AI / ML. Happy to talk about Python and PyTorch.",
+  "approved_experience": "Applied scientist, 9 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "embeddings",
+   "Python",
+   "PyTorch",
+   "fine-tuning"
+  ],
+  "looking_for": [
+   "MLOps feedback",
+   "privacy reviews"
+  ],
+  "interests": [
+   "chess",
+   "surfing",
+   "film photography"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Esme Jensen",
+  "headline": "ML engineer · vector search + Terraform",
+  "public_summary": "I work on evaluation harness for LLM agents. 10 years in AI / ML, lately crossing into systems. Happy to talk about NLP and RAG.",
+  "approved_experience": "ML engineer, 10 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "vector search",
+   "NLP",
+   "RAG",
+   "AWS",
+   "Terraform"
+  ],
+  "looking_for": [
+   "labelled datasets",
+   "product designers"
+  ],
+  "interests": [
+   "hiking",
+   "trail running"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Quin Petrov",
+  "headline": "Technical recruiter · web teams · GraphQL",
+  "public_summary": "I work on a component library used by six product teams. 12 years in web. Happy to talk about web performance and Node.",
+  "approved_experience": "Technical recruiter · web teams, 12 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "GraphQL",
+   "web performance",
+   "Node",
+   "Svelte"
+  ],
+  "looking_for": [
+   "web engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "volunteering"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Luca Gallo",
+  "headline": "Security engineer · privacy",
+  "public_summary": "I work on threat models for a Kubernetes platform. 15 years in security. Happy to talk about zero trust and compliance.",
+  "approved_experience": "Security engineer, 15 years. Built threat models for a Kubernetes platform.",
+  "can_help_with": [
+   "privacy",
+   "zero trust",
+   "compliance",
+   "threat modeling"
+  ],
+  "looking_for": [
+   "AI safety collaborators",
+   "mentees"
+  ],
+  "interests": [
+   "drawing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Ada Dimitrov",
+  "headline": "Design lead · usability testing + threat modeling",
+  "public_summary": "I work on privacy reviews for an AI feature. 7 years in design, lately crossing into security. Happy to talk about Figma and product strategy.",
+  "approved_experience": "Design lead, 7 years. Built privacy reviews for an AI feature.",
+  "can_help_with": [
+   "usability testing",
+   "Figma",
+   "product strategy",
+   "cryptography",
+   "threat modeling"
+  ],
+  "looking_for": [
+   "frontend collaborators",
+   "engineers to prototype with"
+  ],
+  "interests": [
+   "cycling"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Kai Gallo",
+  "headline": "Infrastructure lead · AWS",
+  "public_summary": "I work on cutting cloud spend by right-sizing. 8 years in systems. Happy to talk about Docker and networking.",
+  "approved_experience": "Infrastructure lead, 8 years. Built cutting cloud spend by right-sizing.",
+  "can_help_with": [
+   "AWS",
+   "Docker",
+   "networking"
+  ],
+  "looking_for": [
+   "product feedback",
+   "ML deployment problems"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Yara Quispe",
+  "headline": "Compliance engineer · authentication + Node",
+  "public_summary": "I work on a secrets-scanning pipeline. 9 years in security, lately crossing into web. Happy to talk about zero trust and IAM.",
+  "approved_experience": "Compliance engineer, 9 years. Built a secrets-scanning pipeline.",
+  "can_help_with": [
+   "authentication",
+   "zero trust",
+   "IAM",
+   "HTML",
+   "Node"
+  ],
+  "looking_for": [
+   "platform partners",
+   "mentees"
+  ],
+  "interests": [
+   "film photography"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Mei Haddad",
+  "headline": "Product designer · prototyping",
+  "public_summary": "I work on a design critique ritual for remote teams. 5 years in design. Happy to talk about product strategy and service design.",
+  "approved_experience": "Product designer, 5 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "prototyping",
+   "product strategy",
+   "service design",
+   "roadmapping"
+  ],
+  "looking_for": [
+   "AI product ideas",
+   "frontend collaborators"
+  ],
+  "interests": [
+   "cycling",
+   "hiking"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Bea Gallo",
+  "headline": "AI researcher · fine-tuning + analytics",
+  "public_summary": "I work on embedding-based recommendations. 6 years in AI / ML, lately crossing into data. Happy to talk about vector search and evaluation.",
+  "approved_experience": "AI researcher, 6 years. Built embedding-based recommendations.",
+  "can_help_with": [
+   "fine-tuning",
+   "vector search",
+   "evaluation",
+   "data warehouse",
+   "analytics"
+  ],
+  "looking_for": [
+   "product designers",
+   "privacy reviews"
+  ],
+  "interests": [
+   "karaoke"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Oona Gallo",
+  "headline": "LLM engineer · fine-tuning + CSS",
+  "public_summary": "I work on a multimodal search prototype. 6 years in AI / ML, lately crossing into web. Happy to talk about LLMs and evaluation.",
+  "approved_experience": "LLM engineer, 6 years. Built a multimodal search prototype.",
+  "can_help_with": [
+   "fine-tuning",
+   "LLMs",
+   "evaluation",
+   "TypeScript",
+   "CSS"
+  ],
+  "looking_for": [
+   "MLOps feedback",
+   "product designers"
+  ],
+  "interests": [
+   "birdwatching",
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Chidi Esposito",
+  "headline": "Identity engineer · IAM + Python",
+  "public_summary": "I work on privacy reviews for an AI feature. 2 years in security, lately crossing into data. Happy to talk about compliance and threat modeling.",
+  "approved_experience": "Identity engineer, 2 years. Built privacy reviews for an AI feature.",
+  "can_help_with": [
+   "IAM",
+   "compliance",
+   "threat modeling",
+   "Elasticsearch",
+   "Python"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "mentees"
+  ],
+  "interests": [
+   "chess"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Dara Brennan",
+  "headline": "Search engineer · Spark",
+  "public_summary": "I work on churn analytics for a SaaS product. 6 years in data. Happy to talk about Airflow and Python.",
+  "approved_experience": "Search engineer, 6 years. Built churn analytics for a SaaS product.",
+  "can_help_with": [
+   "Spark",
+   "Airflow",
+   "Python",
+   "SQL"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "real-time search ideas"
+  ],
+  "interests": [
+   "chess",
+   "salsa dancing",
+   "hiking"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Fen Moreno",
+  "headline": "Product manager · usability testing + observability",
+  "public_summary": "I work on a multi-cluster Kubernetes migration. 7 years in design, lately crossing into systems. Happy to talk about prototyping and product strategy.",
+  "approved_experience": "Product manager, 7 years. Built a multi-cluster Kubernetes migration.",
+  "can_help_with": [
+   "usability testing",
+   "prototyping",
+   "product strategy",
+   "Terraform",
+   "observability"
+  ],
+  "looking_for": [
+   "frontend collaborators",
+   "AI product ideas"
+  ],
+  "interests": [
+   "gardening",
+   "tea"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Tam Quispe",
+  "headline": "Data scientist · data warehouse + authentication",
+  "public_summary": "I work on a lakehouse migration. 8 years in data, lately crossing into security. Happy to talk about data pipelines and Airflow.",
+  "approved_experience": "Data scientist, 8 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "data warehouse",
+   "data pipelines",
+   "Airflow",
+   "cryptography",
+   "authentication"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "ML collaborators"
+  ],
+  "interests": [
+   "cycling",
+   "bouldering",
+   "board games"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Bodhi Dimitrov",
+  "headline": "Compliance engineer · pen testing + AWS",
+  "public_summary": "I work on passkey rollout for a consumer app. 6 years in security, lately crossing into systems. Happy to talk about compliance and authentication.",
+  "approved_experience": "Compliance engineer, 6 years. Built passkey rollout for a consumer app.",
+  "can_help_with": [
+   "pen testing",
+   "compliance",
+   "authentication",
+   "Go",
+   "AWS"
+  ],
+  "looking_for": [
+   "policy feedback",
+   "platform partners"
+  ],
+  "interests": [
+   "volunteering",
+   "sci-fi novels",
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Tam Quispe",
+  "headline": "BI developer · Airflow + fine-tuning",
+  "public_summary": "I work on a RAG assistant over internal docs. 13 years in data, lately crossing into AI. Happy to talk about SQL and Python.",
+  "approved_experience": "BI developer, 13 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "Airflow",
+   "SQL",
+   "Python",
+   "NLP",
+   "fine-tuning"
+  ],
+  "looking_for": [
+   "ML collaborators",
+   "data visualisation help"
+  ],
+  "interests": [
+   "jazz"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Ivo Gallo",
+  "headline": "Accessibility specialist · HTML",
+  "public_summary": "I work on server-side rendering for a large marketplace. 9 years in web. Happy to talk about Svelte and GraphQL.",
+  "approved_experience": "Accessibility specialist, 9 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "HTML",
+   "Svelte",
+   "GraphQL",
+   "TypeScript"
+  ],
+  "looking_for": [
+   "a co-founder",
+   "design feedback"
+  ],
+  "interests": [
+   "chess"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Chidi Mbeki",
+  "headline": "AppSec lead · threat modeling",
+  "public_summary": "I work on SOC 2 automation. 15 years in security. Happy to talk about IAM and authentication.",
+  "approved_experience": "AppSec lead, 15 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "threat modeling",
+   "IAM",
+   "authentication"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "mentees"
+  ],
+  "interests": [
+   "sourdough",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Dev Ito",
+  "headline": "Frontend engineer · web performance + pen testing",
+  "public_summary": "I work on a component library used by six product teams. 13 years in web, lately crossing into security. Happy to talk about GraphQL and Svelte.",
+  "approved_experience": "Frontend engineer, 13 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "web performance",
+   "GraphQL",
+   "Svelte",
+   "privacy",
+   "pen testing"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "pottery"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Kemi Farah",
+  "headline": "Technical recruiter · web teams · CSS",
+  "public_summary": "I work on a WCAG audit tool for design tokens. 2 years in web. Happy to talk about GraphQL and web performance.",
+  "approved_experience": "Technical recruiter · web teams, 2 years. Built a WCAG audit tool for design tokens.",
+  "can_help_with": [
+   "CSS",
+   "GraphQL",
+   "web performance",
+   "TypeScript"
+  ],
+  "looking_for": [
+   "web engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "hiking",
+   "cycling"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Jonah Quispe",
+  "headline": "Accessibility specialist · TypeScript + zero trust",
+  "public_summary": "I work on an offline-first event schedule PWA. 3 years in web, lately crossing into security. Happy to talk about Svelte and HTML.",
+  "approved_experience": "Accessibility specialist, 3 years. Built an offline-first event schedule PWA.",
+  "can_help_with": [
+   "TypeScript",
+   "Svelte",
+   "HTML",
+   "authentication",
+   "zero trust"
+  ],
+  "looking_for": [
+   "backend mentorship",
+   "a co-founder"
+  ],
+  "interests": [
+   "tea",
+   "karaoke"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Oz Rossi",
+  "headline": "Platform engineer · Go",
+  "public_summary": "I work on chaos testing for a payments API. 6 years in systems. Happy to talk about OpenTelemetry and Docker.",
+  "approved_experience": "Platform engineer, 6 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "Go",
+   "OpenTelemetry",
+   "Docker",
+   "networking"
+  ],
+  "looking_for": [
+   "SRE mentees",
+   "ML deployment problems"
+  ],
+  "interests": [
+   "sourdough",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Fen Mbeki",
+  "headline": "Site reliability engineer · Terraform + evaluation",
+  "public_summary": "I work on a RAG assistant over internal docs. 15 years in systems, lately crossing into AI. Happy to talk about AWS and Helm.",
+  "approved_experience": "Site reliability engineer, 15 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "Terraform",
+   "AWS",
+   "Helm",
+   "NLP",
+   "evaluation"
+  ],
+  "looking_for": [
+   "frontend observability",
+   "ML deployment problems"
+  ],
+  "interests": [
+   "pottery"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Teo Cho",
+  "headline": "Platform engineer · networking + embeddings",
+  "public_summary": "I work on chaos testing for a payments API. 12 years in systems, lately crossing into AI. Happy to talk about incident response and Helm.",
+  "approved_experience": "Platform engineer, 12 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "networking",
+   "incident response",
+   "Helm",
+   "fine-tuning",
+   "embeddings"
+  ],
+  "looking_for": [
+   "ML deployment problems",
+   "security reviews"
+  ],
+  "interests": [
+   "board games",
+   "hiking"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Esme Adeyemi",
+  "headline": "ML engineer · LLMs",
+  "public_summary": "I work on a multimodal search prototype. 1 years in AI / ML. Happy to talk about PyTorch and vector search.",
+  "approved_experience": "ML engineer, 1 years. Built a multimodal search prototype.",
+  "can_help_with": [
+   "LLMs",
+   "PyTorch",
+   "vector search",
+   "Python"
+  ],
+  "looking_for": [
+   "GPU infrastructure help",
+   "labelled datasets"
+  ],
+  "interests": [
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Lin Adeyemi",
+  "headline": "Product designer · usability testing",
+  "public_summary": "I work on onboarding research for a fintech app. 12 years in design. Happy to talk about Figma and product strategy.",
+  "approved_experience": "Product designer, 12 years. Built onboarding research for a fintech app.",
+  "can_help_with": [
+   "usability testing",
+   "Figma",
+   "product strategy",
+   "UX research"
+  ],
+  "looking_for": [
+   "data for research",
+   "frontend collaborators"
+  ],
+  "interests": [
+   "drawing",
+   "birdwatching",
+   "film photography"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Vera Gupta",
+  "headline": "Data scientist · Elasticsearch",
+  "public_summary": "I work on hybrid search for a legal archive. 10 years in data. Happy to talk about Spark and ETL.",
+  "approved_experience": "Data scientist, 10 years. Built hybrid search for a legal archive.",
+  "can_help_with": [
+   "Elasticsearch",
+   "Spark",
+   "ETL"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "mentorship"
+  ],
+  "interests": [
+   "cycling",
+   "pottery",
+   "hiking"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Sol Farah",
+  "headline": "Cloud architect · OpenTelemetry + vector search",
+  "public_summary": "I work on a RAG assistant over internal docs. 5 years in systems, lately crossing into AI. Happy to talk about observability and networking.",
+  "approved_experience": "Cloud architect, 5 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "OpenTelemetry",
+   "observability",
+   "networking",
+   "NLP",
+   "vector search"
+  ],
+  "looking_for": [
+   "ML deployment problems",
+   "security reviews"
+  ],
+  "interests": [
+   "pottery",
+   "chess"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Kemi Ueda",
+  "headline": "Infrastructure lead · Terraform",
+  "public_summary": "I work on SLO dashboards with OpenTelemetry. 4 years in systems. Happy to talk about Docker and Go.",
+  "approved_experience": "Infrastructure lead, 4 years. Built SLO dashboards with OpenTelemetry.",
+  "can_help_with": [
+   "Terraform",
+   "Docker",
+   "Go",
+   "Kubernetes"
+  ],
+  "looking_for": [
+   "frontend observability",
+   "security reviews"
+  ],
+  "interests": [
+   "salsa dancing",
+   "bouldering",
+   "birdwatching"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Nico Yilmaz",
+  "headline": "Data scientist · Spark + pen testing",
+  "public_summary": "I work on hybrid search for a legal archive. 7 years in data, lately crossing into security. Happy to talk about Python and dbt.",
+  "approved_experience": "Data scientist, 7 years. Built hybrid search for a legal archive.",
+  "can_help_with": [
+   "Spark",
+   "Python",
+   "dbt",
+   "cryptography",
+   "pen testing"
+  ],
+  "looking_for": [
+   "real-time search ideas",
+   "ML collaborators"
+  ],
+  "interests": [
+   "hiking",
+   "bouldering",
+   "chess"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Dara Mbeki",
+  "headline": "Frontend engineer · Next.js",
+  "public_summary": "I work on a component library used by six product teams. 10 years in web. Happy to talk about React and Svelte.",
+  "approved_experience": "Frontend engineer, 10 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "Next.js",
+   "React",
+   "Svelte",
+   "GraphQL"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "board games",
+   "cycling"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Zev Petrov",
+  "headline": "Frontend engineer · Svelte + Python",
+  "public_summary": "I work on churn analytics for a SaaS product. 14 years in web, lately crossing into data. Happy to talk about HTML and GraphQL.",
+  "approved_experience": "Frontend engineer, 14 years. Built churn analytics for a SaaS product.",
+  "can_help_with": [
+   "Svelte",
+   "HTML",
+   "GraphQL",
+   "Airflow",
+   "Python"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "backend mentorship"
+  ],
+  "interests": [
+   "bouldering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Fen Cho",
+  "headline": "ML engineer · PyTorch + React",
+  "public_summary": "I work on embedding-based recommendations. 4 years in AI / ML, lately crossing into web. Happy to talk about NLP and evaluation.",
+  "approved_experience": "ML engineer, 4 years. Built embedding-based recommendations.",
+  "can_help_with": [
+   "PyTorch",
+   "NLP",
+   "evaluation",
+   "CSS",
+   "React"
+  ],
+  "looking_for": [
+   "MLOps feedback",
+   "GPU infrastructure help"
+  ],
+  "interests": [
+   "sci-fi novels",
+   "film photography"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Mei Lopez",
+  "headline": "Search engineer · Python",
+  "public_summary": "I work on churn analytics for a SaaS product. 1 years in data. Happy to talk about Spark and dbt.",
+  "approved_experience": "Search engineer, 1 years. Built churn analytics for a SaaS product.",
+  "can_help_with": [
+   "Python",
+   "Spark",
+   "dbt",
+   "data warehouse"
+  ],
+  "looking_for": [
+   "mentorship",
+   "data visualisation help"
+  ],
+  "interests": [
+   "drawing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Mei Gallo",
+  "headline": "Web performance engineer · GraphQL",
+  "public_summary": "I work on server-side rendering for a large marketplace. 14 years in web. Happy to talk about TypeScript and web performance.",
+  "approved_experience": "Web performance engineer, 14 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "GraphQL",
+   "TypeScript",
+   "web performance"
+  ],
+  "looking_for": [
+   "observability for frontends",
+   "a co-founder"
+  ],
+  "interests": [
+   "volunteering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Haru Jensen",
+  "headline": "Applied scientist · PyTorch",
+  "public_summary": "I work on a RAG assistant over internal docs. 7 years in AI / ML. Happy to talk about vector search and fine-tuning.",
+  "approved_experience": "Applied scientist, 7 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "PyTorch",
+   "vector search",
+   "fine-tuning",
+   "embeddings"
+  ],
+  "looking_for": [
+   "labelled datasets",
+   "MLOps feedback"
+  ],
+  "interests": [
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Kemi Berg",
+  "headline": "Design-systems engineer · Next.js",
+  "public_summary": "I work on a WCAG audit tool for design tokens. 13 years in web. Happy to talk about web performance and accessibility.",
+  "approved_experience": "Design-systems engineer, 13 years. Built a WCAG audit tool for design tokens.",
+  "can_help_with": [
+   "Next.js",
+   "web performance",
+   "accessibility",
+   "CSS"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "speedcubing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Oona Yilmaz",
+  "headline": "Identity engineer · privacy + observability",
+  "public_summary": "I work on a multi-cluster Kubernetes migration. 13 years in security, lately crossing into systems. Happy to talk about authentication and IAM.",
+  "approved_experience": "Identity engineer, 13 years. Built a multi-cluster Kubernetes migration.",
+  "can_help_with": [
+   "privacy",
+   "authentication",
+   "IAM",
+   "networking",
+   "observability"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "mentees"
+  ],
+  "interests": [
+   "trail running"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Bodhi Mbeki",
+  "headline": "Full-stack developer · Svelte + evaluation",
+  "public_summary": "I work on an offline-first event schedule PWA. 7 years in web, lately crossing into AI. Happy to talk about React and TypeScript.",
+  "approved_experience": "Full-stack developer, 7 years. Built an offline-first event schedule PWA.",
+  "can_help_with": [
+   "Svelte",
+   "React",
+   "TypeScript",
+   "embeddings",
+   "evaluation"
+  ],
+  "looking_for": [
+   "a co-founder",
+   "design feedback"
+  ],
+  "interests": [
+   "volunteering",
+   "jazz"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Cal Berg",
+  "headline": "MLOps engineer · LLMs",
+  "public_summary": "I work on fine-tuning a small model for triage. 7 years in AI / ML. Happy to talk about RAG and evaluation.",
+  "approved_experience": "MLOps engineer, 7 years. Built fine-tuning a small model for triage.",
+  "can_help_with": [
+   "LLMs",
+   "RAG",
+   "evaluation",
+   "embeddings"
+  ],
+  "looking_for": [
+   "product designers",
+   "privacy reviews"
+  ],
+  "interests": [
+   "hiking"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Xia Hoang",
+  "headline": "DevOps engineer · OpenTelemetry + roadmapping",
+  "public_summary": "I work on onboarding research for a fintech app. 2 years in systems, lately crossing into design. Happy to talk about AWS and Docker.",
+  "approved_experience": "DevOps engineer, 2 years. Built onboarding research for a fintech app.",
+  "can_help_with": [
+   "OpenTelemetry",
+   "AWS",
+   "Docker",
+   "service design",
+   "roadmapping"
+  ],
+  "looking_for": [
+   "ML deployment problems",
+   "product feedback"
+  ],
+  "interests": [
+   "board games",
+   "karaoke"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Jonah Brennan",
+  "headline": "Technical recruiter · data teams · dbt + Node",
+  "public_summary": "I work on a lakehouse migration. 6 years in data, lately crossing into web. Happy to talk about data pipelines and Elasticsearch.",
+  "approved_experience": "Technical recruiter · data teams, 6 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "dbt",
+   "data pipelines",
+   "Elasticsearch",
+   "CSS",
+   "Node"
+  ],
+  "looking_for": [
+   "data engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "bouldering",
+   "trail running",
+   "pottery"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Fen Rossi",
+  "headline": "Frontend engineer · Next.js + Figma",
+  "public_summary": "I work on an offline-first event schedule PWA. 1 years in web, lately crossing into design. Happy to talk about HTML and Node.",
+  "approved_experience": "Frontend engineer, 1 years. Built an offline-first event schedule PWA.",
+  "can_help_with": [
+   "Next.js",
+   "HTML",
+   "Node",
+   "UX research",
+   "Figma"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "salsa dancing",
+   "trail running",
+   "speedcubing"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Lin Lopez",
+  "headline": "AI researcher · RAG + pen testing",
+  "public_summary": "I work on evaluation harness for LLM agents. 12 years in AI / ML, lately crossing into security. Happy to talk about embeddings and vector search.",
+  "approved_experience": "AI researcher, 12 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "RAG",
+   "embeddings",
+   "vector search",
+   "IAM",
+   "pen testing"
+  ],
+  "looking_for": [
+   "product designers",
+   "MLOps feedback"
+  ],
+  "interests": [
+   "karaoke"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Quin Iyer",
+  "headline": "Cloud architect · Helm",
+  "public_summary": "I work on chaos testing for a payments API. 12 years in systems. Happy to talk about Docker and OpenTelemetry.",
+  "approved_experience": "Cloud architect, 12 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "Helm",
+   "Docker",
+   "OpenTelemetry"
+  ],
+  "looking_for": [
+   "SRE mentees",
+   "product feedback"
+  ],
+  "interests": [
+   "chess",
+   "film photography"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Zev Dube",
+  "headline": "Identity engineer · pen testing",
+  "public_summary": "I work on passkey rollout for a consumer app. 4 years in security. Happy to talk about authentication and threat modeling.",
+  "approved_experience": "Identity engineer, 4 years. Built passkey rollout for a consumer app.",
+  "can_help_with": [
+   "pen testing",
+   "authentication",
+   "threat modeling",
+   "cryptography"
+  ],
+  "looking_for": [
+   "platform partners",
+   "policy feedback"
+  ],
+  "interests": [
+   "birdwatching"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Sana Kowal",
+  "headline": "AI researcher · MLOps",
+  "public_summary": "I work on evaluation harness for LLM agents. 9 years in AI / ML. Happy to talk about vector search and NLP.",
+  "approved_experience": "AI researcher, 9 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "MLOps",
+   "vector search",
+   "NLP",
+   "embeddings"
+  ],
+  "looking_for": [
+   "MLOps feedback",
+   "privacy reviews"
+  ],
+  "interests": [
+   "trail running",
+   "bouldering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Ivo Brennan",
+  "headline": "Cloud architect · Go",
+  "public_summary": "I work on SLO dashboards with OpenTelemetry. 1 years in systems. Happy to talk about Docker and Kubernetes.",
+  "approved_experience": "Cloud architect, 1 years. Built SLO dashboards with OpenTelemetry.",
+  "can_help_with": [
+   "Go",
+   "Docker",
+   "Kubernetes",
+   "observability"
+  ],
+  "looking_for": [
+   "SRE mentees",
+   "ML deployment problems"
+  ],
+  "interests": [
+   "pottery",
+   "volunteering"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Kemi Cho",
+  "headline": "BI developer · Python",
+  "public_summary": "I work on hybrid search for a legal archive. 1 years in data. Happy to talk about SQL and Airflow.",
+  "approved_experience": "BI developer, 1 years. Built hybrid search for a legal archive.",
+  "can_help_with": [
+   "Python",
+   "SQL",
+   "Airflow"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "mentorship"
+  ],
+  "interests": [
+   "tea"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Bea Lopez",
+  "headline": "Infrastructure lead · AWS + zero trust",
+  "public_summary": "I work on cutting cloud spend by right-sizing. 7 years in systems, lately crossing into security. Happy to talk about Terraform and networking.",
+  "approved_experience": "Infrastructure lead, 7 years. Built cutting cloud spend by right-sizing.",
+  "can_help_with": [
+   "AWS",
+   "Terraform",
+   "networking",
+   "threat modeling",
+   "zero trust"
+  ],
+  "looking_for": [
+   "product feedback",
+   "frontend observability"
+  ],
+  "interests": [
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Jae Rossi",
+  "headline": "Analytics engineer · dbt",
+  "public_summary": "I work on churn analytics for a SaaS product. 9 years in data. Happy to talk about Python and data pipelines.",
+  "approved_experience": "Analytics engineer, 9 years. Built churn analytics for a SaaS product.",
+  "can_help_with": [
+   "dbt",
+   "Python",
+   "data pipelines"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "data visualisation help"
+  ],
+  "interests": [
+   "surfing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Nell Sato",
+  "headline": "Infrastructure lead · Terraform + product strategy",
+  "public_summary": "I work on a self-service platform with Helm charts. 2 years in systems, lately crossing into design. Happy to talk about incident response and AWS.",
+  "approved_experience": "Infrastructure lead, 2 years. Built a self-service platform with Helm charts.",
+  "can_help_with": [
+   "Terraform",
+   "incident response",
+   "AWS",
+   "roadmapping",
+   "product strategy"
+  ],
+  "looking_for": [
+   "security reviews",
+   "SRE mentees"
+  ],
+  "interests": [
+   "drawing",
+   "volunteering",
+   "surfing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Luca Kowal",
+  "headline": "Product designer · UX research + IAM",
+  "public_summary": "I work on journey maps for hospital discharge. 12 years in design, lately crossing into security. Happy to talk about service design and Figma.",
+  "approved_experience": "Product designer, 12 years. Built journey maps for hospital discharge.",
+  "can_help_with": [
+   "UX research",
+   "service design",
+   "Figma",
+   "authentication",
+   "IAM"
+  ],
+  "looking_for": [
+   "data for research",
+   "user interview partners"
+  ],
+  "interests": [
+   "cycling"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Lin Dube",
+  "headline": "Site reliability engineer · AWS",
+  "public_summary": "I work on chaos testing for a payments API. 6 years in systems. Happy to talk about Terraform and Helm.",
+  "approved_experience": "Site reliability engineer, 6 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "AWS",
+   "Terraform",
+   "Helm",
+   "Kubernetes"
+  ],
+  "looking_for": [
+   "SRE mentees",
+   "security reviews"
+  ],
+  "interests": [
+   "pottery"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Uma Abara",
+  "headline": "AI researcher · Python + Node",
+  "public_summary": "I work on a RAG assistant over internal docs. 12 years in AI / ML, lately crossing into web. Happy to talk about vector search and embeddings.",
+  "approved_experience": "AI researcher, 12 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "Python",
+   "vector search",
+   "embeddings",
+   "accessibility",
+   "Node"
+  ],
+  "looking_for": [
+   "GPU infrastructure help",
+   "privacy reviews"
+  ],
+  "interests": [
+   "sci-fi novels",
+   "birdwatching"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Sol Kaur",
+  "headline": "Identity engineer · compliance",
+  "public_summary": "I work on threat models for a Kubernetes platform. 12 years in security. Happy to talk about zero trust and threat modeling.",
+  "approved_experience": "Identity engineer, 12 years. Built threat models for a Kubernetes platform.",
+  "can_help_with": [
+   "compliance",
+   "zero trust",
+   "threat modeling"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "policy feedback"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Ada Eriksen",
+  "headline": "BI developer · Python + TypeScript",
+  "public_summary": "I work on a lakehouse migration. 7 years in data, lately crossing into web. Happy to talk about Elasticsearch and Airflow.",
+  "approved_experience": "BI developer, 7 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "Python",
+   "Elasticsearch",
+   "Airflow",
+   "Svelte",
+   "TypeScript"
+  ],
+  "looking_for": [
+   "ML collaborators",
+   "mentorship"
+  ],
+  "interests": [
+   "pottery",
+   "birdwatching",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Kemi Castro",
+  "headline": "Full-stack developer · GraphQL",
+  "public_summary": "I work on a component library used by six product teams. 1 years in web. Happy to talk about Node and CSS.",
+  "approved_experience": "Full-stack developer, 1 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "GraphQL",
+   "Node",
+   "CSS",
+   "HTML"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "design feedback"
+  ],
+  "interests": [
+   "chess",
+   "hiking",
+   "speedcubing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Gus Brennan",
+  "headline": "AI researcher · NLP + CSS",
+  "public_summary": "I work on server-side rendering for a large marketplace. 13 years in AI / ML, lately crossing into web. Happy to talk about RAG and embeddings.",
+  "approved_experience": "AI researcher, 13 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "NLP",
+   "RAG",
+   "embeddings",
+   "GraphQL",
+   "CSS"
+  ],
+  "looking_for": [
+   "privacy reviews",
+   "labelled datasets"
+  ],
+  "interests": [
+   "sourdough",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Ivo Ueda",
+  "headline": "Applied scientist · NLP + privacy",
+  "public_summary": "I work on fine-tuning a small model for triage. 15 years in AI / ML, lately crossing into security. Happy to talk about fine-tuning and PyTorch.",
+  "approved_experience": "Applied scientist, 15 years. Built fine-tuning a small model for triage.",
+  "can_help_with": [
+   "NLP",
+   "fine-tuning",
+   "PyTorch",
+   "pen testing",
+   "privacy"
+  ],
+  "looking_for": [
+   "product designers",
+   "labelled datasets"
+  ],
+  "interests": [
+   "gardening",
+   "chess"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Yara Kaur",
+  "headline": "Identity engineer · authentication + React",
+  "public_summary": "I work on threat models for a Kubernetes platform. 3 years in security, lately crossing into web. Happy to talk about privacy and zero trust.",
+  "approved_experience": "Identity engineer, 3 years. Built threat models for a Kubernetes platform.",
+  "can_help_with": [
+   "authentication",
+   "privacy",
+   "zero trust",
+   "Node",
+   "React"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "platform partners"
+  ],
+  "interests": [
+   "board games",
+   "cycling",
+   "chess"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Jonah Ito",
+  "headline": "Design lead · roadmapping",
+  "public_summary": "I work on journey maps for hospital discharge. 4 years in design. Happy to talk about prototyping and product strategy.",
+  "approved_experience": "Design lead, 4 years. Built journey maps for hospital discharge.",
+  "can_help_with": [
+   "roadmapping",
+   "prototyping",
+   "product strategy"
+  ],
+  "looking_for": [
+   "user interview partners",
+   "engineers to prototype with"
+  ],
+  "interests": [
+   "bouldering",
+   "birdwatching",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Gus Rossi",
+  "headline": "Accessibility specialist · CSS",
+  "public_summary": "I work on a real-time collaborative whiteboard. 7 years in web. Happy to talk about accessibility and React.",
+  "approved_experience": "Accessibility specialist, 7 years. Built a real-time collaborative whiteboard.",
+  "can_help_with": [
+   "CSS",
+   "accessibility",
+   "React",
+   "web performance"
+  ],
+  "looking_for": [
+   "design feedback",
+   "observability for frontends"
+  ],
+  "interests": [
+   "volunteering",
+   "trail running"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Ada Lopez",
+  "headline": "Search engineer · Airflow",
+  "public_summary": "I work on a dbt project with data contracts. 2 years in data. Happy to talk about dbt and data pipelines.",
+  "approved_experience": "Search engineer, 2 years. Built a dbt project with data contracts.",
+  "can_help_with": [
+   "Airflow",
+   "dbt",
+   "data pipelines",
+   "ETL"
+  ],
+  "looking_for": [
+   "mentorship",
+   "Kubernetes deployment advice"
+  ],
+  "interests": [
+   "pottery",
+   "sourdough",
+   "drawing"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Kemi Nakamura",
+  "headline": "Search engineer · Airflow",
+  "public_summary": "I work on a lakehouse migration. 9 years in data. Happy to talk about Python and Spark.",
+  "approved_experience": "Search engineer, 9 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "Airflow",
+   "Python",
+   "Spark"
+  ],
+  "looking_for": [
+   "real-time search ideas",
+   "ML collaborators"
+  ],
+  "interests": [
+   "drawing",
+   "surfing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Teo Brennan",
+  "headline": "Infrastructure lead · Kubernetes",
+  "public_summary": "I work on SLO dashboards with OpenTelemetry. 15 years in systems. Happy to talk about Helm and networking.",
+  "approved_experience": "Infrastructure lead, 15 years. Built SLO dashboards with OpenTelemetry.",
+  "can_help_with": [
+   "Kubernetes",
+   "Helm",
+   "networking",
+   "Docker"
+  ],
+  "looking_for": [
+   "SRE mentees",
+   "ML deployment problems"
+  ],
+  "interests": [
+   "hiking",
+   "karaoke",
+   "speedcubing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Cal Mbeki",
+  "headline": "Growth PM · roadmapping + data pipelines",
+  "public_summary": "I work on hybrid search for a legal archive. 7 years in design, lately crossing into data. Happy to talk about UX research and product strategy.",
+  "approved_experience": "Growth PM, 7 years. Built hybrid search for a legal archive.",
+  "can_help_with": [
+   "roadmapping",
+   "UX research",
+   "product strategy",
+   "Airflow",
+   "data pipelines"
+  ],
+  "looking_for": [
+   "data for research",
+   "engineers to prototype with"
+  ],
+  "interests": [
+   "tea"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Esme Gupta",
+  "headline": "Product manager · product strategy",
+  "public_summary": "I work on onboarding research for a fintech app. 6 years in design. Happy to talk about service design and prototyping.",
+  "approved_experience": "Product manager, 6 years. Built onboarding research for a fintech app.",
+  "can_help_with": [
+   "product strategy",
+   "service design",
+   "prototyping",
+   "roadmapping"
+  ],
+  "looking_for": [
+   "user interview partners",
+   "AI product ideas"
+  ],
+  "interests": [
+   "birdwatching",
+   "sci-fi novels",
+   "karaoke"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Hana Rossi",
+  "headline": "LLM engineer · RAG",
+  "public_summary": "I work on a RAG assistant over internal docs. 8 years in AI / ML. Happy to talk about embeddings and fine-tuning.",
+  "approved_experience": "LLM engineer, 8 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "RAG",
+   "embeddings",
+   "fine-tuning"
+  ],
+  "looking_for": [
+   "product designers",
+   "labelled datasets"
+  ],
+  "interests": [
+   "trail running"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Ivo Okoye",
+  "headline": "AppSec lead · authentication",
+  "public_summary": "I work on SOC 2 automation. 2 years in security. Happy to talk about zero trust and pen testing.",
+  "approved_experience": "AppSec lead, 2 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "authentication",
+   "zero trust",
+   "pen testing"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "AI safety collaborators"
+  ],
+  "interests": [
+   "sci-fi novels",
+   "sourdough"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Haru Kowal",
+  "headline": "UX researcher · usability testing",
+  "public_summary": "I work on onboarding research for a fintech app. 10 years in design. Happy to talk about prototyping and UX research.",
+  "approved_experience": "UX researcher, 10 years. Built onboarding research for a fintech app.",
+  "can_help_with": [
+   "usability testing",
+   "prototyping",
+   "UX research"
+  ],
+  "looking_for": [
+   "AI product ideas",
+   "data for research"
+  ],
+  "interests": [
+   "birdwatching"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Sol Eriksen",
+  "headline": "MLOps engineer · embeddings + compliance",
+  "public_summary": "I work on SOC 2 automation. 5 years in AI / ML, lately crossing into security. Happy to talk about fine-tuning and LLMs.",
+  "approved_experience": "MLOps engineer, 5 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "embeddings",
+   "fine-tuning",
+   "LLMs",
+   "cryptography",
+   "compliance"
+  ],
+  "looking_for": [
+   "labelled datasets",
+   "MLOps feedback"
+  ],
+  "interests": [
+   "film photography",
+   "karaoke"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Fen Zhou",
+  "headline": "Privacy engineer · threat modeling",
+  "public_summary": "I work on SOC 2 automation. 6 years in security. Happy to talk about pen testing and compliance.",
+  "approved_experience": "Privacy engineer, 6 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "threat modeling",
+   "pen testing",
+   "compliance",
+   "cryptography"
+  ],
+  "looking_for": [
+   "AI safety collaborators",
+   "mentees"
+  ],
+  "interests": [
+   "pottery",
+   "hiking",
+   "cycling"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Uma Wiles",
+  "headline": "Search engineer · SQL",
+  "public_summary": "I work on a dbt project with data contracts. 12 years in data. Happy to talk about analytics and dbt.",
+  "approved_experience": "Search engineer, 12 years. Built a dbt project with data contracts.",
+  "can_help_with": [
+   "SQL",
+   "analytics",
+   "dbt",
+   "Python"
+  ],
+  "looking_for": [
+   "ML collaborators",
+   "data visualisation help"
+  ],
+  "interests": [
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Kai Jensen",
+  "headline": "Data scientist · analytics + observability",
+  "public_summary": "I work on a lakehouse migration. 15 years in data, lately crossing into systems. Happy to talk about Airflow and dbt.",
+  "approved_experience": "Data scientist, 15 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "analytics",
+   "Airflow",
+   "dbt",
+   "OpenTelemetry",
+   "observability"
+  ],
+  "looking_for": [
+   "real-time search ideas",
+   "Kubernetes deployment advice"
+  ],
+  "interests": [
+   "drawing",
+   "jazz"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Chidi Yilmaz",
+  "headline": "ML engineer · embeddings",
+  "public_summary": "I work on embedding-based recommendations. 2 years in AI / ML. Happy to talk about PyTorch and MLOps.",
+  "approved_experience": "ML engineer, 2 years. Built embedding-based recommendations.",
+  "can_help_with": [
+   "embeddings",
+   "PyTorch",
+   "MLOps",
+   "evaluation"
+  ],
+  "looking_for": [
+   "labelled datasets",
+   "product designers"
+  ],
+  "interests": [
+   "birdwatching",
+   "hiking"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Dev Castro",
+  "headline": "BI developer · Spark + observability",
+  "public_summary": "I work on chaos testing for a payments API. 15 years in data, lately crossing into systems. Happy to talk about analytics and Python.",
+  "approved_experience": "BI developer, 15 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "Spark",
+   "analytics",
+   "Python",
+   "Go",
+   "observability"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "real-time search ideas"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Sana Lindgren",
+  "headline": "AppSec lead · privacy + Kubernetes",
+  "public_summary": "I work on SOC 2 automation. 1 years in security, lately crossing into systems. Happy to talk about pen testing and authentication.",
+  "approved_experience": "AppSec lead, 1 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "privacy",
+   "pen testing",
+   "authentication",
+   "networking",
+   "Kubernetes"
+  ],
+  "looking_for": [
+   "AI safety collaborators",
+   "mentees"
+  ],
+  "interests": [
+   "trail running",
+   "sourdough"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Dev Okoye",
+  "headline": "BI developer · Airflow + UX research",
+  "public_summary": "I work on a streaming ETL pipeline for IoT sensors. 9 years in data, lately crossing into design. Happy to talk about SQL and data warehouse.",
+  "approved_experience": "BI developer, 9 years. Built a streaming ETL pipeline for IoT sensors.",
+  "can_help_with": [
+   "Airflow",
+   "SQL",
+   "data warehouse",
+   "product strategy",
+   "UX research"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "real-time search ideas"
+  ],
+  "interests": [
+   "salsa dancing",
+   "pottery"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Zev Farah",
+  "headline": "Product designer · UX research",
+  "public_summary": "I work on a pricing experiment framework. 12 years in design. Happy to talk about prototyping and Figma.",
+  "approved_experience": "Product designer, 12 years. Built a pricing experiment framework.",
+  "can_help_with": [
+   "UX research",
+   "prototyping",
+   "Figma"
+  ],
+  "looking_for": [
+   "AI product ideas",
+   "data for research"
+  ],
+  "interests": [
+   "pottery"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Jonah Farah",
+  "headline": "Technical recruiter · web teams · Node",
+  "public_summary": "I work on an offline-first event schedule PWA. 7 years in web. Happy to talk about GraphQL and web performance.",
+  "approved_experience": "Technical recruiter · web teams, 7 years. Built an offline-first event schedule PWA.",
+  "can_help_with": [
+   "Node",
+   "GraphQL",
+   "web performance"
+  ],
+  "looking_for": [
+   "web engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "speedcubing",
+   "sci-fi novels",
+   "hiking"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Yara Dube",
+  "headline": "ML engineer · Python",
+  "public_summary": "I work on evaluation harness for LLM agents. 2 years in AI / ML. Happy to talk about evaluation and PyTorch.",
+  "approved_experience": "ML engineer, 2 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "Python",
+   "evaluation",
+   "PyTorch"
+  ],
+  "looking_for": [
+   "GPU infrastructure help",
+   "MLOps feedback"
+  ],
+  "interests": [
+   "volunteering",
+   "karaoke",
+   "drawing"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Vera Dube",
+  "headline": "BI developer · Elasticsearch",
+  "public_summary": "I work on a streaming ETL pipeline for IoT sensors. 8 years in data. Happy to talk about Airflow and ETL.",
+  "approved_experience": "BI developer, 8 years. Built a streaming ETL pipeline for IoT sensors.",
+  "can_help_with": [
+   "Elasticsearch",
+   "Airflow",
+   "ETL",
+   "Python"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "Kubernetes deployment advice"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Rory Mbeki",
+  "headline": "Search engineer · Python + NLP",
+  "public_summary": "I work on a dbt project with data contracts. 5 years in data, lately crossing into AI. Happy to talk about Elasticsearch and Airflow.",
+  "approved_experience": "Search engineer, 5 years. Built a dbt project with data contracts.",
+  "can_help_with": [
+   "Python",
+   "Elasticsearch",
+   "Airflow",
+   "MLOps",
+   "NLP"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "mentorship"
+  ],
+  "interests": [
+   "birdwatching",
+   "cycling"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Ines Lopez",
+  "headline": "Product designer · usability testing + Spark",
+  "public_summary": "I work on hybrid search for a legal archive. 4 years in design, lately crossing into data. Happy to talk about product strategy and UX research.",
+  "approved_experience": "Product designer, 4 years. Built hybrid search for a legal archive.",
+  "can_help_with": [
+   "usability testing",
+   "product strategy",
+   "UX research",
+   "Python",
+   "Spark"
+  ],
+  "looking_for": [
+   "engineers to prototype with",
+   "AI product ideas"
+  ],
+  "interests": [
+   "bouldering",
+   "birdwatching"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Rory Mbeki",
+  "headline": "Accessibility specialist · Svelte",
+  "public_summary": "I work on a real-time collaborative whiteboard. 5 years in web. Happy to talk about GraphQL and React.",
+  "approved_experience": "Accessibility specialist, 5 years. Built a real-time collaborative whiteboard.",
+  "can_help_with": [
+   "Svelte",
+   "GraphQL",
+   "React"
+  ],
+  "looking_for": [
+   "backend mentorship",
+   "a co-founder"
+  ],
+  "interests": [
+   "gardening"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Amara Castro",
+  "headline": "Data scientist · analytics",
+  "public_summary": "I work on a streaming ETL pipeline for IoT sensors. 8 years in data. Happy to talk about data warehouse and Python.",
+  "approved_experience": "Data scientist, 8 years. Built a streaming ETL pipeline for IoT sensors.",
+  "can_help_with": [
+   "analytics",
+   "data warehouse",
+   "Python",
+   "ETL"
+  ],
+  "looking_for": [
+   "ML collaborators",
+   "mentorship"
+  ],
+  "interests": [
+   "jazz"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Luca Fischer",
+  "headline": "Search engineer · Elasticsearch",
+  "public_summary": "I work on churn analytics for a SaaS product. 10 years in data. Happy to talk about ETL and Airflow.",
+  "approved_experience": "Search engineer, 10 years. Built churn analytics for a SaaS product.",
+  "can_help_with": [
+   "Elasticsearch",
+   "ETL",
+   "Airflow"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "ML collaborators"
+  ],
+  "interests": [
+   "salsa dancing",
+   "hiking"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Quin Dimitrov",
+  "headline": "Technical recruiter · ai teams · evaluation + ETL",
+  "public_summary": "I work on fine-tuning a small model for triage. 12 years in AI / ML, lately crossing into data. Happy to talk about Python and NLP.",
+  "approved_experience": "Technical recruiter · ai teams, 12 years. Built fine-tuning a small model for triage.",
+  "can_help_with": [
+   "evaluation",
+   "Python",
+   "NLP",
+   "data warehouse",
+   "ETL"
+  ],
+  "looking_for": [
+   "ai engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "hiking"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Jae Wiles",
+  "headline": "MLOps engineer · MLOps + IAM",
+  "public_summary": "I work on SOC 2 automation. 15 years in AI / ML, lately crossing into security. Happy to talk about evaluation and PyTorch.",
+  "approved_experience": "MLOps engineer, 15 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "MLOps",
+   "evaluation",
+   "PyTorch",
+   "cryptography",
+   "IAM"
+  ],
+  "looking_for": [
+   "product designers",
+   "GPU infrastructure help"
+  ],
+  "interests": [
+   "gardening",
+   "jazz",
+   "karaoke"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Quin Moreno",
+  "headline": "Design lead · UX research + cryptography",
+  "public_summary": "I work on passkey rollout for a consumer app. 12 years in design, lately crossing into security. Happy to talk about prototyping and product strategy.",
+  "approved_experience": "Design lead, 12 years. Built passkey rollout for a consumer app.",
+  "can_help_with": [
+   "UX research",
+   "prototyping",
+   "product strategy",
+   "threat modeling",
+   "cryptography"
+  ],
+  "looking_for": [
+   "user interview partners",
+   "engineers to prototype with"
+  ],
+  "interests": [
+   "film photography",
+   "sourdough"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Quin Ueda",
+  "headline": "Applied scientist · PyTorch + analytics",
+  "public_summary": "I work on evaluation harness for LLM agents. 9 years in AI / ML, lately crossing into data. Happy to talk about Python and fine-tuning.",
+  "approved_experience": "Applied scientist, 9 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "PyTorch",
+   "Python",
+   "fine-tuning",
+   "data pipelines",
+   "analytics"
+  ],
+  "looking_for": [
+   "product designers",
+   "privacy reviews"
+  ],
+  "interests": [
+   "pottery"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Jonah Farah",
+  "headline": "Product designer · Figma",
+  "public_summary": "I work on a pricing experiment framework. 4 years in design. Happy to talk about usability testing and product strategy.",
+  "approved_experience": "Product designer, 4 years. Built a pricing experiment framework.",
+  "can_help_with": [
+   "Figma",
+   "usability testing",
+   "product strategy",
+   "service design"
+  ],
+  "looking_for": [
+   "user interview partners",
+   "data for research"
+  ],
+  "interests": [
+   "volunteering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Lin Sato",
+  "headline": "Web performance engineer · web performance",
+  "public_summary": "I work on server-side rendering for a large marketplace. 2 years in web. Happy to talk about Next.js and TypeScript.",
+  "approved_experience": "Web performance engineer, 2 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "web performance",
+   "Next.js",
+   "TypeScript",
+   "React"
+  ],
+  "looking_for": [
+   "a co-founder",
+   "open-source contributors"
+  ],
+  "interests": [
+   "board games",
+   "jazz"
+  ],
+  "roles": [
+   "peer",
+   "mentee"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Esme Kaur",
+  "headline": "Product manager · roadmapping",
+  "public_summary": "I work on journey maps for hospital discharge. 5 years in design. Happy to talk about service design and growth.",
+  "approved_experience": "Product manager, 5 years. Built journey maps for hospital discharge.",
+  "can_help_with": [
+   "roadmapping",
+   "service design",
+   "growth"
+  ],
+  "looking_for": [
+   "engineers to prototype with",
+   "frontend collaborators"
+  ],
+  "interests": [
+   "chess",
+   "bouldering",
+   "speedcubing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Pia Gupta",
+  "headline": "Product manager · product strategy + pen testing",
+  "public_summary": "I work on SOC 2 automation. 14 years in design, lately crossing into security. Happy to talk about UX research and roadmapping.",
+  "approved_experience": "Product manager, 14 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "product strategy",
+   "UX research",
+   "roadmapping",
+   "compliance",
+   "pen testing"
+  ],
+  "looking_for": [
+   "user interview partners",
+   "data for research"
+  ],
+  "interests": [
+   "karaoke",
+   "film photography",
+   "jazz"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Bea Castro",
+  "headline": "Web performance engineer · Svelte",
+  "public_summary": "I work on an offline-first event schedule PWA. 4 years in web. Happy to talk about HTML and TypeScript.",
+  "approved_experience": "Web performance engineer, 4 years. Built an offline-first event schedule PWA.",
+  "can_help_with": [
+   "Svelte",
+   "HTML",
+   "TypeScript",
+   "accessibility"
+  ],
+  "looking_for": [
+   "backend mentorship",
+   "design feedback"
+  ],
+  "interests": [
+   "film photography"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Fen Quispe",
+  "headline": "Full-stack developer · Node + usability testing",
+  "public_summary": "I work on a component library used by six product teams. 8 years in web, lately crossing into design. Happy to talk about HTML and CSS.",
+  "approved_experience": "Full-stack developer, 8 years. Built a component library used by six product teams.",
+  "can_help_with": [
+   "Node",
+   "HTML",
+   "CSS",
+   "prototyping",
+   "usability testing"
+  ],
+  "looking_for": [
+   "a co-founder",
+   "observability for frontends"
+  ],
+  "interests": [
+   "gardening",
+   "chess"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Cal Novak",
+  "headline": "Security engineer · IAM + LLMs",
+  "public_summary": "I work on SOC 2 automation. 11 years in security, lately crossing into AI. Happy to talk about zero trust and compliance.",
+  "approved_experience": "Security engineer, 11 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "IAM",
+   "zero trust",
+   "compliance",
+   "fine-tuning",
+   "LLMs"
+  ],
+  "looking_for": [
+   "AI safety collaborators",
+   "platform partners"
+  ],
+  "interests": [
+   "speedcubing",
+   "hiking",
+   "cycling"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Kemi Sato",
+  "headline": "Technical recruiter · security teams · authentication",
+  "public_summary": "I work on threat models for a Kubernetes platform. 2 years in security. Happy to talk about pen testing and cryptography.",
+  "approved_experience": "Technical recruiter · security teams, 2 years. Built threat models for a Kubernetes platform.",
+  "can_help_with": [
+   "authentication",
+   "pen testing",
+   "cryptography",
+   "privacy"
+  ],
+  "looking_for": [
+   "security engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "drawing",
+   "film photography",
+   "birdwatching"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Vik Dimitrov",
+  "headline": "Product designer · growth + OpenTelemetry",
+  "public_summary": "I work on a design critique ritual for remote teams. 14 years in design, lately crossing into systems. Happy to talk about product strategy and roadmapping.",
+  "approved_experience": "Product designer, 14 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "growth",
+   "product strategy",
+   "roadmapping",
+   "AWS",
+   "OpenTelemetry"
+  ],
+  "looking_for": [
+   "frontend collaborators",
+   "user interview partners"
+  ],
+  "interests": [
+   "drawing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Uma Quispe",
+  "headline": "Cloud architect · Terraform",
+  "public_summary": "I work on chaos testing for a payments API. 8 years in systems. Happy to talk about Go and networking.",
+  "approved_experience": "Cloud architect, 8 years. Built chaos testing for a payments API.",
+  "can_help_with": [
+   "Terraform",
+   "Go",
+   "networking"
+  ],
+  "looking_for": [
+   "ML deployment problems",
+   "product feedback"
+  ],
+  "interests": [
+   "pottery",
+   "gardening",
+   "surfing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Oona Eriksen",
+  "headline": "Web performance engineer · TypeScript + Docker",
+  "public_summary": "I work on server-side rendering for a large marketplace. 11 years in web, lately crossing into systems. Happy to talk about HTML and web performance.",
+  "approved_experience": "Web performance engineer, 11 years. Built server-side rendering for a large marketplace.",
+  "can_help_with": [
+   "TypeScript",
+   "HTML",
+   "web performance",
+   "networking",
+   "Docker"
+  ],
+  "looking_for": [
+   "open-source contributors",
+   "observability for frontends"
+  ],
+  "interests": [
+   "jazz",
+   "speedcubing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Luca Abara",
+  "headline": "Applied scientist · evaluation",
+  "public_summary": "I work on a multimodal search prototype. 2 years in AI / ML. Happy to talk about NLP and embeddings.",
+  "approved_experience": "Applied scientist, 2 years. Built a multimodal search prototype.",
+  "can_help_with": [
+   "evaluation",
+   "NLP",
+   "embeddings"
+  ],
+  "looking_for": [
+   "MLOps feedback",
+   "GPU infrastructure help"
+  ],
+  "interests": [
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Oz Varga",
+  "headline": "MLOps engineer · PyTorch",
+  "public_summary": "I work on a RAG assistant over internal docs. 9 years in AI / ML. Happy to talk about NLP and evaluation.",
+  "approved_experience": "MLOps engineer, 9 years. Built a RAG assistant over internal docs.",
+  "can_help_with": [
+   "PyTorch",
+   "NLP",
+   "evaluation"
+  ],
+  "looking_for": [
+   "GPU infrastructure help",
+   "privacy reviews"
+  ],
+  "interests": [
+   "trail running",
+   "tea",
+   "volunteering"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Dev Zhou",
+  "headline": "Technical recruiter · design teams · service design",
+  "public_summary": "I work on a prototype for accessible voting kiosks. 5 years in design. Happy to talk about usability testing and prototyping.",
+  "approved_experience": "Technical recruiter · design teams, 5 years. Built a prototype for accessible voting kiosks.",
+  "can_help_with": [
+   "service design",
+   "usability testing",
+   "prototyping"
+  ],
+  "looking_for": [
+   "design engineers",
+   "candidates open to new roles"
+  ],
+  "interests": [
+   "trail running",
+   "sci-fi novels"
+  ],
+  "roles": [
+   "recruiter"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Sana Dube",
+  "headline": "Search engineer · SQL",
+  "public_summary": "I work on a dbt project with data contracts. 7 years in data. Happy to talk about analytics and Elasticsearch.",
+  "approved_experience": "Search engineer, 7 years. Built a dbt project with data contracts.",
+  "can_help_with": [
+   "SQL",
+   "analytics",
+   "Elasticsearch"
+  ],
+  "looking_for": [
+   "ML collaborators",
+   "mentorship"
+  ],
+  "interests": [
+   "bouldering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Gus Dimitrov",
+  "headline": "Search engineer · SQL",
+  "public_summary": "I work on a lakehouse migration. 14 years in data. Happy to talk about Spark and analytics.",
+  "approved_experience": "Search engineer, 14 years. Built a lakehouse migration.",
+  "can_help_with": [
+   "SQL",
+   "Spark",
+   "analytics",
+   "Elasticsearch"
+  ],
+  "looking_for": [
+   "data visualisation help",
+   "real-time search ideas"
+  ],
+  "interests": [
+   "surfing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Mo Moreno",
+  "headline": "Privacy engineer · cryptography + MLOps",
+  "public_summary": "I work on privacy reviews for an AI feature. 11 years in security, lately crossing into AI. Happy to talk about zero trust and threat modeling.",
+  "approved_experience": "Privacy engineer, 11 years. Built privacy reviews for an AI feature.",
+  "can_help_with": [
+   "cryptography",
+   "zero trust",
+   "threat modeling",
+   "NLP",
+   "MLOps"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "policy feedback"
+  ],
+  "interests": [
+   "sourdough",
+   "gardening",
+   "salsa dancing"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Rafa Zhou",
+  "headline": "Search engineer · Elasticsearch",
+  "public_summary": "I work on a streaming ETL pipeline for IoT sensors. 4 years in data. Happy to talk about ETL and SQL.",
+  "approved_experience": "Search engineer, 4 years. Built a streaming ETL pipeline for IoT sensors.",
+  "can_help_with": [
+   "Elasticsearch",
+   "ETL",
+   "SQL"
+  ],
+  "looking_for": [
+   "Kubernetes deployment advice",
+   "real-time search ideas"
+  ],
+  "interests": [
+   "karaoke",
+   "tea",
+   "sci-fi novels"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Mei Dube",
+  "headline": "DevOps engineer · Terraform + Figma",
+  "public_summary": "I work on a pricing experiment framework. 13 years in systems, lately crossing into design. Happy to talk about Kubernetes and AWS.",
+  "approved_experience": "DevOps engineer, 13 years. Built a pricing experiment framework.",
+  "can_help_with": [
+   "Terraform",
+   "Kubernetes",
+   "AWS",
+   "roadmapping",
+   "Figma"
+  ],
+  "looking_for": [
+   "ML deployment problems",
+   "frontend observability"
+  ],
+  "interests": [
+   "board games"
+  ],
+  "roles": [
+   "peer",
+   "mentor"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "later"
+ },
+ {
+  "display_name": "Bea Yilmaz",
+  "headline": "Design lead · roadmapping + authentication",
+  "public_summary": "I work on a design critique ritual for remote teams. 5 years in design, lately crossing into security. Happy to talk about prototyping and UX research.",
+  "approved_experience": "Design lead, 5 years. Built a design critique ritual for remote teams.",
+  "can_help_with": [
+   "roadmapping",
+   "prototyping",
+   "UX research",
+   "zero trust",
+   "authentication"
+  ],
+  "looking_for": [
+   "engineers to prototype with",
+   "AI product ideas"
+  ],
+  "interests": [
+   "board games",
+   "speedcubing",
+   "trail running"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Jae Lindgren",
+  "headline": "Security engineer · threat modeling",
+  "public_summary": "I work on SOC 2 automation. 6 years in security. Happy to talk about IAM and compliance.",
+  "approved_experience": "Security engineer, 6 years. Built SOC 2 automation.",
+  "can_help_with": [
+   "threat modeling",
+   "IAM",
+   "compliance",
+   "cryptography"
+  ],
+  "looking_for": [
+   "engineers who want security reviews",
+   "platform partners"
+  ],
+  "interests": [
+   "drawing",
+   "jazz"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "now"
+ },
+ {
+  "display_name": "Ivo Hoang",
+  "headline": "Infrastructure lead · Docker",
+  "public_summary": "I work on a self-service platform with Helm charts. 12 years in systems. Happy to talk about incident response and OpenTelemetry.",
+  "approved_experience": "Infrastructure lead, 12 years. Built a self-service platform with Helm charts.",
+  "can_help_with": [
+   "Docker",
+   "incident response",
+   "OpenTelemetry"
+  ],
+  "looking_for": [
+   "frontend observability",
+   "ML deployment problems"
+  ],
+  "interests": [
+   "trail running",
+   "gardening"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Wren Mbeki",
+  "headline": "Site reliability engineer · incident response + UX research",
+  "public_summary": "I work on cutting cloud spend by right-sizing. 10 years in systems, lately crossing into design. Happy to talk about Helm and Terraform.",
+  "approved_experience": "Site reliability engineer, 10 years. Built cutting cloud spend by right-sizing.",
+  "can_help_with": [
+   "incident response",
+   "Helm",
+   "Terraform",
+   "roadmapping",
+   "UX research"
+  ],
+  "looking_for": [
+   "product feedback",
+   "SRE mentees"
+  ],
+  "interests": [
+   "hiking",
+   "sourdough"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "one_to_one"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Teo Castro",
+  "headline": "Applied scientist · embeddings + privacy",
+  "public_summary": "I work on evaluation harness for LLM agents. 13 years in AI / ML, lately crossing into security. Happy to talk about NLP and RAG.",
+  "approved_experience": "Applied scientist, 13 years. Built evaluation harness for LLM agents.",
+  "can_help_with": [
+   "embeddings",
+   "NLP",
+   "RAG",
+   "zero trust",
+   "privacy"
+  ],
+  "looking_for": [
+   "product designers",
+   "privacy reviews"
+  ],
+  "interests": [
+   "sourdough",
+   "volunteering"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "after-lunch"
+ },
+ {
+  "display_name": "Xia Varga",
+  "headline": "MLOps engineer · LLMs + data pipelines",
+  "public_summary": "I work on a multimodal search prototype. 5 years in AI / ML, lately crossing into data. Happy to talk about PyTorch and NLP.",
+  "approved_experience": "MLOps engineer, 5 years. Built a multimodal search prototype.",
+  "can_help_with": [
+   "LLMs",
+   "PyTorch",
+   "NLP",
+   "dbt",
+   "data pipelines"
+  ],
+  "looking_for": [
+   "product designers",
+   "privacy reviews"
+  ],
+  "interests": [
+   "pottery",
+   "board games",
+   "drawing"
+  ],
+  "roles": [
+   "peer"
+  ],
+  "formats": [
+   "async",
+   "one_to_one",
+   "small_group"
+  ],
+  "availability": "now"
+ }
+]

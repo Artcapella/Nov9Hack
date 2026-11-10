@@ -2,110 +2,402 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#0a1734" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0a0a0a" />
     <title>NETwork Concierge</title>
-    <link rel="stylesheet" href="/styles.css" />
+    <link rel="stylesheet" href="/styles.css?v=0.11.0" />
   </head>
   <body>
-    <main class="shell">
+    <div class="backdrop" aria-hidden="true"></div>
+    <main class="shell" data-panel="join">
       <header class="topbar">
-        <a class="brand" href="/">NET<span>work</span></a>
-        <span class="badge">Elastic-native</span>
+        <a class="brand" href="/"><i aria-hidden="true"></i>NETwork</a>
+        <div class="header-meta">
+          <span class="live-dot" aria-hidden="true"></span>
+          <span id="runtime-status" role="status" aria-live="polite">Connecting…</span>
+          <button id="synth-toggle" class="ghost synth-toggle" type="button" aria-pressed="false" title="Include synthetic profiles in search and network maps. Demo booths stay visible in Sponsors.">Demo profiles · off</button>
+          <button id="open-trust" class="ghost trust-button" type="button" aria-haspopup="dialog" aria-controls="trust-drawer">Trust</button>
+        </div>
       </header>
+      <button id="seed-demo" type="button" class="secondary compact hidden">Load synthetic demo profiles</button>
+      <section id="my-card" class="card my-card hidden" aria-live="polite">
+        <div class="inline-row">
+          <p id="my-card-status"></p>
+          <div class="row-actions">
+            <button id="suggest-people" class="secondary compact-btn hidden" type="button">Find my people</button>
+            <button id="revoke-card" class="ghost" type="button">Withdraw card and contacts</button>
+          </div>
+        </div>
+        <div id="availability-control" class="availability-control hidden">
+          <div><strong id="availability-label">Ready for a conversation?</strong><p id="availability-status" class="subtle small" role="status">Highlight your card for 15 minutes when you’re free to connect.</p></div>
+          <button id="availability-toggle" type="button" class="secondary" aria-pressed="false">I’m available now</button>
+        </div>
+        <ol id="pipeline" class="pipeline" aria-label="Enrichment pipeline"></ol>
+        <p id="pipeline-meta" class="pipeline-meta mono"></p>
+      </section>
 
       <section id="connect-view" class="view hidden">
         <p class="eyebrow">Private connection request</p>
-        <h1>Someone wants to connect.</h1>
+        <h1 class="display">Someone wants to connect.</h1>
         <article id="connection-card" class="card"></article>
       </section>
 
       <section id="app-view" class="view">
         <div class="hero">
-          <p class="eyebrow">Conference connection, made useful</p>
-          <h1>Find the right person in the room.</h1>
-          <p>Opt in once. Let Elasticsearch surface the people, projects, and expertise that can help.</p>
+          <p class="eyebrow">Conference networking · opt-in</p>
+          <h1 class="display"><span class="line"><span>Find the people</span></span><span class="line"><span>worth meeting.</span></span></h1>
+          <p class="lede">A good conversation starts with the right person. Discover shared interests, exchange ideas, and make your next connection.</p>
         </div>
 
-        <nav class="tabs" aria-label="Application sections">
-          <button class="tab active" data-panel="join">Join</button>
-          <button class="tab" data-panel="ask">Ask NETwork</button>
-          <button class="tab" data-panel="elastic">Elastic proof</button>
+        <nav class="tabs" aria-label="Application sections" role="tablist">
+          <span class="tab-lens" aria-hidden="true"></span>
+          <button class="tab active" data-panel="join" role="tab"><span>01</span>Join</button>
+          <button class="tab" data-panel="people" role="tab"><span>02</span>People</button>
+          <button class="tab" data-panel="mynet" role="tab"><span>03</span>My network</button>
+          <button class="tab" data-panel="ask" role="tab"><span>04</span>Ask</button>
+          <button class="tab" data-panel="constellation" role="tab"><span>05</span>2D</button>
+          <button class="tab" data-panel="network3d" role="tab"><span>06</span>3D</button>
+          <button class="tab" data-panel="elastic" role="tab"><span>07</span>Stack</button>
+          <button class="tab" data-panel="sponsors" role="tab">Sponsors</button>
+          <button class="tab" data-panel="ops" role="tab"><span>08</span>Ops</button>
         </nav>
 
         <section id="join" class="panel active">
           <article class="card">
-            <p class="eyebrow">1 minute · opt-in only</p>
-            <h2>Build your conference card</h2>
-            <p class="subtle">Upload a resume to prefill your expertise. The file is parsed in memory, then discarded; only your approved card becomes discoverable.</p>
-            <form id="profile-form">
-              <label>Display name <input required name="display_name" maxlength="80" placeholder="Your name" /></label>
-              <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
-              <label>What can you help with? <input name="can_help_with" placeholder="Python, APIs, observability" /></label>
-              <label>What are you looking for? <input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
-              <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or hoping to solve?"></textarea></label>
-              <fieldset>
-                <legend>Connection style</legend>
-                <label class="check"><input type="checkbox" name="formats" value="async" checked /> Low-pressure async intro</label>
-                <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
-                <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
-              </fieldset>
-              <label>Availability
-                <select name="availability"><option value="now">Available now</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
-              </label>
-              <details>
-                <summary>Optional contact and resume</summary>
-                <label>Email <input type="email" name="email" placeholder="Only revealed after mutual acceptance" /></label>
-                <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
-                <label>Resume (PDF, DOCX, TXT, MD; 6 MB max) <input type="file" name="resume" accept=".pdf,.docx,.txt,.md" /></label>
-                <p id="resume-preview" class="result"></p>
-              </details>
-              <label class="check consent"><input required type="checkbox" name="consent_to_discover" /> I consent to my approved professional card being discoverable by other opted-in attendees for this event.</label>
-              <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> I consent to automated resume parsing if I upload a resume.</label>
-              <button class="primary" type="submit">Join NETwork</button>
+            <header class="card-head">
+              <h2>Your conference card</h2>
+              <p class="meta">~1 min</p>
+            </header>
+            <form id="profile-form" novalidate>
+              <div id="resume-step" class="step">
+                <p class="eyebrow">Step 1 of 2 · optional</p>
+                <h3 class="step-title">Start from your resume</h3>
+                <p class="subtle">NETwork autofills your card from it. The file is read in memory and then deleted. You review every field before anything becomes searchable.</p>
+                <label class="dropzone" id="resume-drop">
+                  <input type="file" name="resume" accept=".pdf,.docx,.txt,.md" />
+                  <span class="dropzone-text"><strong>Choose or drop a resume</strong><small>PDF, DOCX, TXT or MD · 6 MB max</small></span>
+                </label>
+                <div class="grid-2">
+                  <label>Source <select name="source_type"><option value="upload">My resume</option><option value="linkedin_export">My authorized LinkedIn export</option></select></label>
+                  <label class="check consent"><input type="checkbox" name="consent_to_resume_parsing" /> Parse my resume to suggest card fields. Required to autofill.</label>
+                </div>
+                <div class="row-actions step-actions">
+                  <button type="button" id="preview-resume" class="primary">Autofill my card</button>
+                  <button type="button" id="skip-resume" class="ghost">Skip and fill it in myself →</button>
+                </div>
+                <p id="resume-preview" class="result" aria-live="polite"></p>
+              </div>
+
+              <div id="card-step" class="step hidden">
+                <div class="inline-row">
+                  <p class="eyebrow">Step 2 of 2 · review your card</p>
+                  <button type="button" id="back-to-resume" class="ghost">← Use a resume</button>
+                </div>
+                <p id="autofill-note" class="autofill-note mono hidden"></p>
+                <p class="subtle small req-legend"><span class="req" aria-hidden="true">*</span> Required. Everything else is optional, but more detail gives better matches.</p>
+                <div class="grid-2">
+                  <label><span>Display name <span class="req" aria-hidden="true">*</span></span><input required name="display_name" minlength="2" maxlength="80" placeholder="Your name" aria-required="true" /></label>
+                  <label>Headline <input name="headline" maxlength="160" placeholder="Data scientist · Kubernetes learner" /></label>
+                  <label>Can help with <span class="hint">comma-separated</span><input name="can_help_with" placeholder="Python, APIs, observability" /></label>
+                  <label>Looking for <span class="hint">comma-separated</span><input name="looking_for" placeholder="MLOps feedback, collaborators" /></label>
+                </div>
+                <label>Public project summary <textarea name="public_summary" maxlength="1600" placeholder="What are you building, learning, or trying to solve?"></textarea></label>
+                <label>Outside work <span class="hint">optional · found only in the People › Outside work view</span><input name="interests" placeholder="Climbing, jazz, board games" /></label>
+                <label>Approved professional experience <textarea name="approved_experience" maxlength="2400" placeholder="Review and edit the experience you want other attendees to find."></textarea></label>
+                <div class="grid-2">
+                  <fieldset aria-required="true">
+                    <legend>Connection style <span class="req" aria-hidden="true">*</span> <span class="hint">pick at least one</span></legend>
+                    <label class="check"><input type="checkbox" name="formats" value="async" checked /> Async intro</label>
+                    <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
+                    <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
+                  </fieldset>
+                  <label>Availability
+                    <select name="availability"><option value="during-event">During the event</option><option value="after-lunch">After lunch</option><option value="later">Later today</option></select>
+                  </label>
+                </div>
+                <details id="contact-details">
+                  <summary>Contact details (optional, private until you accept an intro)</summary>
+                  <div class="details-body">
+                    <div class="grid-2">
+                      <label>Email <input type="email" name="email" placeholder="Shared only after you both accept" /></label>
+                      <label>LinkedIn URL <input type="url" name="linkedin_url" placeholder="https://linkedin.com/in/you" /></label>
+                    </div>
+                  </div>
+                </details>
+                <div class="consents">
+                  <label class="check consent"><input required type="checkbox" name="consent_to_discover" aria-required="true" /> <span>Let other opted-in attendees at this event find my approved card. <span class="req" aria-hidden="true">*</span></span></label>
+                </div>
+                <p class="subtle small">Keep this browser open. You need it to approve introductions and withdraw your card. Only the fields above become searchable.</p>
+                <button class="primary" type="submit">Approve and join</button>
+              </div>
             </form>
             <p id="profile-result" class="result" aria-live="polite"></p>
           </article>
         </section>
 
+        <section id="people" class="panel">
+          <div class="people">
+            <section class="available-section" aria-labelledby="available-title">
+              <div class="section-heading"><div><p class="eyebrow">Here for a conversation</p><h2 id="available-title">Open to connect</h2></div><button id="refresh-available" class="ghost" type="button">Refresh</button></div>
+              <p id="available-note" class="subtle small" role="status">Join the event to see who’s free right now.</p>
+              <div id="available-people" class="available-people"></div>
+            </section>
+            <form id="people-form" class="people-search" role="search">
+              <label class="visually-hidden" for="people-q">Search people</label>
+              <input id="people-q" type="search" maxlength="700" autocomplete="off" enterkeyhint="search" placeholder="Search people by skill, project or idea" />
+              <button class="icon-button people-go" type="submit" aria-label="Search">→</button>
+            </form>
+            <div class="mode-chips" role="radiogroup" aria-label="Similarity view">
+              <button type="button" class="chip-btn" role="radio" data-mode="query" aria-checked="true">Search</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="problem" aria-checked="false" tabindex="-1">Help with a problem</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="mutual" aria-checked="false" tabindex="-1">Mutual fit</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="hire" aria-checked="false" tabindex="-1">Hiring</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="interests" aria-checked="false" tabindex="-1">Outside work</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="discover" aria-checked="false" tabindex="-1">Find new people</button>
+              <button type="button" class="chip-btn" role="radio" data-mode="shuffle" aria-checked="false" tabindex="-1">Meet someone unexpected</button>
+              <button type="button" class="chip-btn filters-btn" id="people-filters-toggle" aria-expanded="false" aria-controls="people-filters">Filters<span class="n" id="people-filter-count"></span></button>
+            </div>
+            <form id="people-filters" class="filter-sheet" hidden>
+              <fieldset><legend>Connection style</legend>
+                <label class="check"><input type="checkbox" name="formats" value="async" /> Async intro</label>
+                <label class="check"><input type="checkbox" name="formats" value="one_to_one" /> 1:1</label>
+                <label class="check"><input type="checkbox" name="formats" value="small_group" /> Small group</label>
+              </fieldset>
+              <fieldset><legend>Role</legend>
+                <label class="check"><input type="checkbox" name="roles" value="mentor" /> Mentor</label>
+                <label class="check"><input type="checkbox" name="roles" value="mentee" /> Mentee</label>
+                <label class="check"><input type="checkbox" name="roles" value="peer" /> Peer</label>
+              </fieldset>
+              <fieldset><legend>More</legend>
+                <label class="check"><input type="checkbox" name="available_now" /> Available now</label>
+                <label class="check"><input type="checkbox" name="sponsor_intent" /> Include sponsors and recruiters</label>
+              </fieldset>
+              <div class="row-actions">
+                <button type="submit" class="secondary compact-btn">Apply</button>
+                <button type="reset" class="ghost">Clear</button>
+              </div>
+            </form>
+            <p id="people-basis" class="people-basis mono" aria-live="polite"></p>
+            <details id="break-details" class="why">
+              <summary>My networking break</summary>
+              <p class="subtle small">Share one free window and a public meeting area with other attendees. Times use your device’s timezone. This does not book a meeting.</p>
+              <form id="break-form">
+                <label>From <input name="starts_at" type="datetime-local" required /></label>
+                <label>Until <input name="ends_at" type="datetime-local" required /></label>
+                <label>Meeting area <input name="area" maxlength="120" placeholder="Room or public meeting point" required /></label>
+                <div class="row-actions"><button class="secondary compact-btn" type="submit">Share break</button><button id="break-clear" type="button" class="ghost">Remove</button></div>
+              </form>
+              <p id="break-status" class="small" aria-live="polite"></p>
+            </details>
+            <div id="people-intros"></div>
+            <ol id="people-results" class="people-list" aria-label="Matching people"></ol>
+            <section id="talks" class="talks" aria-labelledby="talks-title">
+              <h3 id="talks-title">Talks &amp; events for you</h3>
+              <p class="subtle small">Fictional demo schedule ranked by Elastic: BM25 and Jina vectors fused with RRF, then the Jina reranker. Leave the box empty to use your card's interests.</p>
+              <form id="talks-form" class="talks-form"><input id="talks-q" maxlength="300" placeholder="A topic, e.g. climbing or observability" aria-label="Talk or event topic" /><button class="secondary compact-btn" type="submit">Find talks</button></form>
+              <p id="talks-status" class="small" aria-live="polite"></p>
+              <ol id="talks-results" class="talk-list" aria-label="Suggested talks and events"></ol>
+            </section>
+          </div>
+        </section>
+
+        <section id="mynet" class="panel">
+          <article class="constellation-card">
+            <header class="constellation-heading">
+              <div>
+                <h2>My network</h2>
+                <p class="subtle small">Only people you have interacted with. Rings show how strong each link is: met in person (innermost), messaged, same session, viewed profile (outermost). Open anyone's card to log an interaction. Lines flash when either of you adds one.</p>
+              </div>
+            </header>
+            <div class="constellation-stage ego-stage" id="ego-stage">
+              <canvas id="ego-canvas" aria-label="Your interaction network. Tap a person to open their card."></canvas>
+              <div class="hud hud-tl mono g3-stats" id="ego-stats">connecting…</div>
+            </div>
+            <div id="ego-list" class="ego-list" aria-live="polite"></div>
+          </article>
+        </section>
+
         <section id="ask" class="panel">
-          <article class="card contrast">
-            <p class="eyebrow">Live judge demo</p>
-            <h2>Who can help with this?</h2>
+          <article class="card">
+            <header class="card-head">
+              <h2>Who can help with this?</h2>
+              <p class="meta">hybrid · RRF</p>
+            </header>
             <form id="search-form">
-              <label>Ask a non-confidential technical question
+              <label>Ask a technical question. Don't include anything confidential.
                 <textarea id="question" required placeholder="Our Kubernetes app is slow and we cannot tell where the bottleneck is."></textarea>
               </label>
-              <label class="check"><input id="sponsor-intent" type="checkbox" /> Include sponsor/recruiter expertise</label>
-              <button class="primary" type="submit">Find people and evidence</button>
+              <div class="row-between">
+                <label class="check"><input id="sponsor-intent" type="checkbox" /> Include sponsor and recruiter expertise</label>
+                <button class="primary" type="submit">Search</button>
+              </div>
             </form>
+            <div class="compare-bar hidden" id="compare-bar">
+              <div class="seg" role="radiogroup" aria-label="Retrieval mode">
+                <button type="button" role="radio" data-mode="keyword" aria-checked="false">Keyword <span class="count" data-count="keyword"></span></button>
+                <button type="button" role="radio" data-mode="semantic" aria-checked="false">Semantic <span class="count" data-count="semantic"></span></button>
+                <button type="button" role="radio" data-mode="hybrid" aria-checked="true">Hybrid <span class="count" data-count="hybrid"></span></button>
+              </div>
+              <p id="compare-summary" class="compare-summary mono" aria-live="polite"></p>
+            </div>
             <div id="search-results" class="stack" aria-live="polite"></div>
             <section id="rag-answer" class="rag hidden"></section>
           </article>
         </section>
 
+        <section id="constellation" class="panel">
+          <article class="constellation-card">
+            <header class="constellation-heading">
+              <div>
+                <h2>Live network · 2D</h2>
+                <p class="subtle small">Every discoverable card in Elasticsearch, placed by the first two PCA components of its stored Jina vector (the 3D view seen from the front). Lines appear only where people interacted, thicker for stronger interactions. Shaded regions are clusters found by k-means and named after their members' most distinctive skills. Packets are live activity: interactions, joins and API requests.</p>
+              </div>
+              <div class="field-tools">
+                <label class="node-search"><span class="visually-hidden">Go to node</span>
+                  <input id="node-search" list="node-options" placeholder="Go to…" autocomplete="off" />
+                  <datalist id="node-options"></datalist>
+                </label>
+                <button class="icon-button" id="recenter-constellation" type="button" aria-label="Reset view" title="Reset view (Esc)">⤢</button>
+              </div>
+            </header>
+            <div class="constellation-stage" id="constellation-stage">
+              <canvas id="constellation-canvas" tabindex="0" aria-label="Interactive map of opted-in attendee expertise. Drag to pan, scroll to zoom, click a node to focus."></canvas>
+              <div class="hud hud-tl" id="cluster-legend"></div>
+              <div class="hud hud-tr mono" id="telemetry-readout">server telemetry…</div>
+              <div class="constellation-caption" id="constellation-caption"><span class="mono">—</span><p>Tap a person to see their links. Tap a cluster name to zoom to it.</p></div>
+              <div class="hud hud-br mono" id="zoom-readout">1.00×</div>
+            </div>
+            <p class="constellation-note mono">drag to pan · pinch or scroll to zoom · tap to focus · esc to reset · live from Elastic every 8 s</p>
+          </article>
+        </section>
+
+        <section id="network3d" class="panel">
+          <article class="constellation-card">
+            <header class="constellation-heading">
+              <div>
+                <h2>Live network · 3D</h2>
+                <p class="subtle small">Every discoverable card in Elasticsearch, placed by the Jina embedding stored with it and projected to 3D with PCA. Lines are interactions only, weighted by strength (SynthDemo links are simulated and faint). Cluster names float at each cluster's centre. Joins, withdrawals and new interactions flash live.</p>
+              </div>
+              <div class="field-tools">
+                <label class="check small-check"><input type="checkbox" id="g3-sponsors" /> Sponsors</label>
+                <button class="icon-button" id="g3-reset" type="button" aria-label="Reset view" title="Reset view">⤢</button>
+              </div>
+            </header>
+            <div class="constellation-stage g3-stage" id="g3-stage">
+              <canvas id="g3-canvas" tabindex="0" aria-label="3D map of every discoverable card. Drag to orbit, scroll to zoom, click a person to open their card."></canvas>
+              <div class="hud hud-tl mono g3-stats" id="g3-stats">connecting…</div>
+              <div class="hud hud-tr mono g3-feed" id="g3-feed"></div>
+              <div class="hud hud-br mono" id="g3-axes"></div>
+              <div class="g3-empty hidden" id="g3-empty"></div>
+            </div>
+            <p class="constellation-note mono">drag to orbit · pinch or scroll to zoom · tap a person for their card · live from Elastic every 8 s</p>
+          </article>
+        </section>
+
         <section id="elastic" class="panel">
           <article class="card">
-            <p class="eyebrow">What powers NETwork</p>
-            <h2>Elastic is the conference brain.</h2>
-            <ul class="feature-list">
-              <li><strong>Elastic Cloud Serverless:</strong> operational records, public profile search, private-contact boundary, and connection events.</li>
-              <li><strong>Hybrid retrieval:</strong> BM25-style lexical precision + <code>semantic_text</code> meaning search combined with RRF.</li>
-              <li><strong>AI/RAG:</strong> retrieved attendee and sponsor evidence grounds concierge answers.</li>
-              <li><strong>MCP-ready:</strong> connect an Elastic Agent Builder agent to a coding-agent host for live tool access.</li>
-              <li><strong>ES|QL and aggregations:</strong> turn opt-in activity into conference intelligence.</li>
-            </ul>
+            <header class="card-head"><h2>What runs NETwork</h2><p class="meta">live</p></header>
+            <p class="subtle small">Each dot is a real request to this deployment, travelling the path it actually takes. Numbers update every 2 s from the API's own telemetry. Routes appear as templates only, with no IDs or tokens.</p>
+            <div class="diagram-wrap">
+              <svg id="stack-diagram" class="diagram" viewBox="0 0 820 330" role="img" aria-label="Architecture: browser to FastAPI on Kubernetes, to Elastic Cloud Serverless with Jina inference and Agent Builder; a worker queue writes to Elastic; telemetry exports to Dash0.">
+                <g class="paths">
+                  <path data-hop="browser_api" d="M110 70 L300 70"/>
+                  <path data-hop="api_es" d="M440 70 L600 70"/>
+                  <path data-hop="api_worker" d="M370 100 L370 210"/>
+                  <path data-hop="worker_es" d="M440 240 L600 110"/>
+                  <path data-hop="api_dash0" d="M370 100 C 370 300, 220 300, 180 300"/>
+                  <path data-hop="es_jina" d="M670 100 L670 180"/>
+                  <path data-hop="es_agent" d="M740 70 C 800 70, 800 250, 740 250"/>
+                </g>
+                <g class="boxes">
+                  <g><rect x="10" y="40" width="100" height="60" rx="8"/><text x="60" y="66">Browser</text><text x="60" y="84" class="sub">phone · QR</text></g>
+                  <g class="k8s"><rect x="300" y="40" width="140" height="60" rx="8"/><text x="370" y="66">FastAPI</text><text x="370" y="84" class="sub">Helm · K8s · Radar</text></g>
+                  <g class="es"><rect x="600" y="40" width="140" height="60" rx="8"/><text x="670" y="62">Elastic Serverless</text><text x="670" y="80" class="sub">RRF hybrid · ES|QL</text><text x="670" y="94" class="sub">network_*_v3</text></g>
+                  <g class="k8s"><rect x="300" y="210" width="140" height="60" rx="8"/><text x="370" y="236">Worker</text><text x="370" y="254" class="sub">leased queue · retries</text></g>
+                  <g class="es"><rect x="600" y="180" width="140" height="44" rx="8"/><text x="670" y="200">Jina v5 inference</text><text x="670" y="215" class="sub">semantic_text</text></g>
+                  <g class="es"><rect x="600" y="234" width="140" height="44" rx="8"/><text x="670" y="254">Agent Builder</text><text x="670" y="269" class="sub">concierge · MCP</text></g>
+                  <g class="dash0"><rect x="40" y="280" width="140" height="44" rx="8"/><text x="110" y="300">Dash0</text><text x="110" y="315" class="sub">OTLP traces · metrics</text></g>
+                  <g class="gitar"><rect x="10" y="150" width="140" height="44" rx="8"/><text x="80" y="170">Gitar</text><text x="80" y="185" class="sub">privacy PR review</text></g>
+                </g>
+              </svg>
+            </div>
+            <p id="stack-note" class="mono small-note">connecting…</p>
+            <div id="stack-tiles" class="tiles"></div>
+            <div class="grid-2 stack-grid">
+              <section><h3 class="eyebrow">Throughput</h3><div id="stack-spark" class="spark"></div></section>
+              <section><h3 class="eyebrow">How much the maps keep (PCA)</h3><div id="stack-pca"></div></section>
+            </div>
+            <section><h3 class="eyebrow">Latency by route · p50 (solid) and p95 (light) · last 5 min</h3><div id="stack-routes"></div></section>
+            <h3 class="eyebrow">How it fits together</h3>
+            <dl class="spec">
+              <dt>Elastic Cloud Serverless</dt><dd>One strict, versioned index per concern: public cards, restricted resume data, encrypted contacts, ingestion queue, introductions and interactions. Contacts never sit in a searchable index.</dd>
+              <dt>Jina embeddings</dt><dd><code>semantic_text</code> fields call the pinned Jina v5 endpoint at index time. The 2D and 3D maps read those stored vectors back (<code>_inference_fields</code>) and never re-embed them.</dd>
+              <dt>Hybrid retrieval</dt><dd>BM25 keyword matching and semantic search fused with RRF. The Ask tab shows all three side by side. Every branch applies the same consent, event and expiry filters.</dd>
+              <dt>Clustering</dt><dd>k-means (cosine, deterministic k-means++) on the full 1024-d vectors. Each cluster is named after the tags most over-represented among its members compared with the whole room (share × idf).</dd>
+              <dt>Interaction graph</dt><dd>Links exist only after an interaction: viewed profile (1) &lt; same session (2) &lt; messaged (3) &lt; met in person (5), with a little extra for repeats. Profile views are visible only to the two people involved.</dd>
+              <dt>Agent Builder + MCP</dt><dd>The concierge answers from approved evidence with three event-scoped ES|QL tools. The same agent is reachable from coding hosts over MCP.</dd>
+              <dt>Dash0</dt><dd>API and worker export OTLP traces and metrics with no profile content. Queue jobs carry trace context, so a publish spans both processes.</dd>
+              <dt>Radar</dt><dd>The Helm release runs non-root and read-only on Kubernetes, watched by the Radar agent.</dd>
+              <dt>Gitar</dt><dd>Every PR gets a privacy-focused review against the repository's own instructions.</dd>
+            </dl>
+          </article>
+        </section>
+
+        <section id="sponsors" class="panel" aria-labelledby="sponsors-title">
+          <header class="section-heading sponsor-heading"><div><p class="eyebrow">Meet the teams behind the tools</p><h2 id="sponsors-title">The sponsor lounge.</h2></div><span class="demo-label">Demo booths</span></header>
+          <p class="subtle sponsor-intro">Four teams. Four ways to move your project forward. Explore a topic and bring it to the concierge.</p>
+          <p class="small subtle">Booth numbers and office-hour scenarios are fictional demo data; they are not a venue map or live staffing schedule.</p>
+          <div id="sponsor-grid" class="sponsor-grid" aria-live="polite"></div>
+          <p id="sponsor-status" class="small" role="status"></p>
+        </section>
+
+        <section id="ops" class="panel">
+          <article class="card">
+            <header class="card-head">
+              <h2>Command center</h2>
+              <p class="meta" id="ops-meta">organizer</p>
+            </header>
+            <p class="subtle small">Counts and aggregates only. No names, messages or contact details appear here. Topics come from card fields attendees already chose to publish.</p>
+            <form id="ops-auth" class="ops-auth hidden">
+              <label>Organizer token <input id="ops-token" type="password" autocomplete="off" minlength="16" required /></label>
+              <button class="secondary" type="submit">Unlock</button>
+            </form>
+            <p id="ops-status" class="result" aria-live="polite"></p>
+            <div id="ops-body" class="ops hidden"></div>
           </article>
         </section>
       </section>
+      <footer class="site-footer"><span>Built with</span><nav aria-label="Project sponsors"><button type="button" data-sponsor="elastic">Elastic</button><button type="button" data-sponsor="radar">Radar</button><button type="button" data-sponsor="dash0">Dash0</button><button type="button" data-sponsor="gitar">Gitar</button></nav><span>Good conversations. By choice.</span></footer>
     </main>
+    <aside id="trust-drawer" class="drawer" role="dialog" aria-modal="true" aria-labelledby="trust-title" hidden>
+      <div class="drawer-scrim" data-close></div>
+      <div class="drawer-panel">
+        <header class="card-head">
+          <div><p class="eyebrow">Trust center</p><h2 id="trust-title">What NETwork holds about you</h2></div>
+          <button class="icon-button" type="button" data-close aria-label="Close trust center">×</button>
+        </header>
+        <div id="trust-body" class="trust-body"></div>
+      </div>
+    </aside>
+    <aside id="person-sheet" class="sheet" aria-labelledby="sheet-name" hidden>
+      <div class="sheet-panel">
+        <button class="icon-button sheet-close" type="button" aria-label="Close card">×</button>
+        <div id="sheet-body"></div>
+      </div>
+    </aside>
     <template id="result-template">
       <article class="match-card">
+        <span class="hue-bar" aria-hidden="true"></span>
         <div><p class="eyebrow role"></p><h3 class="name"></h3><p class="headline"></p></div>
+        <p class="found-by mono"></p>
         <p class="summary"></p><ul class="reasons"></ul>
-        <button class="secondary connect">Request async introduction</button>
+        <details class="why"><summary>Why this match?</summary><div class="why-body"></div></details>
+        <div class="row-actions">
+          <button class="secondary connect">Request async introduction</button>
+          <button class="ghost locate" type="button">Show on map</button>
+        </div>
       </article>
     </template>
-    <script src="/app.js"></script>
+    <script src="/app.js?v=0.11.0"></script>
   </body>
 </html>

@@ -1,0 +1,27 @@
+{
+  "workflow_id": "network-opt-in-pipeline-audit-1",
+  "definition": "deploy/elastic/ingestion-queue-audit.yaml",
+  "execution_id": "6a3343fa-454f-4628-8245-c3f572856222",
+  "status": "completed",
+  "started_at": "2026-11-09T21:04:34.764Z",
+  "finished_at": "2026-11-09T21:04:35.930Z",
+  "steps": [
+    {
+      "step": "inspect_pending_jobs",
+      "status": "completed"
+    },
+    {
+      "step": "count_discoverable_cards",
+      "status": "completed"
+    },
+    {
+      "step": "report",
+      "status": "completed"
+    }
+  ],
+  "agent_builder_custom_tools": [
+    "network.conference_skill_summary",
+    "network.find_people",
+    "network.find_sponsors"
+  ]
+}

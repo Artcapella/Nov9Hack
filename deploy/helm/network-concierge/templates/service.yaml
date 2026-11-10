@@ -4,5 +4,5 @@ metadata:
   name: {{ include "network-concierge.fullname" . }}
 spec:
   type: {{ .Values.service.type }}
-  selector: { app.kubernetes.io/name: {{ include "network-concierge.name" . }} }
+  selector: { app.kubernetes.io/name: {{ include "network-concierge.name" . }}, app.kubernetes.io/instance: {{ .Release.Name }}, app.kubernetes.io/component: api }
   ports: [{ name: http, port: {{ .Values.service.port }}, targetPort: http }]

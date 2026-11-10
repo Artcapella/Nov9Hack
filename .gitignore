@@ -1,6 +1,13 @@
 .env
 .venv/
+.venv-next/
+.tools/
+*.manifest.private.json
 __pycache__/
 .pytest_cache/
 *.pyc
 *.zip
+.env.api
+.env.worker
+backups/
+.demo-qa/
